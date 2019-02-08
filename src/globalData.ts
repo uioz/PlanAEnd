@@ -1,5 +1,5 @@
 import { Log4js,Logger } from "log4js";
-import { MongoClient, Db } from "mongodb";
+import { MongoClient, Db, Collection } from "mongodb";
 
 /**
  * log4js可选的categories类型,对应config/logconfig.json中的配置
@@ -106,6 +106,31 @@ const globalData = new class GlobalData {
      */
     getMongoDatabase(){
         return this.mongoDatabase;
+    }
+
+    /**
+     * 读取mongo中的服务器配置,并且到对象的内部
+     * @param collection mongo集合对象
+     * @param configType 读取的类型
+     */
+    async readConfigFromMongo(collection:Collection,configType:configType){
+        return this.configs[configType] = await collection.findOne({});
+    }
+
+    /**
+     * 重写
+     */
+    async writeConfigToMongo(){
+
+    }
+
+    /**
+     * 关闭全局的MongoClient客户端
+     * @param force 是否强制关闭
+     */
+    databaseClose(force:boolean = false){
+        this.getLogger().warn('The MongoClient is gonna close!');
+        this.mongoClient.close(false);
     }
 
 }

@@ -22,19 +22,25 @@ Object.defineProperty(exports, "__esModule", { value: true });
 function createCollection(name, db, option = {}, createOptinos = {}) {
     return __awaiter(this, void 0, void 0, function* () {
         const complete = Object.assign({ capped: (option.size || option.max) ? true : false }, option, createOptinos);
-        delete complete.insertData;
-        delete complete.force;
+        try {
+            delete complete.insertData;
+            delete complete.force;
+        }
+        catch (error) {
+        }
         // 给符合条件的集合指定默认大小50MIB
         if (complete.max && !complete.size) {
             complete.size = 5242880;
         }
         if (option.force) {
             // 先删除后创建不然会创建失败
-            yield db.dropCollection(name);
+            yield db.dropCollection(name).catch(() => {
+                // 忽略错误处理,如果集合不存在的话会报错
+            });
         }
         const collection = yield db.createCollection(name, complete);
         if (option.insertData) {
-            collection.insert(option.insertData).catch((error) => console.warn(error));
+            yield collection.insertOne(option.insertData);
         }
         return collection;
     });

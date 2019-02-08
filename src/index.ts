@@ -1,15 +1,15 @@
 import { resolve } from "path";
 import * as log4js from "log4js";
 import globalData from "./globalData";
-import { connect, MongoClient } from "mongodb";
-import init from "./init";
+import { connect, MongoClient, Collection, Db } from "mongodb";
+import { createCollection } from "./DAO/collectionCreate";
 
 /**
  * 检测是否需要数据库初始化
  * @param key 数据库名称
  * @param databaseList 数据库列表
  */
-function needInit(key:string,databaseList:Array<any>):boolean {
+function needInit(key: string, databaseList: Array<any>): boolean {
 
     for (const item of databaseList) {
         if (item.name === 'configuration_static') {
@@ -18,6 +18,10 @@ function needInit(key:string,databaseList:Array<any>):boolean {
     }
 
     return true;
+}
+
+enum ConfigNameMap {
+    'systemConfig' = 'configuration_static'
 }
 
 /**
@@ -32,52 +36,73 @@ export default async function (Cwd: string) {
     const
         ConfigDir = resolve(Cwd, './config'),
         LogConfig = require(resolve(ConfigDir, './logconfig.json')),
-        SysConfig = require(resolve(ConfigDir, './systemConfig.json'));
+        SystemConfig = require(resolve(ConfigDir, './systemConfig.json')),
+        MongoURl = SystemConfig.system.mongodbUrl,
+        DatabaseName = SystemConfig.system.mongodbDataBase;
 
     globalData.setConfig('logType', LogConfig);
-    globalData.setConfig('systemConfig', SysConfig);
+    globalData.setConfig('systemConfig', SystemConfig);
     globalData.setLog4js(log4js.configure(LogConfig));
 
-    // TODO 默认开发时候使用该策略
-    const 
+    // TODO 默认开发时候使用该log策略
+    const
         defaultLoggerName = 'developmentOnlySystem',
         logger = globalData.getLogger(defaultLoggerName);
-    
+
     globalData.setGlobalLoggerName(defaultLoggerName);
     logger.info('switch on logger to log4js.');
 
-    let MongoClient: MongoClient;
+    let
+        MongoClient: MongoClient,
+        Database: Db,
+        Collection: Collection;
 
     try {
 
         logger.info('Connect to MongoDB!');
-        
+
         // 注意连接的数据库已经在配置文件中指定了
-        MongoClient = await connect(SysConfig.system.mongodbUrl,{
-            useNewUrlParser:true
+        MongoClient = await connect(MongoURl, {
+            useNewUrlParser: true
         });
 
         globalData.setMongoClient(MongoClient);
 
     } catch (error) {
         logger.error(error);
-        return;
+        return globalData.databaseClose();
     }
 
-    const database = MongoClient.db(SysConfig.system.mongodbDataBase,{
-        returnNonCachedInstance:true
+    Database = MongoClient.db(DatabaseName, {
+        returnNonCachedInstance: true
     });
+    globalData.setMongoDatabase(Database);
 
-    globalData.setMongoDatabase(database);
-
-    const databaseList = await database.listCollections().toArray();
-
-    logger.info(`The following table to show structure of database in ${SysConfig.system.mongodbDataBase}.`);
-
+    const databaseList = await Database.listCollections().toArray();
+    logger.info(`The following table to show structure of database in ${DatabaseName}.`);
     console.table(databaseList);
 
-    if (needInit('configuration_static',databaseList)){
-        init(databaseList,ConfigDir);
+    // 如果是首次启动将系统配置移动到数据库中
+    if (needInit('configuration_static', databaseList)) {
+        try {
+            Collection = await createCollection('configuration_static', Database, {
+                force: true,
+                insertData: globalData.getConfig('systemConfig')
+            });
+        } catch (error) {
+            logger.error(`initialization Database failed, reason: ${error}`);
+            return globalData.databaseClose();
+        }
+    } else {
+        // 不是首次启动则从数据库中获取系统配置
+        Collection = Database.collection(ConfigNameMap['systemConfig']);
+        try {
+            await globalData.readConfigFromMongo(Collection,'systemConfig');
+        } catch (error) {
+            logger.error(`Cannot get collection named ${ConfigNameMap['systemConfig']} From Database of ${DatabaseName}`);
+            return globalData.databaseClose(); 
+        }
     }
+
 
 }

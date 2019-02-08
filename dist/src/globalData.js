@@ -1,4 +1,12 @@
 "use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const globalData = new class GlobalData {
     constructor() {
@@ -63,6 +71,31 @@ const globalData = new class GlobalData {
      */
     getMongoDatabase() {
         return this.mongoDatabase;
+    }
+    /**
+     * 读取mongo中的服务器配置,并且到对象的内部
+     * @param collection mongo集合对象
+     * @param configType 读取的类型
+     */
+    readConfigFromMongo(collection, configType) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return this.configs[configType] = yield collection.findOne({});
+        });
+    }
+    /**
+     * 重写
+     */
+    writeConfigToMongo() {
+        return __awaiter(this, void 0, void 0, function* () {
+        });
+    }
+    /**
+     * 关闭全局的MongoClient客户端
+     * @param force 是否强制关闭
+     */
+    databaseClose(force = false) {
+        this.getLogger().warn('The MongoClient is gonna close!');
+        this.mongoClient.close(false);
     }
 };
 exports.default = globalData;

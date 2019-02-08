@@ -12,7 +12,7 @@ const path_1 = require("path");
 const log4js = require("log4js");
 const globalData_1 = require("./globalData");
 const mongodb_1 = require("mongodb");
-const init_1 = require("./init");
+const collectionCreate_1 = require("./DAO/collectionCreate");
 /**
  * 检测是否需要数据库初始化
  * @param key 数据库名称
@@ -26,6 +26,10 @@ function needInit(key, databaseList) {
     }
     return true;
 }
+var ConfigNameMap;
+(function (ConfigNameMap) {
+    ConfigNameMap["systemConfig"] = "configuration_static";
+})(ConfigNameMap || (ConfigNameMap = {}));
 /**
  * 项目运行入口
  * @param Cwd 启动项目路径
@@ -34,36 +38,57 @@ function default_1(Cwd) {
     return __awaiter(this, void 0, void 0, function* () {
         console.log('System is Runing,Please wait for moment!');
         console.log(`The Directory of Root is ${Cwd}`);
-        const ConfigDir = path_1.resolve(Cwd, './config'), LogConfig = require(path_1.resolve(ConfigDir, './logconfig.json')), SysConfig = require(path_1.resolve(ConfigDir, './systemConfig.json'));
+        const ConfigDir = path_1.resolve(Cwd, './config'), LogConfig = require(path_1.resolve(ConfigDir, './logconfig.json')), SystemConfig = require(path_1.resolve(ConfigDir, './systemConfig.json')), MongoURl = SystemConfig.system.mongodbUrl, DatabaseName = SystemConfig.system.mongodbDataBase;
         globalData_1.default.setConfig('logType', LogConfig);
-        globalData_1.default.setConfig('systemConfig', SysConfig);
+        globalData_1.default.setConfig('systemConfig', SystemConfig);
         globalData_1.default.setLog4js(log4js.configure(LogConfig));
-        // TODO 默认开发时候使用该策略
+        // TODO 默认开发时候使用该log策略
         const defaultLoggerName = 'developmentOnlySystem', logger = globalData_1.default.getLogger(defaultLoggerName);
         globalData_1.default.setGlobalLoggerName(defaultLoggerName);
         logger.info('switch on logger to log4js.');
-        let MongoClient;
+        let MongoClient, Database, Collection;
         try {
             logger.info('Connect to MongoDB!');
             // 注意连接的数据库已经在配置文件中指定了
-            MongoClient = yield mongodb_1.connect(SysConfig.system.mongodbUrl, {
+            MongoClient = yield mongodb_1.connect(MongoURl, {
                 useNewUrlParser: true
             });
             globalData_1.default.setMongoClient(MongoClient);
         }
         catch (error) {
             logger.error(error);
-            return;
+            return globalData_1.default.databaseClose();
         }
-        const database = MongoClient.db(SysConfig.system.mongodbDataBase, {
+        Database = MongoClient.db(DatabaseName, {
             returnNonCachedInstance: true
         });
-        globalData_1.default.setMongoDatabase(database);
-        const databaseList = yield database.listCollections().toArray();
-        logger.info(`The following table to show structure of database in ${SysConfig.system.mongodbDataBase}.`);
+        globalData_1.default.setMongoDatabase(Database);
+        const databaseList = yield Database.listCollections().toArray();
+        logger.info(`The following table to show structure of database in ${DatabaseName}.`);
         console.table(databaseList);
+        // 如果是首次启动将系统配置移动到数据库中
         if (needInit('configuration_static', databaseList)) {
-            init_1.default(databaseList, ConfigDir);
+            try {
+                Collection = yield collectionCreate_1.createCollection('configuration_static', Database, {
+                    force: true,
+                    insertData: globalData_1.default.getConfig('systemConfig')
+                });
+            }
+            catch (error) {
+                logger.error(`initialization Database failed, reason: ${error}`);
+                return globalData_1.default.databaseClose();
+            }
+        }
+        else {
+            // 不是首次启动则从数据库中获取系统配置
+            Collection = Database.collection(ConfigNameMap['systemConfig']);
+            try {
+                yield globalData_1.default.readConfigFromMongo(Collection, 'systemConfig');
+            }
+            catch (error) {
+                logger.error(`Cannot get collection named ${ConfigNameMap['systemConfig']} From Database of ${DatabaseName}`);
+                return globalData_1.default.databaseClose();
+            }
         }
     });
 }

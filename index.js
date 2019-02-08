@@ -12,6 +12,6 @@
  * 使用虚拟Root和baseUrl只能解决引入模块的问题在运行的时候的引入文件路径不会修改.
  * 所以使用这里定义的index.js来调用由TypeScript编写的入口文件,在src目录下的路径和dist运行时保持了一致
  */
-require('./dist/index.js').default(__dirname);
+require('./dist/src/index.js').default(__dirname);
 
 // TODO 检测传入参数

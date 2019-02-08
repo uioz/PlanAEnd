@@ -42,8 +42,12 @@ export async function createCollection(name: string, db: Db,option:options = {},
         ...createOptinos
     };
 
-    delete complete.insertData;
-    delete complete.force;
+    try {
+        delete complete.insertData;
+        delete complete.force;
+    } catch (error) {
+        
+    }
 
     // 给符合条件的集合指定默认大小50MIB
     if(complete.max && !complete.size){
@@ -52,13 +56,15 @@ export async function createCollection(name: string, db: Db,option:options = {},
 
     if(option.force){
         // 先删除后创建不然会创建失败
-        await db.dropCollection(name);
+        await db.dropCollection(name).catch(()=>{
+            // 忽略错误处理,如果集合不存在的话会报错
+        })
     }
 
     const collection = await db.createCollection(name,complete);
 
     if(option.insertData){
-        collection.insert(option.insertData).catch((error)=>console.warn(error));
+        await collection.insertOne(option.insertData);
     }
 
     return collection;
