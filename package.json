@@ -1,0 +1,43 @@
+{
+  "name": "planaend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "./src/index.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "dev": "tsc -p ./tsconfig.json",
+    "start": "node ./index.js",
+    "test": "mocha ./dist/test/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/uioz/PlanAEnd.git"
+  },
+  "author": {
+    "email": "Hzxbpld@163.com",
+    "name": "uioz"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/uioz/PlanAEnd/issues"
+  },
+  "homepage": "https://github.com/uioz/PlanAEnd#readme",
+  "devDependencies": {
+    "@types/chai": "^4.1.7",
+    "@types/express": "^4.16.1",
+    "@types/mocha": "^5.2.5",
+    "@types/mongodb": "^3.1.19",
+    "@types/node": "^10.12.21",
+    "chai": "^4.2.0",
+    "mocha": "^5.2.0",
+    "typescript": "^3.3.1"
+  },
+  "dependencies": {
+    "express": "^4.16.4",
+    "log4js": "^4.0.2",
+    "mongodb": "^3.1.13",
+    "xlsx": "^0.14.1"
+  }
+}

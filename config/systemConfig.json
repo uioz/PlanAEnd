@@ -1,0 +1,26 @@
+{
+    "system": {
+        "timeZone":"zh",
+        "recordLog": true,
+        "runningTime": 1000,
+        "year": 2019,
+        "mongodbUrl":"mongodb://localhost:27017",
+        "mongodbDataBase":"demo",
+        "mongodbCollectionList":["source_","result_","model_speciality","model_users","model_notice","configuration_static"]
+    },
+    "server": {
+        "port": 80,
+        "staticFilePath":"./static"
+    },
+    "client": {
+        "open": true,
+        "openTimeRange": {
+            "startTime": "UTC时间",
+            "endTime": "UTC时间"
+        },
+        "staticFilePath": "./clientFiles"
+    },
+    "source": {
+        "staticFilePath": "./sourceFiles"
+    }
+}

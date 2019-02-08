@@ -1,0 +1,55 @@
+{
+    "appenders": {
+        "SystemOut": {
+            "type": "file",
+            "filename": "./log/system.log",
+            "maxLogSize": 52428800,
+            "backups": 5,
+            "keepFileExt": false
+        },
+        "ServerOut": {
+            "type": "file",
+            "filename": "./log/server.log",
+            "maxLogSize": 52428800,
+            "backups": 5,
+            "keepFileExt": false
+        },
+        "SystemDebug": {
+            "type": "stdout"
+        },
+        "ServerDebug": {
+            "type": "stdout"
+        },
+        "console": {
+            "type": "stdout"
+        }
+    },
+    "categories": {
+        "default": {
+            "appenders": [
+                "console"
+            ],
+            "level": "all"
+        },
+        "production": {
+            "appenders": [
+                "SystemOut",
+                "ServerOut"
+            ],
+            "level": "ERROR"
+        },
+        "developmentAll": {
+            "appenders": [
+                "SystemDebug",
+                "ServerDebug"
+            ],
+            "level": "debug"
+        },
+        "developmentOnlySystem": {
+            "appenders": [
+                "SystemDebug"
+            ],
+            "level": "debug"
+        }
+    }
+}
