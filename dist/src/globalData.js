@@ -8,7 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const globalData = new class GlobalData {
+class GlobalData {
     constructor() {
         this.globalLoggers = {};
         this.configs = {};
@@ -97,5 +97,9 @@ const globalData = new class GlobalData {
         this.getLogger().warn('The MongoClient is gonna close!');
         this.mongoClient.close(false);
     }
-};
-exports.default = globalData;
+}
+exports.GlobalData = GlobalData;
+/**
+ * 该变量是GlobalData类的全局单例
+ */
+exports.globalData = new GlobalData;

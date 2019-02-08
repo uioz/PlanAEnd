@@ -1,8 +1,9 @@
 import { resolve } from "path";
 import * as log4js from "log4js";
-import globalData from "./globalData";
+import {globalData} from "./globalData";
 import { connect, MongoClient, Collection, Db } from "mongodb";
 import { createCollection } from "./DAO/collectionCreate";
+import App from "./app";
 
 /**
  * 检测是否需要数据库初始化
@@ -50,7 +51,7 @@ export default async function (Cwd: string) {
         logger = globalData.getLogger(defaultLoggerName);
 
     globalData.setGlobalLoggerName(defaultLoggerName);
-    logger.info('switch on logger to log4js.');
+    logger.info('switch logger to log4js.');
 
     let
         MongoClient: MongoClient,
@@ -79,7 +80,7 @@ export default async function (Cwd: string) {
     globalData.setMongoDatabase(Database);
 
     const databaseList = await Database.listCollections().toArray();
-    logger.info(`The following table to show structure of database in ${DatabaseName}.`);
+    logger.info(`The following table to show structure of database of ${DatabaseName}.`);
     console.table(databaseList);
 
     // 如果是首次启动将系统配置移动到数据库中
@@ -104,5 +105,7 @@ export default async function (Cwd: string) {
         }
     }
 
+    // 启动服务器
+    App(Cwd,globalData);
 
 }

@@ -16,9 +16,9 @@ type configType = 'systemConfig' | 'logType';
  */
 type databaseInitData = '';
 
-const globalData = new class GlobalData {
+export class GlobalData {
 
-    private globalLoggerName:loggerType;
+    private globalLoggerName: loggerType;
 
     private log4js: Log4js;
 
@@ -32,7 +32,7 @@ const globalData = new class GlobalData {
 
     private mongoClient: MongoClient;
 
-    private mongoDatabase:Db;
+    private mongoDatabase: Db;
 
     setLog4js(obj: Log4js) {
         this.log4js = obj;
@@ -46,8 +46,8 @@ const globalData = new class GlobalData {
     /**
      * 设置全局默认的logger名字
      */
-    setGlobalLoggerName(name:loggerType){
-        if(!this.globalLoggerName){
+    setGlobalLoggerName(name: loggerType) {
+        if (!this.globalLoggerName) {
             this.globalLoggerName = name;
         }
         return this;
@@ -61,7 +61,7 @@ const globalData = new class GlobalData {
      */
     getLogger(name?: loggerType) {
 
-        if(!name){
+        if (!name) {
             name = this.globalLoggerName;
         }
 
@@ -75,21 +75,21 @@ const globalData = new class GlobalData {
 
     }
 
-    setConfig(name:configType,config:object){
+    setConfig(name: configType, config: object) {
         this.configs[name] = config;
         return this;
     }
 
-    getConfig(name:configType){
+    getConfig(name: configType) {
         return this.configs[name];
     }
 
-    setMongoClient(client:MongoClient){
+    setMongoClient(client: MongoClient) {
         this.mongoClient = client;
         return this;
     }
 
-    getMongoClient(){
+    getMongoClient() {
         return this.mongoClient;
     }
 
@@ -97,14 +97,14 @@ const globalData = new class GlobalData {
      * 设置全局的数据库对象
      * @param database 数据库对象
      */
-    setMongoDatabase(database:Db){
+    setMongoDatabase(database: Db) {
         this.mongoDatabase = database;
     }
 
     /**
      * 获取全局的数据库对象
      */
-    getMongoDatabase(){
+    getMongoDatabase() {
         return this.mongoDatabase;
     }
 
@@ -113,14 +113,14 @@ const globalData = new class GlobalData {
      * @param collection mongo集合对象
      * @param configType 读取的类型
      */
-    async readConfigFromMongo(collection:Collection,configType:configType){
+    async readConfigFromMongo(collection: Collection, configType: configType) {
         return this.configs[configType] = await collection.findOne({});
     }
 
     /**
      * 重写
      */
-    async writeConfigToMongo(){
+    async writeConfigToMongo() {
 
     }
 
@@ -128,11 +128,14 @@ const globalData = new class GlobalData {
      * 关闭全局的MongoClient客户端
      * @param force 是否强制关闭
      */
-    databaseClose(force:boolean = false){
+    databaseClose(force: boolean = false) {
         this.getLogger().warn('The MongoClient is gonna close!');
         this.mongoClient.close(false);
     }
 
 }
 
-export default globalData;
+/**
+ * 该变量是GlobalData类的全局单例
+ */
+export const globalData = new GlobalData;
