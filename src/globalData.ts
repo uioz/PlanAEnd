@@ -1,4 +1,4 @@
-import { Log4js,Logger } from "log4js";
+import { Log4js, Logger } from "log4js";
 import { MongoClient, Db, Collection } from "mongodb";
 
 /**
@@ -135,7 +135,9 @@ export class GlobalData {
 
 }
 
+const instance = new GlobalData();
+
 /**
  * 该变量是GlobalData类的全局单例
  */
-export const globalData = new GlobalData;
+export const globalDataInstance = instance;

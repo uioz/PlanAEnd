@@ -1,7 +1,6 @@
 import { Middleware as Middleware } from "../types";
-import { globalData } from "../globalData";
 
-const Logger = globalData.getLogger();
+const Logger = (global as any).globalData.getLogger();
 
 /**
  * 日志中间件接口

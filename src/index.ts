@@ -1,6 +1,6 @@
 import { resolve } from "path";
 import * as log4js from "log4js";
-import {globalData} from "./globalData";
+import {globalDataInstance} from "./globalData";
 import { connect, MongoClient, Collection, Db } from "mongodb";
 import { createCollection } from "./DAO/collectionCreate";
 import { NODE_ENV } from "./types";
@@ -49,16 +49,19 @@ export default async function (Cwd: string) {
         MongoURl = SystemConfig.system.mongodbUrl,
         DatabaseName = SystemConfig.system.mongodbDataBase;
 
-    globalData.setConfig('logType', LogConfig);
-    globalData.setConfig('systemConfig', SystemConfig);
-    globalData.setLog4js(log4js.configure(LogConfig));
+    // 将全局数据挂载到Global上
+    (global as any).globalData = globalDataInstance;
+
+    globalDataInstance.setConfig('logType', LogConfig);
+    globalDataInstance.setConfig('systemConfig', SystemConfig);
+    globalDataInstance.setLog4js(log4js.configure(LogConfig));
 
     // TODO 默认开发时候使用该log策略
     const
         defaultLoggerName = 'developmentOnlySystem',
-        logger = globalData.getLogger(defaultLoggerName);
+        logger = globalDataInstance.getLogger(defaultLoggerName);
 
-    globalData.setGlobalLoggerName(defaultLoggerName);
+    globalDataInstance.setGlobalLoggerName(defaultLoggerName);
     logger.info('switch logger to log4js.');
 
     let
@@ -75,17 +78,17 @@ export default async function (Cwd: string) {
             useNewUrlParser: true
         });
 
-        globalData.setMongoClient(MongoClient);
+        globalDataInstance.setMongoClient(MongoClient);
 
     } catch (error) {
         logger.error(error);
-        return globalData.databaseClose();
+        return globalDataInstance.databaseClose();
     }
 
     Database = MongoClient.db(DatabaseName, {
         returnNonCachedInstance: true
     });
-    globalData.setMongoDatabase(Database);
+    globalDataInstance.setMongoDatabase(Database);
 
     const databaseList = await Database.listCollections().toArray();
     logger.info(`The following table to show structure of database of ${DatabaseName}.`);
@@ -97,24 +100,24 @@ export default async function (Cwd: string) {
         try {
             Collection = await createCollection('configuration_static', Database, {
                 force: true,
-                insertData: globalData.getConfig('systemConfig')
+                insertData: globalDataInstance.getConfig('systemConfig')
             });
         } catch (error) {
             logger.error(`initialization Database failed, reason: ${error}`);
-            return globalData.databaseClose();
+            return globalDataInstance.databaseClose();
         }
     } else {
         // 不是首次启动则从数据库中获取系统配置
         Collection = Database.collection(ConfigNameMap['systemConfig']);
         try {
-            await globalData.readConfigFromMongo(Collection,'systemConfig');
+            await globalDataInstance.readConfigFromMongo(Collection,'systemConfig');
         } catch (error) {
             logger.error(`Cannot get collection named ${ConfigNameMap['systemConfig']} From Database of ${DatabaseName}`);
-            return globalData.databaseClose(); 
+            return globalDataInstance.databaseClose(); 
         }
     }
 
     // 启动服务器
-    App(Cwd,globalData);
+    App(Cwd,globalDataInstance);
 
 }

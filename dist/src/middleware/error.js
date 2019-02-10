@@ -2,15 +2,20 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const types_1 = require("../types");
 const RunningInDev = process.env.NODE_ENV === types_1.NODE_ENV.dev;
+// 延迟加载,防止Node预见解析内容,而logger实例中此时没有对应的数据
+let logger;
+process.nextTick(() => {
+    logger = global.globalData.getLogger();
+});
 /**
- * 错误记录中间件
+ * 错误记录中间件 TODO 废弃
  * @param error
  * @param request
  * @param response
  * @param next
  */
-exports.LogErrorMiddleware = (error, request, response, next) => {
-    request.logger.error(error);
+exports.SetLogMiddleware = (error, request, response, next) => {
+    request.logger = logger;
     next(error);
 };
 /**

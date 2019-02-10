@@ -27,12 +27,16 @@ exports.default = (Cwd, globalData) => {
     }
     // TODO set view engine
     // TODO 性能调优
-    // TODO 替换所有的环境变量
+    // TODO 测试异步解决方案,修复默认的error.ts的导出
     // see http://www.expressjs.com.cn/4x/api.html#express.static
     const staticOptions = {
         maxAge: '10d',
         immutable: true,
     };
+    // TODO 测试错误兜底
+    App.get('/hello', () => {
+        throw new Error("hello world");
+    });
     // 静态资源配置
     App.use(clientUrlPrefix, Express.static(path_1.resolve(Cwd, clientStaticPath), staticOptions)); // 客户端
     App.use(managementUrlPrefix, Express.static(path_1.resolve(Cwd, managementStaticPath), staticOptions)); // 后端
@@ -40,6 +44,6 @@ exports.default = (Cwd, globalData) => {
     // 非法请求
     App.use(_404_1.NotFoundMiddleware);
     // 错误兜底
-    App.use(error_1.LogErrorMiddleware, error_1.FinalErrorMiddleware);
-    App.listen(serverPort, () => Logger.info(`Server is listening port in ${serverPort}`));
+    App.use(error_1.SetLogMiddleware, error_1.FinalErrorMiddleware);
+    App.listen(serverPort, () => Logger.info(`Server is listening port in ${serverPort}!`));
 };

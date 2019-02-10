@@ -2,8 +2,7 @@ import { GlobalData } from "./globalData";
 import * as  Express from "express";
 import { ServeStaticOptions } from 'serve-static'
 import { resolve as PathResolve } from "path";
-import { LogMiddleware } from "./middleware/logger";
-import { FinalErrorMiddleware,LogErrorMiddleware } from "./middleware/error";
+import { FinalErrorMiddleware,SetLogMiddleware } from "./middleware/error";
 import { NotFoundMiddleware } from "./middleware/404";
 
 /**
@@ -53,13 +52,20 @@ export default (Cwd: string, globalData: GlobalData) => {
 
     // TODO set view engine
     // TODO 性能调优
-    // TODO 替换所有的环境变量
+    // TODO 测试异步解决方案,修复默认的error.ts的导出
 
     // see http://www.expressjs.com.cn/4x/api.html#express.static
     const staticOptions: ServeStaticOptions = {
         maxAge: '10d',
         immutable: true,
     };
+
+    // TODO 测试错误兜底
+    App.get('/hello',()=>{
+
+        throw new Error("hello world");
+
+    })
     
     // 静态资源配置
     App.use(clientUrlPrefix, Express.static(PathResolve(Cwd, clientStaticPath), staticOptions)); // 客户端
@@ -69,8 +75,8 @@ export default (Cwd: string, globalData: GlobalData) => {
     // 非法请求
     App.use(NotFoundMiddleware);
     // 错误兜底
-    App.use(LogErrorMiddleware,FinalErrorMiddleware);
+    App.use(SetLogMiddleware,FinalErrorMiddleware);
 
-    App.listen(serverPort, () => Logger.info(`Server is listening port in ${serverPort}`));
+    App.listen(serverPort, () => Logger.info(`Server is listening port in ${serverPort}!`));
 
 }

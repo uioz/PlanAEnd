@@ -1,12 +1,4 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 class GlobalData {
     constructor() {
@@ -77,17 +69,13 @@ class GlobalData {
      * @param collection mongo集合对象
      * @param configType 读取的类型
      */
-    readConfigFromMongo(collection, configType) {
-        return __awaiter(this, void 0, void 0, function* () {
-            return this.configs[configType] = yield collection.findOne({});
-        });
+    async readConfigFromMongo(collection, configType) {
+        return this.configs[configType] = await collection.findOne({});
     }
     /**
      * 重写
      */
-    writeConfigToMongo() {
-        return __awaiter(this, void 0, void 0, function* () {
-        });
+    async writeConfigToMongo() {
     }
     /**
      * 关闭全局的MongoClient客户端
@@ -99,7 +87,8 @@ class GlobalData {
     }
 }
 exports.GlobalData = GlobalData;
+const instance = new GlobalData();
 /**
  * 该变量是GlobalData类的全局单例
  */
-exports.globalData = new GlobalData;
+exports.globalDataInstance = instance;
