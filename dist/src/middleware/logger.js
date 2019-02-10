@@ -8,7 +8,7 @@ const Logger = globalData_1.globalData.getLogger();
  * @param response
  * @param next
  */
-exports.LoggerMiddleware = (request, response, next) => {
+exports.LogMiddleware = (request, response, next) => {
     request.logger = Logger;
     next();
 };

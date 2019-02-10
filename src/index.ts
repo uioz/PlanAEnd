@@ -3,6 +3,7 @@ import * as log4js from "log4js";
 import {globalData} from "./globalData";
 import { connect, MongoClient, Collection, Db } from "mongodb";
 import { createCollection } from "./DAO/collectionCreate";
+import { NODE_ENV } from "./types";
 import App from "./app";
 
 /**
@@ -12,7 +13,7 @@ import App from "./app";
  */
 function needInit(key: string, databaseList: Array<any>): boolean {
 
-    if(process.env.NODE_ENV === 'development'){
+    if (process.env.NODE_ENV === NODE_ENV.dev){
         return true;
     }
 
@@ -25,6 +26,9 @@ function needInit(key: string, databaseList: Array<any>): boolean {
     return true;
 }
 
+/**
+ * 配置对象名称以及数据库对应的集合的名称映射
+ */
 enum ConfigNameMap {
     'systemConfig' = 'configuration_static'
 }

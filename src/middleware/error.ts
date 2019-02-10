@@ -11,7 +11,7 @@ const RunningInDev = process.env.NODE_ENV === NODE_ENV.dev;
  * @param response 
  * @param next 
  */
-export const ErrorMiddlewareLogger: ErrorMiddleware = (error, request, response, next) => {
+export const LogErrorMiddleware: ErrorMiddleware = (error, request, response, next) => {
 
     ((request as any).logger as Logger).error(error);
     next(error);

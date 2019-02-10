@@ -13,6 +13,7 @@ const log4js = require("log4js");
 const globalData_1 = require("./globalData");
 const mongodb_1 = require("mongodb");
 const collectionCreate_1 = require("./DAO/collectionCreate");
+const types_1 = require("./types");
 const app_1 = require("./app");
 /**
  * 检测是否需要数据库初始化
@@ -20,7 +21,7 @@ const app_1 = require("./app");
  * @param databaseList 数据库列表
  */
 function needInit(key, databaseList) {
-    if (process.env.NODE_ENV === 'development') {
+    if (process.env.NODE_ENV === types_1.NODE_ENV.dev) {
         return true;
     }
     for (const item of databaseList) {
@@ -30,6 +31,9 @@ function needInit(key, databaseList) {
     }
     return true;
 }
+/**
+ * 配置对象名称以及数据库对应的集合的名称映射
+ */
 var ConfigNameMap;
 (function (ConfigNameMap) {
     ConfigNameMap["systemConfig"] = "configuration_static";
