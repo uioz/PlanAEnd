@@ -7,8 +7,9 @@
     "lib": "lib"
   },
   "scripts": {
-    "dev": "tsc -p ./tsconfig.json",
-    "start": "node ./index.js",
+    "dev": "node ./index.js development",
+    "pron":"node ./index.js production",
+    "build": "tsc -p ./tsconfig.json",
     "test": "mocha ./dist/test/"
   },
   "repository": {

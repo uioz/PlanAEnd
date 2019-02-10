@@ -1,3 +1,6 @@
+// 手动 NODE_ENV
+process.env.NODE_ENV = [...process.argv].splice(2,1)[0] || 'production';
+
 /**
  * 为什么要这么做?
  * 在TypeScript中引入其他的非node_modules目录下的模块非常困难

@@ -14,8 +14,8 @@
     "client": {
         "open": true,
         "openTimeRange": {
-            "startTime": "",
-            "endTime": ""
+            "startTime": "Thu, 30 Jul 1998 00:00:00 GMT",
+            "endTime": "Thu, 24 Dec 2020 00:00:00 GMT"
         },
         "clientStaticPath": "./static/front",
         "clientUrlPrefix":"/",

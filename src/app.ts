@@ -2,6 +2,7 @@ import { GlobalData } from "./globalData";
 import * as  Express from "express";
 import { ServeStaticOptions } from 'serve-static'
 import { resolve as PathResolve } from "path";
+import { LoggerMiddleware } from "./middleware/logger";
 
 /**
  * 服务器入口
@@ -20,7 +21,6 @@ export default (Cwd: string, globalData: GlobalData) => {
                 port: serverPort,
             },
             system: {
-                year: systemYear,
                 timezoneOffset
             },
             client: {
@@ -33,7 +33,6 @@ export default (Cwd: string, globalData: GlobalData) => {
 
     Logger.debug('serverPort', serverPort);
     Logger.debug('serverPublicPath', serverPublicPath);
-    Logger.debug('systemYear', systemYear);
     Logger.debug('clientStaticPath', clientStaticPath);
     Logger.debug('clientUrlPrefix', clientUrlPrefix);
     Logger.debug('managementStaticPath', managementStaticPath);
@@ -54,8 +53,7 @@ export default (Cwd: string, globalData: GlobalData) => {
     // TODO 性能调优
     // TODO logger 中间件
     // TODO 404 中间件
-    // TODO error
-    // TODO 开发环境问题
+    // TODO 替换所有的环境变量
 
     // see http://www.expressjs.com.cn/4x/api.html#express.static
     // 为了性能除了etag以及lastModified还设置10天的缓存且无视缓存内的资源请求
@@ -63,7 +61,7 @@ export default (Cwd: string, globalData: GlobalData) => {
         maxAge: '10d',
         immutable: true,
     };
-
+    
     // 静态资源配置
     App.use(clientUrlPrefix, Express.static(PathResolve(Cwd, clientStaticPath), staticOptions)); // 客户端
     App.use(managementUrlPrefix, Express.static(PathResolve(Cwd, managementStaticPath), staticOptions));// 后端
@@ -71,6 +69,10 @@ export default (Cwd: string, globalData: GlobalData) => {
 
     // 非法请求
     App.use((request, response) => response.end('404 Not Found'));
+
+    App.use(/* 错误记录,错误中间件 */);
+
+    
 
     App.listen(serverPort, () => Logger.info(`Server is listening port in ${serverPort}`));
 

@@ -20,6 +20,9 @@ const app_1 = require("./app");
  * @param databaseList 数据库列表
  */
 function needInit(key, databaseList) {
+    if (process.env.NODE_ENV === 'development') {
+        return true;
+    }
     for (const item of databaseList) {
         if (item.name === 'configuration_static') {
             return false;
@@ -68,6 +71,7 @@ function default_1(Cwd) {
         logger.info(`The following table to show structure of database of ${DatabaseName}.`);
         console.table(databaseList);
         // 如果是首次启动将系统配置移动到数据库中
+        // 开发模式将始终覆写数据库
         if (needInit('configuration_static', databaseList)) {
             try {
                 Collection = yield collectionCreate_1.createCollection('configuration_static', Database, {

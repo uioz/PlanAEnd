@@ -12,6 +12,10 @@ import App from "./app";
  */
 function needInit(key: string, databaseList: Array<any>): boolean {
 
+    if(process.env.NODE_ENV === 'development'){
+        return true;
+    }
+
     for (const item of databaseList) {
         if (item.name === 'configuration_static') {
             return false;
@@ -84,6 +88,7 @@ export default async function (Cwd: string) {
     console.table(databaseList);
 
     // 如果是首次启动将系统配置移动到数据库中
+    // 开发模式将始终覆写数据库
     if (needInit('configuration_static', databaseList)) {
         try {
             Collection = await createCollection('configuration_static', Database, {
