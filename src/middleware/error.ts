@@ -1,15 +1,13 @@
 import { ErrorMiddleware } from "../types";
 import { NODE_ENV } from "../types";
-import { GlobalData } from "../globalData";
+import { globalDataInstance } from "../globalData";
 import { Logger } from "log4js";
 
 const RunningInDev = process.env.NODE_ENV === NODE_ENV.dev;
 
 // 延迟加载,防止Node预见解析内容,而logger实例中此时没有对应的数据
 let logger:Logger;
-process.nextTick(()=>{
-    logger = ((global as any).globalData as GlobalData).getLogger();
-})
+globalDataInstance.getLoggerPro().then(result=>logger=result)
 
 /**
  * 错误记录中间件 TODO 废弃
@@ -21,7 +19,12 @@ process.nextTick(()=>{
 export const SetLogMiddleware: ErrorMiddleware = (error, request, response, next) => {
 
     (request as any).logger = logger;
-    next(error);
+    // 将错误信息转为字符串进行传递
+    let stack = '';
+    if(typeof error === 'object'){
+        stack = (error as Error).stack;
+    }
+    next(stack || error);
 
 }
 
@@ -34,7 +37,7 @@ export const SetLogMiddleware: ErrorMiddleware = (error, request, response, next
  */
 export const FinalErrorMiddleware: ErrorMiddleware = (error, request, response, next) => {
 
-    // TODO 等待编写
+    (request as any).logger.error(error);
     if (RunningInDev) {
         response.end(error);
     }

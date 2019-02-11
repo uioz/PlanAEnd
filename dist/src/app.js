@@ -4,6 +4,7 @@ const Express = require("express");
 const path_1 = require("path");
 const error_1 = require("./middleware/error");
 const _404_1 = require("./middleware/404");
+const logger_1 = require("./middleware/logger");
 /**
  * 服务器入口
  * @param Cwd 服务器工作路径
@@ -42,7 +43,7 @@ exports.default = (Cwd, globalData) => {
     App.use(managementUrlPrefix, Express.static(path_1.resolve(Cwd, managementStaticPath), staticOptions)); // 后端
     App.use('/public', Express.static(path_1.resolve(Cwd, serverPublicPath), staticOptions)); // 公用
     // 非法请求
-    App.use(_404_1.NotFoundMiddleware);
+    App.use(logger_1.LogMiddleware, _404_1.NotFoundMiddleware);
     // 错误兜底
     App.use(error_1.SetLogMiddleware, error_1.FinalErrorMiddleware);
     App.listen(serverPort, () => Logger.info(`Server is listening port in ${serverPort}!`));

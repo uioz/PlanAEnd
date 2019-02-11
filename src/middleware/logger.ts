@@ -1,6 +1,9 @@
 import { Middleware as Middleware } from "../types";
+import { Logger } from "log4js";
+import { globalDataInstance } from "../globalData";
+let logger:Logger;
+globalDataInstance.getLoggerPro().then(result=>logger=result)
 
-const Logger = (global as any).globalData.getLogger();
 
 /**
  * 日志中间件接口
@@ -9,6 +12,6 @@ const Logger = (global as any).globalData.getLogger();
  * @param next 
  */
 export const LogMiddleware:Middleware = (request,response,next)=>{
-    (request as any).logger = Logger;
+    (request as any).logger = logger;
     next();
 }

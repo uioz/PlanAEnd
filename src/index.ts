@@ -49,9 +49,6 @@ export default async function (Cwd: string) {
         MongoURl = SystemConfig.system.mongodbUrl,
         DatabaseName = SystemConfig.system.mongodbDataBase;
 
-    // 将全局数据挂载到Global上
-    (global as any).globalData = globalDataInstance;
-
     globalDataInstance.setConfig('logType', LogConfig);
     globalDataInstance.setConfig('systemConfig', SystemConfig);
     globalDataInstance.setLog4js(log4js.configure(LogConfig));

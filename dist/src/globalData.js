@@ -37,6 +37,27 @@ class GlobalData {
         }
         return this.globalLoggers[name] = this.log4js.getLogger(name);
     }
+    /**
+     * getLogger的异步版本,为了解决Node同步解析require导致的
+     * 内部获取数据的错误
+     *
+     * 如果不指定logger的名字则使用全局初始化时候指定的logger
+     * @param name looger
+     */
+    getLoggerPro(name) {
+        return new Promise((resolve, reject) => {
+            process.nextTick(() => {
+                if (!name) {
+                    name = this.globalLoggerName;
+                }
+                const logger = this.globalLoggers[name];
+                if (logger) {
+                    resolve(logger);
+                }
+                resolve(this.globalLoggers[name] = this.log4js.getLogger(name));
+            });
+        });
+    }
     setConfig(name, config) {
         this.configs[name] = config;
         return this;

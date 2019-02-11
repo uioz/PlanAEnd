@@ -4,6 +4,7 @@ import { ServeStaticOptions } from 'serve-static'
 import { resolve as PathResolve } from "path";
 import { FinalErrorMiddleware,SetLogMiddleware } from "./middleware/error";
 import { NotFoundMiddleware } from "./middleware/404";
+import { LogMiddleware } from "./middleware/logger";
 
 /**
  * 服务器入口
@@ -73,7 +74,7 @@ export default (Cwd: string, globalData: GlobalData) => {
     App.use('/public', Express.static(PathResolve(Cwd, serverPublicPath), staticOptions));// 公用
 
     // 非法请求
-    App.use(NotFoundMiddleware);
+    App.use(LogMiddleware,NotFoundMiddleware);
     // 错误兜底
     App.use(SetLogMiddleware,FinalErrorMiddleware);
 

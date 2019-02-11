@@ -1,5 +1,13 @@
 import { Middleware } from "../types";
 
-
-export const NotFoundMiddleware:Middleware = (request,response)=>response.end('404 Not Found');
+/**
+ * 文件不存在中间件
+ * 需要注意的是该中间件依赖Log中间件
+ * @param request 
+ * @param response 
+ */
+export const NotFoundMiddleware:Middleware = (request,response)=>{
+    (request as any).logger.warn(`404 Not Found in ${request.url}`);
+    response.end('404 Not Found');
+};
 

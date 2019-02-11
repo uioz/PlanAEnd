@@ -38,8 +38,6 @@ async function default_1(Cwd) {
     console.log('System is Runing,Please wait for moment!');
     console.log(`The Directory of Root is ${Cwd}`);
     const ConfigDir = path_1.resolve(Cwd, './config'), LogConfig = require(path_1.resolve(ConfigDir, './logconfig.json')), SystemConfig = require(path_1.resolve(ConfigDir, './systemConfig.json')), MongoURl = SystemConfig.system.mongodbUrl, DatabaseName = SystemConfig.system.mongodbDataBase;
-    // 将全局数据挂载到Global上
-    global.globalData = globalData_1.globalDataInstance;
     globalData_1.globalDataInstance.setConfig('logType', LogConfig);
     globalData_1.globalDataInstance.setConfig('systemConfig', SystemConfig);
     globalData_1.globalDataInstance.setLog4js(log4js.configure(LogConfig));
