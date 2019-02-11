@@ -60,13 +60,6 @@ export default (Cwd: string, globalData: GlobalData) => {
         maxAge: '10d',
         immutable: true,
     };
-
-    // TODO 测试错误兜底
-    App.get('/hello',()=>{
-
-        throw new Error("hello world");
-
-    })
     
     // 静态资源配置
     App.use(clientUrlPrefix, Express.static(PathResolve(Cwd, clientStaticPath), staticOptions)); // 客户端

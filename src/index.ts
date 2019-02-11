@@ -2,7 +2,7 @@ import { resolve } from "path";
 import * as log4js from "log4js";
 import {globalDataInstance} from "./globalData";
 import { connect, MongoClient, Collection, Db } from "mongodb";
-import { createCollection } from "./DAO/collectionCreate";
+import { createCollection } from "./model/collectionCreate";
 import { NODE_ENV } from "./types";
 import App from "./app";
 

@@ -8,7 +8,7 @@
   },
   "scripts": {
     "dev": "node ./index.js development",
-    "pron":"node ./index.js production",
+    "pron": "node ./index.js production",
     "build": "tsc -p ./tsconfig.json",
     "test": "mocha ./dist/test/"
   },
@@ -27,7 +27,9 @@
   "homepage": "https://github.com/uioz/PlanAEnd#readme",
   "devDependencies": {
     "@types/chai": "^4.1.7",
+    "@types/connect-mongo": "0.0.40",
     "@types/express": "^4.16.1",
+    "@types/express-session": "^1.15.11",
     "@types/mocha": "^5.2.5",
     "@types/mongodb": "^3.1.19",
     "@types/node": "^10.12.21",
@@ -36,7 +38,9 @@
     "typescript": "^3.3.1"
   },
   "dependencies": {
+    "connect-mongo": "^2.0.3",
     "express": "^4.16.4",
+    "express-session": "^1.15.6",
     "log4js": "^4.0.2",
     "mongodb": "^3.1.13",
     "xlsx": "^0.14.1"
