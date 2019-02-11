@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 require("mocha");
 const chai_1 = require("chai");
-const collectionCreate_1 = require("../src/DAO/collectionCreate");
+const collectionCreate_1 = require("../src/model/collectionCreate");
 const mongodb_1 = require("mongodb");
 describe('createCollection测试', () => {
     describe('功能测试', () => {

@@ -34,4 +34,7 @@ exports.FinalErrorMiddleware = (error, request, response, next) => {
     if (RunningInDev) {
         response.end(error);
     }
+    else {
+        response.destroy();
+    }
 };

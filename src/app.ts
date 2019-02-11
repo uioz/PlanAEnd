@@ -1,10 +1,11 @@
-import { GlobalData } from "./globalData";
+import { GlobalData, globalDataInstance } from "./globalData";
 import * as  Express from "express";
 import { ServeStaticOptions } from 'serve-static'
 import { resolve as PathResolve } from "path";
 import { FinalErrorMiddleware,SetLogMiddleware } from "./middleware/error";
 import { NotFoundMiddleware } from "./middleware/404";
 import { LogMiddleware } from "./middleware/logger";
+import Router from "./router";
 
 /**
  * 服务器入口
@@ -53,7 +54,13 @@ export default (Cwd: string, globalData: GlobalData) => {
 
     // TODO set view engine
     // TODO 性能调优
-    // TODO 测试异步解决方案,修复默认的error.ts的导出
+    // TODO CSP
+    // TODO RESTapi
+    // TODO 考虑登录设计
+    // TODO LEVEL代码
+
+    // 挂载路由
+    Router(App,globalDataInstance);
 
     // see http://www.expressjs.com.cn/4x/api.html#express.static
     const staticOptions: ServeStaticOptions = {

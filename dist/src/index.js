@@ -4,7 +4,7 @@ const path_1 = require("path");
 const log4js = require("log4js");
 const globalData_1 = require("./globalData");
 const mongodb_1 = require("mongodb");
-const collectionCreate_1 = require("./DAO/collectionCreate");
+const collectionCreate_1 = require("./model/collectionCreate");
 const types_1 = require("./types");
 const app_1 = require("./app");
 /**

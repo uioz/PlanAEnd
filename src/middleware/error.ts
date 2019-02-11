@@ -40,6 +40,8 @@ export const FinalErrorMiddleware: ErrorMiddleware = (error, request, response, 
     (request as any).logger.error(error);
     if (RunningInDev) {
         response.end(error);
+    }else{
+        response.destroy();
     }
 
 }

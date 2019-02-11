@@ -1,10 +1,12 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const globalData_1 = require("./globalData");
 const Express = require("express");
 const path_1 = require("path");
 const error_1 = require("./middleware/error");
 const _404_1 = require("./middleware/404");
 const logger_1 = require("./middleware/logger");
+const router_1 = require("./router");
 /**
  * 服务器入口
  * @param Cwd 服务器工作路径
@@ -28,7 +30,12 @@ exports.default = (Cwd, globalData) => {
     }
     // TODO set view engine
     // TODO 性能调优
-    // TODO 测试异步解决方案,修复默认的error.ts的导出
+    // TODO CSP
+    // TODO RESTapi
+    // TODO 考虑登录设计
+    // TODO LEVEL代码
+    // 挂载路由
+    router_1.default(App, globalData_1.globalDataInstance);
     // see http://www.expressjs.com.cn/4x/api.html#express.static
     const staticOptions = {
         maxAge: '10d',

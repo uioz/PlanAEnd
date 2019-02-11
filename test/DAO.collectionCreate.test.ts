@@ -1,6 +1,6 @@
 import "mocha";
 import { expect } from "chai";
-import { createCollection } from "../src/DAO/collectionCreate";
+import { createCollection } from "../src/model/collectionCreate";
 
 import { connect, MongoClient, Db } from "mongodb";
 

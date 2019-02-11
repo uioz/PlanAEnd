@@ -1,13 +1,12 @@
-import { SessionOptions } from "express-session";
+import * as ConnectMongo from "connect-mongo";
 import * as ExpressSession from "express-session";
-import { Express } from "express";
+import { SessionOptions } from "express-session";
 import {
     MongoUrlOptions,
     MogooseConnectionOptions,
     NativeMongoOptions,
     NativeMongoPromiseOptions
 } from "connect-mongo";
-import ConnectMongo from "connect-mongo";
 import { Db } from "mongodb";
 
 const MongoStoreFactory = ConnectMongo(ExpressSession);
@@ -17,7 +16,7 @@ const MongoStoreFactory = ConnectMongo(ExpressSession);
  */
 const ExpressSessionConfig = {
     secret: 'hello world',// cookie签名 这个属性是必须的 具体配置和`cookie-parser`一样
-    saveUninitialized: true, // 是否自动初始化 默认为true
+    saveUninitialized: false, // 是否自动初始化 默认为true
     resave: false,// 当用户session无变化的时候依然自动保存
     cookie: { // cookie的信息具体操作和`cookie-parser`一样
         maxAge: 1800000// 30分钟后过期
