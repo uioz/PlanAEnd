@@ -99,6 +99,7 @@ export default async function (Cwd: string) {
                 force: true,
                 insertData: globalDataInstance.getConfig('systemConfig')
             });
+            logger.info('configuration_static has rebuild!');
         } catch (error) {
             logger.error(`initialization Database failed, reason: ${error}`);
             return globalDataInstance.databaseClose();

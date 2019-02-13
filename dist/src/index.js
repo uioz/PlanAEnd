@@ -73,6 +73,7 @@ async function default_1(Cwd) {
                 force: true,
                 insertData: globalData_1.globalDataInstance.getConfig('systemConfig')
             });
+            logger.info('configuration_static has rebuild!');
         }
         catch (error) {
             logger.error(`initialization Database failed, reason: ${error}`);

@@ -2,6 +2,7 @@ import { ErrorMiddleware } from "../types";
 import { NODE_ENV } from "../types";
 import { globalDataInstance } from "../globalData";
 import { Logger } from "log4js";
+import { FilterCode } from "../code";
 
 const RunningInDev = process.env.NODE_ENV === NODE_ENV.dev;
 
@@ -37,6 +38,7 @@ export const SetLogMiddleware: ErrorMiddleware = (error, request, response, next
  */
 export const FinalErrorMiddleware: ErrorMiddleware = (error, request, response, next) => {
 
+    error = typeof error === 'number' ? FilterCode[error] : error;
     (request as any).logger.error(error);
     if (RunningInDev) {
         response.end(error);

@@ -19,3 +19,27 @@ var FilterCode;
     FilterCode[FilterCode["\u9519\u8BEF:\u975E\u6CD5\u8BF7\u6C42"] = 8501] = "\u9519\u8BEF:\u975E\u6CD5\u8BF7\u6C42";
     FilterCode[FilterCode["\u9519\u8BEF:\u6743\u9650\u4E0D\u8DB3"] = 8002] = "\u9519\u8BEF:\u6743\u9650\u4E0D\u8DB3";
 })(FilterCode = exports.FilterCode || (exports.FilterCode = {}));
+/**
+ * 不同等级之间的状态码
+ *
+ * 有两种使用方式,
+ * 1. 将几个值相然后判断大小确认是否有能力
+ * 2. 利用Index和Raw判断是否存在对应的位确认是否有能力
+ */
+var LevelCode;
+(function (LevelCode) {
+    LevelCode[LevelCode["SuperUser"] = Number(0b0000000)] = "SuperUser";
+    LevelCode[LevelCode["Management"] = Number(0b1100000)] = "Management";
+    LevelCode[LevelCode["Download"] = Number(0b1010000)] = "Download";
+    LevelCode[LevelCode["Edit"] = Number(0b1001000)] = "Edit";
+    LevelCode[LevelCode["Upload"] = Number(0b1000100)] = "Upload";
+    LevelCode[LevelCode["StaticMessage"] = Number(0b1000010)] = "StaticMessage";
+    LevelCode[LevelCode["View"] = Number(0b1000001)] = "View";
+    LevelCode[LevelCode["SuperUserIndex"] = 0] = "SuperUserIndex";
+    LevelCode[LevelCode["ManagementIndex"] = 1] = "ManagementIndex";
+    LevelCode[LevelCode["DownloadIndex"] = 2] = "DownloadIndex";
+    LevelCode[LevelCode["EditIndex"] = 3] = "EditIndex";
+    LevelCode[LevelCode["UploadIndex"] = 4] = "UploadIndex";
+    LevelCode[LevelCode["StaticMessageIndex"] = 5] = "StaticMessageIndex";
+    LevelCode[LevelCode["ViewIndex"] = 6] = "ViewIndex";
+})(LevelCode = exports.LevelCode || (exports.LevelCode = {}));

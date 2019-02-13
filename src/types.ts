@@ -21,3 +21,8 @@ export enum NODE_ENV {
     'dev' = 'development',
     'pron' = 'pronduction'
 }
+
+/**
+ * 声明了权限码的类型
+ */
+export type LeveCodeRawType = string;
