@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { FilterCode } from "../code";
 import { LeveCodeRawType } from "../types";
+import { NODE_ENV } from "../types";
 
 /**
  * 认证中间件,主要有两个功能
@@ -15,6 +16,11 @@ import { LeveCodeRawType } from "../types";
  */
 export const verifyMiddleware = (level: string) => (request: Request, response: Response, next: NextFunction) => {
 
+    // TODO 添加测试分支
+    if(process.env.NODE_ENV === NODE_ENV.dev){
+        return next();
+    }
+
     if (!request.session.userId) {
         return next(FilterCode['错误:非法请求']);
     }
@@ -22,7 +28,7 @@ export const verifyMiddleware = (level: string) => (request: Request, response: 
     const levelCodeRaw: LeveCodeRawType = request.session.levelCode;
     // 管理员
     if (levelCodeRaw[0] === '0') {
-        next();
+        return next();
     }
 
     for (const index of level) {
@@ -31,7 +37,7 @@ export const verifyMiddleware = (level: string) => (request: Request, response: 
         }
     }
 
-    next();
+    return next();
 
 }
 

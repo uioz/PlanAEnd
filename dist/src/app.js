@@ -33,7 +33,7 @@ exports.default = (Cwd, globalData) => {
     // TODO CSP
     // TODO RESTapi
     // TODO 考虑登录设计
-    // TODO LEVEL代码
+    // TODO release版本取消dev判断
     // 挂载路由
     router_1.default(App, globalData_1.globalDataInstance);
     // see http://www.expressjs.com.cn/4x/api.html#express.static

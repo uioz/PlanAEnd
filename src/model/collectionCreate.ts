@@ -27,7 +27,7 @@ interface options {
  * 创建集合并且插入操作
  * **注意**:
  * **注意**:在标准规范中指定max的时候还需要指定size,
- * 使用自定义选项只指定max会将size设置为5mib的大小
+ * 使用自定义选项只指定max会将size设置为50Mib的大小
  * @param name 要被创建的名称的name
  * @param db 数据库对象
  * @param option 自定义选项
@@ -49,9 +49,9 @@ export async function createCollection(name: string, db: Db,option:options = {},
         
     }
 
-    // 给符合条件的集合指定默认大小50MIB
+    // 给符合条件的集合指定默认大小50Mib
     if(complete.max && !complete.size){
-        complete.size = 5242880;
+        complete.size = 6553600;
     }
 
     if(option.force){

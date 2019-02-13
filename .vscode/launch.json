@@ -11,7 +11,8 @@
             "program": "${workspaceFolder}/index.js",
             "outFiles": [
                 "${workspaceFolder}/**/*.js"
-            ]
+            ],
+            "args": ["development"]
         }
     ]
 }
