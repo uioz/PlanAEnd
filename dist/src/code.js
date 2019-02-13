@@ -19,6 +19,7 @@ var FilterCode;
     FilterCode[FilterCode["\u9519\u8BEF:\u975E\u6CD5\u8BF7\u6C42"] = 8501] = "\u9519\u8BEF:\u975E\u6CD5\u8BF7\u6C42";
     FilterCode[FilterCode["\u9519\u8BEF:\u6743\u9650\u4E0D\u8DB3"] = 8002] = "\u9519\u8BEF:\u6743\u9650\u4E0D\u8DB3";
     FilterCode[FilterCode["\u9519\u8BEF:\u8868\u5355\u4E0A\u4F20\u9519\u8BEF"] = 8406] = "\u9519\u8BEF:\u8868\u5355\u4E0A\u4F20\u9519\u8BEF";
+    FilterCode[FilterCode["\u9519\u8BEF:\u6570\u636E\u6821\u9A8C\u9519\u8BEF"] = 8407] = "\u9519\u8BEF:\u6570\u636E\u6821\u9A8C\u9519\u8BEF";
 })(FilterCode = exports.FilterCode || (exports.FilterCode = {}));
 /**
  * 不同等级之间的状态码

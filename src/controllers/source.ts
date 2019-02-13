@@ -1,9 +1,11 @@
 import { LevelCode, FilterCode } from "../code";
 import { Middleware,ErrorMiddleware } from "../types";
 import * as multer from "multer";
-import { checkSourceData,ParseOptions } from "planaend-source";
+import { checkSourceData,ParseOptions,getDefaultSheets } from "planaend-source";
 import { Logger } from "log4js";
-import { read as XlsxRead } from "xlsx";
+import { read as XlsxRead,utils as XlsxUtils } from "xlsx";
+import { writeToCollection } from "../model/collectionWrite";
+import { globalDataInstance } from "../globalData";
 
 const Multer = multer({
     storage: multer.memoryStorage(),
@@ -19,7 +21,7 @@ const Multer = multer({
 /**
  * 数据处理地址
  */
-export const URL = '/source';
+export const URL = '/source/:year';
 /**
  * GET下对应的权限下标
  */
@@ -39,7 +41,7 @@ export const MiddlewaresOfGet:Array<Middleware> = [(request,response)=>{
 
     return response.end('200 ok');
     
-}]
+}];
 
 /**
  * POST下对应的处理中间件
@@ -51,13 +53,26 @@ export const MiddlewaresOfPost: Array<Middleware | ErrorMiddleware> = [Multer.si
         ((request as any).logger as Logger).error((error as any).stack);
     }
     // 将所有的上传失败视为一种错误
-    next(FilterCode['错误:表单上传错误']);
+    return next(FilterCode['错误:表单上传错误']);
 
 },(request,response,next)=>{
 
     // TODO 记录用户
-    const xlsx = XlsxRead(request.file.buffer,ParseOptions)
-    
+    const 
+        workBook = XlsxRead(request.file.buffer,ParseOptions),
+        workSheet = getDefaultSheets(workBook);
 
-    return response.end('200 ok');
+    if(workSheet && checkSourceData(workSheet)){
+        // TODO 写入到数据库
+        process.nextTick(() => {
+
+            writeToCollection(globalDataInstance.getMongoDatabase());
+
+        });
+
+        return response.end('200 ok');
+    }
+
+    return next(FilterCode['错误:数据校验错误']);
+
 }];

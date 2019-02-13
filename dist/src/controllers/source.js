@@ -4,6 +4,8 @@ const code_1 = require("../code");
 const multer = require("multer");
 const planaend_source_1 = require("planaend-source");
 const xlsx_1 = require("xlsx");
+const collectionWrite_1 = require("../model/collectionWrite");
+const globalData_1 = require("../globalData");
 const Multer = multer({
     storage: multer.memoryStorage(),
     limits: {
@@ -17,7 +19,7 @@ const Multer = multer({
 /**
  * 数据处理地址
  */
-exports.URL = '/source';
+exports.URL = '/source/:year';
 /**
  * GET下对应的权限下标
  */
@@ -43,9 +45,16 @@ exports.MiddlewaresOfPost = [Multer.single('data'), (error, request, response, n
             request.logger.error(error.stack);
         }
         // 将所有的上传失败视为一种错误
-        next(code_1.FilterCode['错误:表单上传错误']);
+        return next(code_1.FilterCode['错误:表单上传错误']);
     }, (request, response, next) => {
         // TODO 记录用户
-        const xlsx = xlsx_1.read(request.file.buffer, planaend_source_1.ParseOptions);
-        return response.end('200 ok');
+        const workBook = xlsx_1.read(request.file.buffer, planaend_source_1.ParseOptions), workSheet = planaend_source_1.getDefaultSheets(workBook);
+        if (workSheet && planaend_source_1.checkSourceData(workSheet)) {
+            // TODO 写入到数据库
+            process.nextTick(() => {
+                collectionWrite_1.writeToCollection(globalData_1.globalDataInstance.getMongoDatabase());
+            });
+            return response.end('200 ok');
+        }
+        return next(code_1.FilterCode['错误:数据校验错误']);
     }];
