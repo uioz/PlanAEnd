@@ -13,7 +13,7 @@ describe('verifyMiddleware测试', () => {
                     userId: undefined
                 }
             }, {}, (error) => {
-                chai_1.expect(error).eq(code_1.FilterCode['错误:非法请求']);
+                chai_1.expect(error).eq(code_1.ResponseErrorCode['错误:非法请求']);
             });
         });
         it('指定index = 01 测试 1000000', () => {
@@ -23,7 +23,7 @@ describe('verifyMiddleware测试', () => {
                     levelCode: '1000000'
                 }
             }, {}, (error) => {
-                chai_1.expect(error).eq(code_1.FilterCode['错误:权限不足']);
+                chai_1.expect(error).eq(code_1.ResponseErrorCode['错误:权限不足']);
             });
         });
         it('指定index = 01 测试 1100000', () => {

@@ -1,7 +1,7 @@
 import "mocha";
 import { expect } from "chai";
 import { verifyMiddleware } from "../src/middleware/filter";
-import { FilterCode } from "../src/code";
+import { ResponseErrorCode } from "../src/code";
 
 describe('verifyMiddleware测试',()=>{
 
@@ -16,7 +16,7 @@ describe('verifyMiddleware测试',()=>{
                     userId: undefined
                 }
             } as any,{} as any,(error)=>{
-                expect(error).eq(FilterCode['错误:非法请求']);
+                expect(error).eq(ResponseErrorCode['错误:非法请求']);
             });
 
         });
@@ -29,7 +29,7 @@ describe('verifyMiddleware测试',()=>{
                     levelCode: '1000000'
                 }
             } as any,{} as any,(error)=>{
-                expect(error).eq(FilterCode['错误:权限不足']);
+                expect(error).eq(ResponseErrorCode['错误:权限不足']);
             });
 
         });

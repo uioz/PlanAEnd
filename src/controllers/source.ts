@@ -1,11 +1,12 @@
-import { LevelCode, FilterCode } from "../code";
-import { Middleware,ErrorMiddleware } from "../types";
+import { LevelCode, ResponseErrorCode } from "../code";
+import { Middleware,ErrorMiddleware,restrictResponse } from "../types";
 import * as multer from "multer";
 import { checkSourceData,ParseOptions,getDefaultSheets } from "planaend-source";
 import { Logger } from "log4js";
 import { read as XlsxRead,utils as XlsxUtils } from "xlsx";
 import { writeForSource } from "../model/collectionWrite";
 import { globalDataInstance } from "../globalData";
+import { listCollectionsNameOfDatabase } from '../model/utils'
 
 const Multer = multer({
     storage: multer.memoryStorage(),
@@ -38,8 +39,18 @@ export const MiddlewaresOfGet:Array<Middleware> = [(request,response)=>{
 
     // 此时通过的请求都是经过session验证的请求
     // 此时挂载了logger 和 express-session 中间件
+    // TODO 记录用户
 
-    return response.end('200 ok');
+    const 
+        year:string = request.params.year,
+        collectionList = listCollectionsNameOfDatabase(globalDataInstance.getMongoDatabase());
+// TODO 等待编写 是否存在数据库 直接查看状态就可以了stats
+    console.log(collectionList)
+
+    return response.json({
+        message:'success',
+        stateCode:200
+    } as restrictResponse)
     
 }];
 
@@ -53,7 +64,7 @@ export const MiddlewaresOfPost: Array<Middleware | ErrorMiddleware> = [Multer.si
         ((request as any).logger as Logger).error((error as any).stack);
     }
     // 将所有的上传失败视为一种错误
-    return next(FilterCode['错误:表单上传错误']);
+    return next(ResponseErrorCode['错误:表单上传错误']);
 
 },(request,response,next)=>{
 
@@ -64,7 +75,7 @@ export const MiddlewaresOfPost: Array<Middleware | ErrorMiddleware> = [Multer.si
         year:string = request.params.year;
 
     if(year.length !== 4){
-        return next(FilterCode['错误:地址参数错误']);
+        return next(ResponseErrorCode['错误:地址参数错误']);
     }
     
     if(workSheet && checkSourceData(workSheet)){
@@ -73,12 +84,18 @@ export const MiddlewaresOfPost: Array<Middleware | ErrorMiddleware> = [Multer.si
             console.log(writeResult);
         }).catch((error)=>{
             request.logger.error(error.stack);
-            next(FilterCode['错误:源数据写入失败']);
+            next(ResponseErrorCode['错误:源数据写入失败']);
         });
 
-        return response.end('200 ok');
+        return response.json({
+            message:`源数据上传成功`,
+            stateCode:200
+        } as restrictResponse)
     }
 
-    return next(FilterCode['错误:数据校验错误']);
+    return next(ResponseErrorCode['错误:数据校验错误']);
 
 }];
+
+// TODO JSON通过这个接口
+// export const url = '/source/json/:year'

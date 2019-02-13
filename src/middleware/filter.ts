@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { FilterCode } from "../code";
+import { ResponseErrorCode } from "../code";
 import { LeveCodeRawType } from "../types";
 import { NODE_ENV } from "../types";
 
@@ -22,7 +22,7 @@ export const verifyMiddleware = (level: string) => (request: Request, response: 
     }
 
     if (!request.session.userId) {
-        return next(FilterCode['错误:非法请求']);
+        return next(ResponseErrorCode['错误:非法请求']);
     }
 
     const levelCodeRaw: LeveCodeRawType = request.session.levelCode;
@@ -33,7 +33,7 @@ export const verifyMiddleware = (level: string) => (request: Request, response: 
 
     for (const index of level) {
         if (levelCodeRaw[index] === '0') {
-            return next(FilterCode['错误:权限不足']);
+            return next(ResponseErrorCode['错误:权限不足']);
         }
     }
 

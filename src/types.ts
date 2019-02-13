@@ -26,3 +26,16 @@ export enum NODE_ENV {
  * 声明了权限码的类型
  */
 export type LeveCodeRawType = string;
+
+/**
+ * 声明了响应状态码的类型,规则和HTTP响应代码一致
+ */
+export type stateCode = 200 | 403 | 404 ;
+
+/**
+ * 服务器基本响应类型
+ */
+export interface restrictResponse {
+    message:string;
+    stateCode:stateCode;
+}

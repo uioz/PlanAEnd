@@ -19,7 +19,7 @@ exports.verifyMiddleware = (level) => (request, response, next) => {
         return next();
     }
     if (!request.session.userId) {
-        return next(code_1.FilterCode['错误:非法请求']);
+        return next(code_1.ResponseErrorCode['错误:非法请求']);
     }
     const levelCodeRaw = request.session.levelCode;
     // 管理员
@@ -28,7 +28,7 @@ exports.verifyMiddleware = (level) => (request, response, next) => {
     }
     for (const index of level) {
         if (levelCodeRaw[index] === '0') {
-            return next(code_1.FilterCode['错误:权限不足']);
+            return next(code_1.ResponseErrorCode['错误:权限不足']);
         }
     }
     return next();

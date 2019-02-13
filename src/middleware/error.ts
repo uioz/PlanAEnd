@@ -2,11 +2,11 @@ import { ErrorMiddleware } from "../types";
 import { NODE_ENV } from "../types";
 import { globalDataInstance } from "../globalData";
 import { Logger } from "log4js";
-import { FilterCode } from "../code";
+import { ResponseErrorCode } from "../code";
 
 const RunningInDev = process.env.NODE_ENV === NODE_ENV.dev;
 
-// 延迟加载,防止Node预见解析内容,而logger实例中此时没有对应的数据
+// 延迟加载,防止Node预先解析内容,而logger实例中此时没有对应的数据
 let logger:Logger;
 globalDataInstance.getLoggerPro().then(result=>logger=result)
 
@@ -38,7 +38,7 @@ export const SetLogMiddleware: ErrorMiddleware = (error, request, response, next
  */
 export const FinalErrorMiddleware: ErrorMiddleware = (error, request, response, next) => {
 
-    error = typeof error === 'number' ? FilterCode[error] : error;
+    error = typeof error === 'number' ? ResponseErrorCode[error] : error;
     (request as any).logger.error(error);
     if (RunningInDev) {
         response.end(error);
