@@ -12,24 +12,21 @@ const code_1 = require("../code");
  * @param response
  * @param next
  */
-exports.verifyMiddleware = (level) => {
-    const levelIndex = [...level];
-    return (request, response, next) => {
-        if (!request.session.userId) {
-            return next(code_1.FilterCode['错误:非法请求']);
-        }
-        const levelCodeRaw = request.session.levelCode;
-        // 管理员
-        if (levelCodeRaw[0] === '0') {
-            next();
-        }
-        for (const index of levelIndex) {
-            if (levelCodeRaw[index] === '0') {
-                return next(code_1.FilterCode['错误:权限不足']);
-            }
-        }
+exports.verifyMiddleware = (level) => (request, response, next) => {
+    if (!request.session.userId) {
+        return next(code_1.FilterCode['错误:非法请求']);
+    }
+    const levelCodeRaw = request.session.levelCode;
+    // 管理员
+    if (levelCodeRaw[0] === '0') {
         next();
-    };
+    }
+    for (const index of level) {
+        if (levelCodeRaw[index] === '0') {
+            return next(code_1.FilterCode['错误:权限不足']);
+        }
+    }
+    next();
 };
 /**
  * 过滤客户端时间范围请求

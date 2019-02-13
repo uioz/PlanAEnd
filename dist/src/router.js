@@ -9,17 +9,6 @@ exports.default = (app, globalData) => {
         store: SessionStore,
         secret: CookieSecure
     }), logger = globalData.getLogger(), isDEV = process.env.NODE_ENV = types_1.NODE_ENV.dev;
-    if (isDEV) {
-        app.get('/debug/:levelcode', SessionMiddleware, (request, response) => {
-            const levelCode = request.params.levelcode;
-            if (levelCode.length !== 7) {
-                return response.end('Error');
-            }
-            request.session.levelCode = levelCode;
-            request.session.userId = levelCode;
-            return response.end(`levelCode = ${levelCode}`);
-        });
-    }
     app.get(source.URL, SessionMiddleware, filter_1.verifyMiddleware(source.LevelIndexOfGet), (request, response) => {
         response.end('get pass');
     });

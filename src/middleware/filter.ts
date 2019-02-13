@@ -1,4 +1,4 @@
-import { Request,Response,NextFunction } from "express";
+import { Request, Response, NextFunction } from "express";
 import { FilterCode } from "../code";
 import { LeveCodeRawType } from "../types";
 
@@ -13,36 +13,31 @@ import { LeveCodeRawType } from "../types";
  * @param response 
  * @param next 
  */
-export const verifyMiddleware = (level:string)=>{
+export const verifyMiddleware = (level: string) => (request: Request, response: Response, next: NextFunction) => {
 
-    const levelIndex = [...level];
-
-    return (request: Request, response: Response, next: NextFunction) => {
-
-        if (!request.session.userId) {
-            return next(FilterCode['错误:非法请求']);
-        }
-
-        const levelCodeRaw:LeveCodeRawType = request.session.levelCode;
-        // 管理员
-        if(levelCodeRaw[0] === '0'){
-            next();
-        }
-
-        for (const index of levelIndex) {
-            if(levelCodeRaw[index] === '0'){
-                return next(FilterCode['错误:权限不足']);
-            }
-        }
-
-        next();
-
+    if (!request.session.userId) {
+        return next(FilterCode['错误:非法请求']);
     }
+
+    const levelCodeRaw: LeveCodeRawType = request.session.levelCode;
+    // 管理员
+    if (levelCodeRaw[0] === '0') {
+        next();
+    }
+
+    for (const index of level) {
+        if (levelCodeRaw[index] === '0') {
+            return next(FilterCode['错误:权限不足']);
+        }
+    }
+
+    next();
+
 }
 
 /**
  * 过滤客户端时间范围请求
  */
-export const timeRange = ()=>{
+export const timeRange = () => {
 
 }
