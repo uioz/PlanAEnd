@@ -4,7 +4,7 @@ import * as multer from "multer";
 import { checkSourceData,ParseOptions,getDefaultSheets } from "planaend-source";
 import { Logger } from "log4js";
 import { read as XlsxRead,utils as XlsxUtils } from "xlsx";
-import { writeToCollection } from "../model/collectionWrite";
+import { writeForSource } from "../model/collectionWrite";
 import { globalDataInstance } from "../globalData";
 
 const Multer = multer({
@@ -60,14 +60,20 @@ export const MiddlewaresOfPost: Array<Middleware | ErrorMiddleware> = [Multer.si
     // TODO 记录用户
     const 
         workBook = XlsxRead(request.file.buffer,ParseOptions),
-        workSheet = getDefaultSheets(workBook);
+        workSheet = getDefaultSheets(workBook),
+        year:string = request.params.year;
 
+    if(year.length !== 4){
+        return next(FilterCode['错误:地址参数错误']);
+    }
+    
     if(workSheet && checkSourceData(workSheet)){
-        // TODO 写入到数据库
-        process.nextTick(() => {
-
-            writeToCollection(globalDataInstance.getMongoDatabase());
-
+        
+        writeForSource(globalDataInstance.getMongoDatabase(), XlsxUtils.sheet_to_json(workSheet),year).then(writeResult=>{
+            console.log(writeResult);
+        }).catch((error)=>{
+            request.logger.error(error.stack);
+            next(FilterCode['错误:源数据写入失败']);
         });
 
         return response.end('200 ok');

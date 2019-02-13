@@ -2,8 +2,8 @@
  * 
  * 8300 + 会话代码
  * 8400 + 资源代码
- * 
- * 8500 + 包含以上内容,且视为危险
+ * 8500 + 请求错误
+ * 8600 + 数据错误
  */
 
 // see https://github.com/zhongsp/TypeScript/blob/master/doc/wiki/coding_guidelines.md#%E9%94%99%E8%AF%AF%E6%8F%90%E7%A4%BA%E4%BF%A1%E6%81%AF%E4%BB%A3%E7%A0%81
@@ -13,11 +13,14 @@ export enum ResponseError {
     '404 Not Found!' = 8404,
 }
 
+// TODO 重命名
 export enum FilterCode {
     '错误:非法请求' = 8501,
     '错误:权限不足' = 8002,
     '错误:表单上传错误' = 8406,
-    '错误:数据校验错误' = 8407
+    '错误:数据校验错误' = 8407,
+    '错误:地址参数错误' = 8508,
+    '错误:源数据写入失败' = 8600
 }
 
 /**

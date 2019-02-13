@@ -48,11 +48,16 @@ exports.MiddlewaresOfPost = [Multer.single('data'), (error, request, response, n
         return next(code_1.FilterCode['错误:表单上传错误']);
     }, (request, response, next) => {
         // TODO 记录用户
-        const workBook = xlsx_1.read(request.file.buffer, planaend_source_1.ParseOptions), workSheet = planaend_source_1.getDefaultSheets(workBook);
+        const workBook = xlsx_1.read(request.file.buffer, planaend_source_1.ParseOptions), workSheet = planaend_source_1.getDefaultSheets(workBook), year = request.params.year;
+        if (year.length !== 4) {
+            return next(code_1.FilterCode['错误:地址参数错误']);
+        }
         if (workSheet && planaend_source_1.checkSourceData(workSheet)) {
-            // TODO 写入到数据库
-            process.nextTick(() => {
-                collectionWrite_1.writeToCollection(globalData_1.globalDataInstance.getMongoDatabase());
+            collectionWrite_1.writeForSource(globalData_1.globalDataInstance.getMongoDatabase(), xlsx_1.utils.sheet_to_json(workSheet), year).then(writeResult => {
+                console.log(writeResult);
+            }).catch((error) => {
+                request.logger.error(error.stack);
+                next(code_1.FilterCode['错误:源数据写入失败']);
             });
             return response.end('200 ok');
         }
