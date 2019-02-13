@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const initMiddleware_1 = require("./init/initMiddleware");
 const filter_1 = require("./middleware/filter");
+const logger_1 = require("./middleware/logger");
 const source = require("./controllers/source");
 const types_1 = require("./types");
 exports.default = (app, globalData) => {
@@ -9,10 +10,10 @@ exports.default = (app, globalData) => {
         store: SessionStore,
         secret: CookieSecure
     }), logger = globalData.getLogger(), isDEV = process.env.NODE_ENV = types_1.NODE_ENV.dev;
-    app.get(source.URL, SessionMiddleware, filter_1.verifyMiddleware(source.LevelIndexOfGet), (request, response) => {
+    app.get(source.URL, SessionMiddleware, logger_1.LogMiddleware, filter_1.verifyMiddleware(source.LevelIndexOfGet), (request, response) => {
         response.end('get pass');
     });
-    app.post(source.URL, SessionMiddleware, filter_1.verifyMiddleware(source.LevelIndexOfPost), (request, response) => {
+    app.post(source.URL, SessionMiddleware, logger_1.LogMiddleware, filter_1.verifyMiddleware(source.LevelIndexOfPost), (request, response) => {
         response.end('post pass');
     });
 };

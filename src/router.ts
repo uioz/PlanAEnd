@@ -19,10 +19,10 @@ export default (app: Express, globalData: GlobalData) => {
         logger = globalData.getLogger(),
         isDEV = process.env.NODE_ENV = NODE_ENV.dev;
 
-    app.get(source.URL, SessionMiddleware, verifyMiddleware(source.LevelIndexOfGet),(request,response)=>{
+    app.get(source.URL, SessionMiddleware,LogMiddleware,verifyMiddleware(source.LevelIndexOfGet),(request,response)=>{
         response.end('get pass');
     });
-    app.post(source.URL, SessionMiddleware, verifyMiddleware(source.LevelIndexOfPost),(request,response)=>{
+    app.post(source.URL, SessionMiddleware,LogMiddleware,verifyMiddleware(source.LevelIndexOfPost),(request,response)=>{
         response.end('post pass');
     });
 

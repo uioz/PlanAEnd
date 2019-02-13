@@ -57,7 +57,7 @@ export default (Cwd: string, globalData: GlobalData) => {
     // TODO CSP
     // TODO RESTapi
     // TODO 考虑登录设计
-    // TODO LEVEL代码
+    // TODO release版本取消dev判断
 
     // 挂载路由
     Router(App,globalDataInstance);
