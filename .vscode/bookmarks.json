@@ -3,18 +3,8 @@
 		"path": "$ROOTPATH$\\src\\controllers\\source.ts",
 		"bookmarks": [
 			{
-				"line": 41,
+				"line": 55,
 				"column": 16,
-				"label": ""
-			},
-			{
-				"line": 69,
-				"column": 13,
-				"label": ""
-			},
-			{
-				"line": 100,
-				"column": 5,
 				"label": ""
 			}
 		]

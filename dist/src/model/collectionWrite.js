@@ -9,5 +9,7 @@ exports.DatabasePrefixName = 'source_';
  */
 exports.writeForSource = (database, data, year) => new Promise((resolve, reject) => {
     const collection = database.collection(exports.DatabasePrefixName + year);
-    process.nextTick(() => collection.insertMany(data).then(resolve).catch(reject));
+    process.nextTick(() => collection.insertMany(data, {
+        ordered: false // 不排序提高插入性能
+    }).then(resolve).catch(reject));
 });

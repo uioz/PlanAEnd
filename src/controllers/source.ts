@@ -1,26 +1,34 @@
-import { LevelCode, ResponseErrorCode } from "../code";
-import { Middleware,ErrorMiddleware,restrictResponse } from "../types";
+import { LevelCode, ResponseErrorCode, responseMessage, SystemErrorCode } from "../code";
+import { Middleware, ErrorMiddleware, restrictResponse } from "../types";
 import * as multer from "multer";
-import { checkSourceData,ParseOptions,getDefaultSheets } from "planaend-source";
+import { checkSourceData, ParseOptions, getDefaultSheets, WriteOptions } from "planaend-source";
 import { Logger } from "log4js";
-import { read as XlsxRead,utils as XlsxUtils } from "xlsx";
+import { read as XlsxRead, utils as XlsxUtils,write as XlsxWrite } from "xlsx";
 import { writeForSource } from "../model/collectionWrite";
 import { globalDataInstance } from "../globalData";
-import { listCollectionsNameOfDatabase } from '../model/utils'
+import { collectionReadAllIfHave } from "../model/collectionRead";
+
+
+/**
+ * 说明:
+ * /source/:year
+ * 管理源数据的上传和下载
+ */
+
 
 const Multer = multer({
     storage: multer.memoryStorage(),
-    limits:{
-        fieldNameSize:15, // 字段名字的长度
+    limits: {
+        fieldNameSize: 15, // 字段名字的长度
         fieldSize: 131072, // 字段最大大小 1Mib
-        files:1, // 文件最大数量
+        files: 1, // 文件最大数量
         fileSize: 1310720, // 单个文件大小10Mib
         parts: 1966080, // fields + files的最大大小 15Mib
     }
 });
 
 /**
- * 数据处理地址
+ * 本文件中的路由地址
  */
 export const URL = '/source/:year';
 /**
@@ -33,67 +41,111 @@ export const LevelIndexOfGet = LevelCode.DownloadIndex.toString();
 export const LevelIndexOfPost = LevelCode.UploadIndex.toString();
 
 /**
+ * 数据库名称前缀
+ */
+export const DatabasePrefixName = 'source_';
+
+/**
  * GET下的处理中间件
  */
-export const MiddlewaresOfGet:Array<Middleware> = [(request,response)=>{
+export const MiddlewaresOfGet: Array<Middleware> = [(request, response, next) => {
 
     // 此时通过的请求都是经过session验证的请求
     // 此时挂载了logger 和 express-session 中间件
+
     // TODO 记录用户
 
-    const 
-        year:string = request.params.year,
-        collectionList = listCollectionsNameOfDatabase(globalDataInstance.getMongoDatabase());
-// TODO 等待编写 是否存在数据库 直接查看状态就可以了stats
-    console.log(collectionList)
+    const
+        year: string = request.params.year,
+        databaseFullName = DatabasePrefixName + year,
+        collection = globalDataInstance.getMongoDatabase().collection(databaseFullName);
 
-    return response.json({
-        message:'success',
-        stateCode:200
-    } as restrictResponse)
-    
+    collectionReadAllIfHave(collection).then((result:Array<object>) => {
+
+        if (result) {
+
+            const workBook = XlsxUtils.book_new();
+
+            XlsxUtils.book_append_sheet(workBook, XlsxUtils.json_to_sheet(result),'Sheet1');
+
+            const file = XlsxWrite(workBook,Object.assign(WriteOptions,{type: 'buffer'}))
+            response.set('Content-Type','application/octet-stream');
+            response.set('Content-Disposition', 'attachment;filename=' + encodeURI(`${year}.xlsx`));
+            response.send(file);
+            response.end();
+
+        } else {
+            return response.json({
+                message: responseMessage['错误:找不到文件'],
+                stateCode: 404
+            });
+        }
+
+    }).catch((error) => {
+
+        // 此处记录错误而不是使用next,错误中间件会执行destroy,
+        // 但是我们的json数据有可能还没有发送完成
+        (request as any).logger.error(error.stack);
+
+        return response.json({
+            stateCode: 500,
+            message: responseMessage['错误:服务器错误']
+        });
+
+    });
+
 }];
 
 /**
  * POST下对应的处理中间件
  */
-export const MiddlewaresOfPost: Array<Middleware | ErrorMiddleware> = [Multer.single('data'),(error,request,response,next)=>{
+export const MiddlewaresOfPost: Array<Middleware | ErrorMiddleware> = [Multer.single('data'), (error, request, response, next) => {
 
     // 如果是multer的错误则记录错误
-    if ((error as any) instanceof (multer as any).MulterError){
+    if ((error as any) instanceof (multer as any).MulterError) {
         ((request as any).logger as Logger).error((error as any).stack);
     }
+    // 这里需要视为错误请求,即使用户是通过验证的情况下
     // 将所有的上传失败视为一种错误
     return next(ResponseErrorCode['错误:表单上传错误']);
 
-},(request,response,next)=>{
+}, (request, response, next) => {
 
     // TODO 记录用户
-    const 
-        workBook = XlsxRead(request.file.buffer,ParseOptions),
+    const
+        workBook = XlsxRead(request.file.buffer, Object.assign(ParseOptions, {
+            type: 'buffer'
+        })),
         workSheet = getDefaultSheets(workBook),
-        year:string = request.params.year;
+        year: string = request.params.year;
 
-    if(year.length !== 4){
-        return next(ResponseErrorCode['错误:地址参数错误']);
+    if (year.length !== 4) {
+        // 不需要进行记录
+        return response.json({
+            message: responseMessage['错误:地址参数错误'],
+            stateCode: 400
+        } as restrictResponse);
     }
-    
-    if(workSheet && checkSourceData(workSheet)){
-        
-        writeForSource(globalDataInstance.getMongoDatabase(), XlsxUtils.sheet_to_json(workSheet),year).then(writeResult=>{
-            console.log(writeResult);
-        }).catch((error)=>{
-            request.logger.error(error.stack);
-            next(ResponseErrorCode['错误:源数据写入失败']);
-        });
+
+    if (workSheet && checkSourceData(workSheet)) {
+
+        writeForSource(globalDataInstance.getMongoDatabase(), XlsxUtils.sheet_to_json(workSheet), year).then(({result}) => {
+            if(result.ok !== 1){
+                request.logger.error(`${SystemErrorCode['错误:数据库写入失败']} DIR:${__dirname} CollectionName:${DatabasePrefixName+year} userID:${request.session.userId}`);
+            }
+        }).catch(next);
 
         return response.json({
-            message:`源数据上传成功`,
-            stateCode:200
+            message: responseMessage['源数据上传成功'],
+            stateCode: 200
         } as restrictResponse)
     }
 
-    return next(ResponseErrorCode['错误:数据校验错误']);
+    // TODO 记录用户行为
+    return response.json({
+        message: responseMessage['错误:数据校验错误'],
+        stateCode: 400
+    } as restrictResponse)
 
 }];
 

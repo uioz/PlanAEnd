@@ -6,7 +6,12 @@ const planaend_source_1 = require("planaend-source");
 const xlsx_1 = require("xlsx");
 const collectionWrite_1 = require("../model/collectionWrite");
 const globalData_1 = require("../globalData");
-const utils_1 = require("../model/utils");
+const collectionRead_1 = require("../model/collectionRead");
+/**
+ * 说明:
+ * /source/:year
+ * 管理源数据的上传和下载
+ */
 const Multer = multer({
     storage: multer.memoryStorage(),
     limits: {
@@ -18,7 +23,7 @@ const Multer = multer({
     }
 });
 /**
- * 数据处理地址
+ * 本文件中的路由地址
  */
 exports.URL = '/source/:year';
 /**
@@ -30,18 +35,41 @@ exports.LevelIndexOfGet = code_1.LevelCode.DownloadIndex.toString();
  */
 exports.LevelIndexOfPost = code_1.LevelCode.UploadIndex.toString();
 /**
+ * 数据库名称前缀
+ */
+exports.DatabasePrefixName = 'source_';
+/**
  * GET下的处理中间件
  */
-exports.MiddlewaresOfGet = [(request, response) => {
+exports.MiddlewaresOfGet = [(request, response, next) => {
         // 此时通过的请求都是经过session验证的请求
         // 此时挂载了logger 和 express-session 中间件
         // TODO 记录用户
-        const year = request.params.year, collectionList = utils_1.listCollectionsNameOfDatabase(globalData_1.globalDataInstance.getMongoDatabase());
-        // TODO 等待编写 是否存在数据库 直接查看状态就可以了stats
-        console.log(collectionList);
-        return response.json({
-            message: 'success',
-            stateCode: 200
+        const year = request.params.year, databaseFullName = exports.DatabasePrefixName + year, collection = globalData_1.globalDataInstance.getMongoDatabase().collection(databaseFullName);
+        collectionRead_1.collectionReadAllIfHave(collection).then((result) => {
+            if (result) {
+                const workBook = xlsx_1.utils.book_new();
+                xlsx_1.utils.book_append_sheet(workBook, xlsx_1.utils.json_to_sheet(result), 'Sheet1');
+                const file = xlsx_1.write(workBook, Object.assign(planaend_source_1.WriteOptions, { type: 'buffer' }));
+                response.set('Content-Type', 'application/octet-stream');
+                response.set('Content-Disposition', 'attachment;filename=' + encodeURI(`${year}.xlsx`));
+                response.send(file);
+                response.end();
+            }
+            else {
+                return response.json({
+                    message: code_1.responseMessage['错误:找不到文件'],
+                    stateCode: 404
+                });
+            }
+        }).catch((error) => {
+            // 此处记录错误而不是使用next,错误中间件会执行destroy,
+            // 但是我们的json数据有可能还没有发送完成
+            request.logger.error(error.stack);
+            return response.json({
+                stateCode: 500,
+                message: code_1.responseMessage['错误:服务器错误']
+            });
         });
     }];
 /**
@@ -52,27 +80,37 @@ exports.MiddlewaresOfPost = [Multer.single('data'), (error, request, response, n
         if (error instanceof multer.MulterError) {
             request.logger.error(error.stack);
         }
+        // 这里需要视为错误请求,即使用户是通过验证的情况下
         // 将所有的上传失败视为一种错误
         return next(code_1.ResponseErrorCode['错误:表单上传错误']);
     }, (request, response, next) => {
         // TODO 记录用户
-        const workBook = xlsx_1.read(request.file.buffer, planaend_source_1.ParseOptions), workSheet = planaend_source_1.getDefaultSheets(workBook), year = request.params.year;
+        const workBook = xlsx_1.read(request.file.buffer, Object.assign(planaend_source_1.ParseOptions, {
+            type: 'buffer'
+        })), workSheet = planaend_source_1.getDefaultSheets(workBook), year = request.params.year;
         if (year.length !== 4) {
-            return next(code_1.ResponseErrorCode['错误:地址参数错误']);
+            // 不需要进行记录
+            return response.json({
+                message: code_1.responseMessage['错误:地址参数错误'],
+                stateCode: 400
+            });
         }
         if (workSheet && planaend_source_1.checkSourceData(workSheet)) {
-            collectionWrite_1.writeForSource(globalData_1.globalDataInstance.getMongoDatabase(), xlsx_1.utils.sheet_to_json(workSheet), year).then(writeResult => {
-                console.log(writeResult);
-            }).catch((error) => {
-                request.logger.error(error.stack);
-                next(code_1.ResponseErrorCode['错误:源数据写入失败']);
-            });
+            collectionWrite_1.writeForSource(globalData_1.globalDataInstance.getMongoDatabase(), xlsx_1.utils.sheet_to_json(workSheet), year).then(({ result }) => {
+                if (result.ok !== 1) {
+                    request.logger.error(`${code_1.SystemErrorCode['错误:数据库写入失败']} DIR:${__dirname} CollectionName:${exports.DatabasePrefixName + year} userID:${request.session.userId}`);
+                }
+            }).catch(next);
             return response.json({
-                message: `源数据上传成功`,
+                message: code_1.responseMessage['源数据上传成功'],
                 stateCode: 200
             });
         }
-        return next(code_1.ResponseErrorCode['错误:数据校验错误']);
+        // TODO 记录用户行为
+        return response.json({
+            message: code_1.responseMessage['错误:数据校验错误'],
+            stateCode: 400
+        });
     }];
 // TODO JSON通过这个接口
 // export const url = '/source/json/:year'

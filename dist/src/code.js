@@ -13,9 +13,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
  */
 var SystemErrorCode;
 (function (SystemErrorCode) {
-    SystemErrorCode[SystemErrorCode["\u8B66\u544A:\u60A8\u6B63\u5728\u4F7F\u7528\u8FC7\u671F\u7684\u4F1A\u8BDD,\u8BF7\u6E05\u7A7A\u5BA2\u6237\u7AEF\u7F13\u5B58,\u4EE5\u514D\u53D1\u751F\u610F\u5916\u9519\u8BEF."] = 8300] = "\u8B66\u544A:\u60A8\u6B63\u5728\u4F7F\u7528\u8FC7\u671F\u7684\u4F1A\u8BDD,\u8BF7\u6E05\u7A7A\u5BA2\u6237\u7AEF\u7F13\u5B58,\u4EE5\u514D\u53D1\u751F\u610F\u5916\u9519\u8BEF.";
-    SystemErrorCode[SystemErrorCode["\u9519\u8BEF:\u8BE5\u8DEF\u5F84\u4E0B\u6CA1\u6709\u53EF\u4EE5\u8BBF\u95EE\u7684\u5185\u5BB9."] = 8401] = "\u9519\u8BEF:\u8BE5\u8DEF\u5F84\u4E0B\u6CA1\u6709\u53EF\u4EE5\u8BBF\u95EE\u7684\u5185\u5BB9.";
-    SystemErrorCode[SystemErrorCode["404 Not Found!"] = 8404] = "404 Not Found!";
+    SystemErrorCode[SystemErrorCode["\u9519\u8BEF:\u6570\u636E\u5E93\u8BFB\u53D6\u9519\u8BEF"] = 8602] = "\u9519\u8BEF:\u6570\u636E\u5E93\u8BFB\u53D6\u9519\u8BEF";
+    SystemErrorCode[SystemErrorCode["\u9519\u8BEF:\u6570\u636E\u5E93\u5199\u5165\u5931\u8D25"] = 8603] = "\u9519\u8BEF:\u6570\u636E\u5E93\u5199\u5165\u5931\u8D25";
 })(SystemErrorCode = exports.SystemErrorCode || (exports.SystemErrorCode = {}));
 /**
  * 对外可以响应的错误代码
@@ -54,3 +53,15 @@ var LevelCode;
     LevelCode[LevelCode["StaticMessageIndex"] = 5] = "StaticMessageIndex";
     LevelCode[LevelCode["ViewIndex"] = 6] = "ViewIndex";
 })(LevelCode = exports.LevelCode || (exports.LevelCode = {}));
+/**
+ * 该枚举定义了响应客户端的具体信息
+ */
+var responseMessage;
+(function (responseMessage) {
+    responseMessage["\u6E90\u6570\u636E\u4E0A\u4F20\u6210\u529F"] = "\u6E90\u6570\u636E\u4E0A\u4F20\u6210\u529F";
+    responseMessage["\u9519\u8BEF:\u627E\u4E0D\u5230\u6587\u4EF6"] = "\u627E\u4E0D\u5230\u6587\u4EF6";
+    responseMessage["\u9519\u8BEF:\u670D\u52A1\u5668\u9519\u8BEF"] = "\u670D\u52A1\u5668\u9519\u8BEF";
+    responseMessage["\u9519\u8BEF:\u8868\u5355\u4E0A\u4F20\u9519\u8BEF"] = "\u9519\u8BEF:\u8868\u5355\u4E0A\u4F20\u9519\u8BEF";
+    responseMessage["\u9519\u8BEF:\u5730\u5740\u53C2\u6570\u9519\u8BEF"] = "\u9519\u8BEF:\u5730\u5740\u53C2\u6570\u9519\u8BEF";
+    responseMessage["\u9519\u8BEF:\u6570\u636E\u6821\u9A8C\u9519\u8BEF"] = "\u9519\u8BEF:\u6570\u636E\u6821\u9A8C\u9519\u8BEF";
+})(responseMessage = exports.responseMessage || (exports.responseMessage = {}));

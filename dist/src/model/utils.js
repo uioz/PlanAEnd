@@ -39,7 +39,7 @@ exports.hasCollectionInDatabase = hasCollectionInDatabase;
  * **原理**:利用已经创建的集合集合的stats().ok 返回0(未创建)1(创建)进行判断
  * @param collection 集合对象
  */
-async function DatabaseIsFirstCreate(collection) {
+async function DatabaseIsCreated(collection) {
     return !!(await collection.stats()).ok;
 }
-exports.DatabaseIsFirstCreate = DatabaseIsFirstCreate;
+exports.DatabaseIsCreated = DatabaseIsCreated;

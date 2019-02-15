@@ -3,8 +3,9 @@ import { GlobalData } from "./globalData";
 import { GetExpressSession, GetMongoStore } from "./init/initMiddleware";
 import { verifyMiddleware } from "./middleware/filter";
 import { LogMiddleware } from "./middleware/logger";
-import * as source from "./controllers/source";
 import { NODE_ENV } from "./types";
+import * as source from "./controllers/source";
+import * as sourceJson from "./controllers/source.json"
 
 export default (app: Express, globalData: GlobalData) => {
 
@@ -21,6 +22,6 @@ export default (app: Express, globalData: GlobalData) => {
 
     app.get(source.URL, SessionMiddleware,LogMiddleware,verifyMiddleware(source.LevelIndexOfGet),source.MiddlewaresOfGet);
     app.post(source.URL, SessionMiddleware,LogMiddleware,verifyMiddleware(source.LevelIndexOfPost),source.MiddlewaresOfPost);
-
+    app.get(sourceJson.URL,SessionMiddleware,LogMiddleware,verifyMiddleware(sourceJson.LevelIndexOfGet),sourceJson.MiddlewaresOfGet);
 
 }

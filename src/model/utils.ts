@@ -36,11 +36,3 @@ export async function hasCollectionInDatabase(database:Db,...collectionName:Arra
     return true;
 }
 
-/**
- * 判断集合是否被创建
- * **原理**:利用已经创建的集合集合的stats().ok 返回0(未创建)1(创建)进行判断
- * @param collection 集合对象
- */
-export async function DatabaseIsFirstCreate(collection: Collection) {
-    return !!(await collection.stats()).ok;
-}

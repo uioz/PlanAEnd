@@ -29,8 +29,9 @@ export type LeveCodeRawType = string;
 
 /**
  * 声明了响应状态码的类型,规则和HTTP响应代码一致
+ * > https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Status
  */
-export type stateCode = 200 | 403 | 404 ;
+export type stateCode = 200 | 400 | 403 | 404 | 500;
 
 /**
  * 服务器基本响应类型
