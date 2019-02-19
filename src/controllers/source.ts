@@ -3,7 +3,7 @@ import { Middleware, ErrorMiddleware, restrictResponse } from "../types";
 import * as multer from "multer";
 import { checkSourceData, ParseOptions, getDefaultSheets, WriteOptions } from "planaend-source";
 import { Logger } from "log4js";
-import { read as XlsxRead, utils as XlsxUtils,write as XlsxWrite } from "xlsx";
+import { read as XlsxRead, utils as XlsxUtils, write as XlsxWrite } from "xlsx";
 import { writeForSource } from "../model/collectionWrite";
 import { globalDataInstance } from "../globalData";
 import { collectionReadAllIfHave } from "../model/collectionRead";
@@ -60,16 +60,16 @@ export const MiddlewaresOfGet: Array<Middleware> = [(request, response, next) =>
         databaseFullName = DatabasePrefixName + year,
         collection = globalDataInstance.getMongoDatabase().collection(databaseFullName);
 
-    collectionReadAllIfHave(collection).then((result:Array<object>) => {
+    collectionReadAllIfHave(collection).then((result: Array<object>) => {
 
         if (result) {
 
             const workBook = XlsxUtils.book_new();
 
-            XlsxUtils.book_append_sheet(workBook, XlsxUtils.json_to_sheet(result),'Sheet1');
+            XlsxUtils.book_append_sheet(workBook, XlsxUtils.json_to_sheet(result), 'Sheet1');
 
-            const file = XlsxWrite(workBook,Object.assign(WriteOptions,{type: 'buffer'}))
-            response.set('Content-Type','application/octet-stream');
+            const file = XlsxWrite(workBook, Object.assign(WriteOptions, { type: 'buffer' }))
+            response.set('Content-Type', 'application/octet-stream');
             response.set('Content-Disposition', 'attachment;filename=' + encodeURI(`${year}.xlsx`));
             response.send(file);
             response.end();
@@ -111,13 +111,7 @@ export const MiddlewaresOfPost: Array<Middleware | ErrorMiddleware> = [Multer.si
 
 }, (request, response, next) => {
 
-    // TODO 记录用户
-    const
-        workBook = XlsxRead(request.file.buffer, Object.assign(ParseOptions, {
-            type: 'buffer'
-        })),
-        workSheet = getDefaultSheets(workBook),
-        year: string = request.params.year;
+    const year: string = request.params.year;
 
     if (year.length !== 4) {
         // 不需要进行记录
@@ -127,11 +121,19 @@ export const MiddlewaresOfPost: Array<Middleware | ErrorMiddleware> = [Multer.si
         } as restrictResponse);
     }
 
+    // TODO 记录用户
+    const
+        workBook = XlsxRead(request.file.buffer, Object.assign(ParseOptions, {
+            type: 'buffer'
+        })),
+        workSheet = getDefaultSheets(workBook);
+
+
     if (workSheet && checkSourceData(workSheet)) {
 
-        writeForSource(globalDataInstance.getMongoDatabase(), XlsxUtils.sheet_to_json(workSheet), year).then(({result}) => {
-            if(result.ok !== 1){
-                request.logger.error(`${SystemErrorCode['错误:数据库写入失败']} DIR:${__dirname} CollectionName:${DatabasePrefixName+year} userID:${request.session.userId}`);
+        writeForSource(globalDataInstance.getMongoDatabase(), XlsxUtils.sheet_to_json(workSheet), year).then(({ result }) => {
+            if (result.ok !== 1) {
+                request.logger.error(`${SystemErrorCode['错误:数据库写入失败']} DIR:${__dirname} CollectionName:${DatabasePrefixName + year} userID:${request.session.userId}`);
             }
         }).catch(next);
 

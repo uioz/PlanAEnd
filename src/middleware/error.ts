@@ -11,7 +11,7 @@ let logger:Logger;
 globalDataInstance.getLoggerPro().then(result=>logger=result)
 
 /**
- * 错误记录中间件 TODO 废弃
+ * 错误记录中间件
  * @param error 
  * @param request 
  * @param response 

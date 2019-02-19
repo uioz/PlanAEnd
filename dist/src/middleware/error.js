@@ -8,7 +8,7 @@ const RunningInDev = process.env.NODE_ENV === types_1.NODE_ENV.dev;
 let logger;
 globalData_1.globalDataInstance.getLoggerPro().then(result => logger = result);
 /**
- * 错误记录中间件 TODO 废弃
+ * 错误记录中间件
  * @param error
  * @param request
  * @param response

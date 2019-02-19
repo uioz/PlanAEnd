@@ -84,10 +84,7 @@ exports.MiddlewaresOfPost = [Multer.single('data'), (error, request, response, n
         // 将所有的上传失败视为一种错误
         return next(code_1.ResponseErrorCode['错误:表单上传错误']);
     }, (request, response, next) => {
-        // TODO 记录用户
-        const workBook = xlsx_1.read(request.file.buffer, Object.assign(planaend_source_1.ParseOptions, {
-            type: 'buffer'
-        })), workSheet = planaend_source_1.getDefaultSheets(workBook), year = request.params.year;
+        const year = request.params.year;
         if (year.length !== 4) {
             // 不需要进行记录
             return response.json({
@@ -95,6 +92,10 @@ exports.MiddlewaresOfPost = [Multer.single('data'), (error, request, response, n
                 stateCode: 400
             });
         }
+        // TODO 记录用户
+        const workBook = xlsx_1.read(request.file.buffer, Object.assign(planaend_source_1.ParseOptions, {
+            type: 'buffer'
+        })), workSheet = planaend_source_1.getDefaultSheets(workBook);
         if (workSheet && planaend_source_1.checkSourceData(workSheet)) {
             collectionWrite_1.writeForSource(globalData_1.globalDataInstance.getMongoDatabase(), xlsx_1.utils.sheet_to_json(workSheet), year).then(({ result }) => {
                 if (result.ok !== 1) {

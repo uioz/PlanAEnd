@@ -36,3 +36,25 @@ export async function hasCollectionInDatabase(database:Db,...collectionName:Arra
     return true;
 }
 
+/**
+ * 
+ * @param collection 
+ * @param data 
+ * @param limite 
+ */
+export async function lessWrite(collection:Collection,data:Array<any>,limite:number){
+    
+    let
+        len = data.length,
+        baseNumber = limite || 500,
+        num = 0,
+        pros = [];
+
+    while (num * baseNumber > len && num + 1 * baseNumber < len) {
+        pros.push(collection.insertMany(data.slice(num * baseNumber, num++ * baseNumber)));
+    }
+
+    pros.push(collection.insertMany(data.slice(num * baseNumber, num++ * baseNumber)));
+
+    return Promise.all(pros);
+}
