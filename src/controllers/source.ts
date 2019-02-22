@@ -4,9 +4,10 @@ import * as multer from "multer";
 import { checkSourceData, ParseOptions, getDefaultSheets, WriteOptions } from "planaend-source";
 import { Logger } from "log4js";
 import { read as XlsxRead, utils as XlsxUtils, write as XlsxWrite } from "xlsx";
-import { writeForSource } from "../model/collectionWrite";
+import { writeOfSource } from "../model/collectionWrite";
 import { globalDataInstance } from "../globalData";
 import { collectionReadAllIfHave } from "../model/collectionRead";
+import { InsertWriteOpResult } from "mongodb";
 
 
 /**
@@ -16,6 +17,15 @@ import { collectionReadAllIfHave } from "../model/collectionRead";
  */
 
 
+/**
+* 用于检测url中的参数数值是否在合理范围区间内
+* @param number 整形数值
+*/
+export const checkNumber = number => number !== NaN && number > 0 && number < Number.MAX_SAFE_INTEGER;
+
+/**
+ * 源数据上传配置
+ */
 const Multer = multer({
     storage: multer.memoryStorage(),
     limits: {
@@ -111,10 +121,11 @@ export const MiddlewaresOfPost: Array<Middleware | ErrorMiddleware> = [Multer.si
 
 }, (request, response, next) => {
 
-    const year: string = request.params.year;
+    // 过滤地址上的杂物.
+    const year = String(parseInt(request.params.year));
 
-    if (year.length !== 4) {
-        // 不需要进行记录
+    // 判断是否处于正常区间
+    if (!checkNumber(parseInt(year))) {
         return response.json({
             message: responseMessage['错误:地址参数错误'],
             stateCode: 400
@@ -131,10 +142,14 @@ export const MiddlewaresOfPost: Array<Middleware | ErrorMiddleware> = [Multer.si
 
     if (workSheet && checkSourceData(workSheet)) {
 
-        writeForSource(globalDataInstance.getMongoDatabase(), XlsxUtils.sheet_to_json(workSheet), year).then(({ result }) => {
-            if (result.ok !== 1) {
-                request.logger.error(`${SystemErrorCode['错误:数据库写入失败']} DIR:${__dirname} CollectionName:${DatabasePrefixName + year} userID:${request.session.userId}`);
+        writeOfSource(globalDataInstance.getMongoDatabase(), XlsxUtils.sheet_to_json(workSheet), year).then((results: Array<InsertWriteOpResult>) => {
+
+            for (const insertResult of results) {
+                if (insertResult.result.ok !== 1) {
+                    request.logger.error(`${SystemErrorCode['错误:数据库写入失败']} DIR:${__dirname} CollectionName:${DatabasePrefixName + year} userID:${request.session.userId}`);
+                }
             }
+
         }).catch(next);
 
         return response.json({
@@ -150,6 +165,3 @@ export const MiddlewaresOfPost: Array<Middleware | ErrorMiddleware> = [Multer.si
     } as restrictResponse)
 
 }];
-
-// TODO JSON通过这个接口
-// export const url = '/source/json/:year'

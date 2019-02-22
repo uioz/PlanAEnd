@@ -12,6 +12,14 @@ const collectionRead_1 = require("../model/collectionRead");
  * /source/:year
  * 管理源数据的上传和下载
  */
+/**
+* 用于检测url中的参数数值是否在合理范围区间内
+* @param number 整形数值
+*/
+exports.checkNumber = number => number !== NaN && number > 0 && number < Number.MAX_SAFE_INTEGER;
+/**
+ * 源数据上传配置
+ */
 const Multer = multer({
     storage: multer.memoryStorage(),
     limits: {
@@ -84,9 +92,10 @@ exports.MiddlewaresOfPost = [Multer.single('data'), (error, request, response, n
         // 将所有的上传失败视为一种错误
         return next(code_1.ResponseErrorCode['错误:表单上传错误']);
     }, (request, response, next) => {
-        const year = request.params.year;
-        if (year.length !== 4) {
-            // 不需要进行记录
+        // 过滤地址上的杂物.
+        const year = String(parseInt(request.params.year));
+        // 判断是否处于正常区间
+        if (!exports.checkNumber(parseInt(year))) {
             return response.json({
                 message: code_1.responseMessage['错误:地址参数错误'],
                 stateCode: 400
@@ -97,9 +106,11 @@ exports.MiddlewaresOfPost = [Multer.single('data'), (error, request, response, n
             type: 'buffer'
         })), workSheet = planaend_source_1.getDefaultSheets(workBook);
         if (workSheet && planaend_source_1.checkSourceData(workSheet)) {
-            collectionWrite_1.writeForSource(globalData_1.globalDataInstance.getMongoDatabase(), xlsx_1.utils.sheet_to_json(workSheet), year).then(({ result }) => {
-                if (result.ok !== 1) {
-                    request.logger.error(`${code_1.SystemErrorCode['错误:数据库写入失败']} DIR:${__dirname} CollectionName:${exports.DatabasePrefixName + year} userID:${request.session.userId}`);
+            collectionWrite_1.writeOfSource(globalData_1.globalDataInstance.getMongoDatabase(), xlsx_1.utils.sheet_to_json(workSheet), year).then((results) => {
+                for (const insertResult of results) {
+                    if (insertResult.result.ok !== 1) {
+                        request.logger.error(`${code_1.SystemErrorCode['错误:数据库写入失败']} DIR:${__dirname} CollectionName:${exports.DatabasePrefixName + year} userID:${request.session.userId}`);
+                    }
                 }
             }).catch(next);
             return response.json({
@@ -113,5 +124,3 @@ exports.MiddlewaresOfPost = [Multer.single('data'), (error, request, response, n
             stateCode: 400
         });
     }];
-// TODO JSON通过这个接口
-// export const url = '/source/json/:year'

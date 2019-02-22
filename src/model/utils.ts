@@ -1,4 +1,4 @@
-import { Collection, Db } from "mongodb";
+import { Collection, Db,CollectionInsertManyOptions } from "mongodb";
 
 /**
  * 例举所有数据库中的集合名称
@@ -37,12 +37,13 @@ export async function hasCollectionInDatabase(database:Db,...collectionName:Arra
 }
 
 /**
- * 
- * @param collection 
- * @param data 
- * @param limite 
+ * 分段插入,将数据分段插入以提高插入内容的性能
+ * @param collection 数据库对象
+ * @param data 对象数组
+ * @param limite 每次插入的上限
+ * @param options insertMany的插入选项
  */
-export async function lessWrite(collection:Collection,data:Array<any>,limite:number){
+export async function limitWrite(collection: Collection, data: Array<any>, limite: number, options: CollectionInsertManyOptions = {}){
     
     let
         len = data.length,
@@ -50,11 +51,13 @@ export async function lessWrite(collection:Collection,data:Array<any>,limite:num
         num = 0,
         pros = [];
 
-    while (num * baseNumber > len && num + 1 * baseNumber < len) {
-        pros.push(collection.insertMany(data.slice(num * baseNumber, num++ * baseNumber)));
+    while (num * baseNumber < len && num + 1 * baseNumber < len) {
+        pros.push(collection.insertMany(data.slice(num * baseNumber, ++num * baseNumber),options));
     }
 
-    pros.push(collection.insertMany(data.slice(num * baseNumber, num++ * baseNumber)));
+    if (len > num * baseNumber) {
+        pros.push(collection.insertMany(data.slice(num * baseNumber, ++num * baseNumber), options));
+    }
 
     return Promise.all(pros);
 }

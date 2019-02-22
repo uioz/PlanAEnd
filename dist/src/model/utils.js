@@ -35,11 +35,20 @@ async function hasCollectionInDatabase(database, ...collectionName) {
 }
 exports.hasCollectionInDatabase = hasCollectionInDatabase;
 /**
- * 判断集合是否被创建
- * **原理**:利用已经创建的集合集合的stats().ok 返回0(未创建)1(创建)进行判断
- * @param collection 集合对象
+ * 分段插入,将数据分段插入以提高插入内容的性能
+ * @param collection 数据库对象
+ * @param data 对象数组
+ * @param limite 每次插入的上限
+ * @param options insertMany的插入选项
  */
-async function DatabaseIsCreated(collection) {
-    return !!(await collection.stats()).ok;
+async function limitWrite(collection, data, limite, options = {}) {
+    let len = data.length, baseNumber = limite || 500, num = 0, pros = [];
+    while (num * baseNumber < len && num + 1 * baseNumber < len) {
+        pros.push(collection.insertMany(data.slice(num * baseNumber, ++num * baseNumber), options));
+    }
+    if (len > num * baseNumber) {
+        pros.push(collection.insertMany(data.slice(num * baseNumber, ++num * baseNumber), options));
+    }
+    return Promise.all(pros);
 }
-exports.DatabaseIsCreated = DatabaseIsCreated;
+exports.limitWrite = limitWrite;
