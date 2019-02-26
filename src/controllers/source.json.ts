@@ -26,10 +26,13 @@ export const MiddlewaresOfGet: Array<Middleware> = [(request, response) => {
     // 此时通过的请求都是经过session验证的请求
     // 此时挂载了logger 和 express-session 中间件
 
-    const 
-        year = String(parseInt(request.params.year)),
-        start = String(parseInt(request.params.start)),
-        end = String(parseInt(request.params.end));
+    const {
+        params:{
+            year,
+            start,
+            end
+        }
+    } = request;
 
 
     if (checkNumber(parseInt(year)) && checkNumber(parseInt(start)) && checkNumber(parseInt(end))){

@@ -52,12 +52,12 @@ export async function collectionReadAllIfHave(collection:Collection){
 }
 
 /**
- * TODO 基准测试
- * 读取数据库中一部分内容
+ * 指定范围读取数据库中的内容
  * 该函数结合了多种查询策略.
  * 1. 提供sortkey则默认使用最优策略
  * 2. 不提供sortKey则使用skip+limit(不适合数据量大的情况)
  * 3. 不提供start或者end则查询给定数据库的所有内容
+ * **注意**:当sorkKey作为排序键的时候才会获取高性能
  * **注意**:只适合查询返回内容小于16Mib下的使用
  * **注意**:建议给提供的sortKey添加索引
  * **注意**:当start<end的时候报错
@@ -67,7 +67,7 @@ export async function collectionReadAllIfHave(collection:Collection){
  * @param end 结束的起点
  * @param sortKey 排序需要使用的键
  */
-export async function readOfRange(collection:Collection,start:number = 0,end:number = 0,sortKey?:string,) {
+export async function readOfRange(collection:Collection,start:number = 0,end:number = 0,sortKey?:string) {
 
     if(start > end){
 
