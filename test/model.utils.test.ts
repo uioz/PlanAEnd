@@ -33,7 +33,9 @@ describe('limitWrite测试',()=>{
       
       let i = 0 , len = 100,data= [];
       while(i<len){
-        data.push(i);
+        data.push({
+          index:i
+        });
         i++;
       }
 

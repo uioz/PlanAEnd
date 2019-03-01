@@ -39,8 +39,9 @@ describe('readOfRange测试', () => {
 
     it(`testing with sortkey`, async function () {
 
-      // TODO 等待编写
+      const result = await readOfRange(collection,20,80);
 
+      return expect(result.length).eq(60);
     });
 
     afterEach(() => client.close());

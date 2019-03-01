@@ -37,6 +37,6 @@ export type stateCode = 200 | 400 | 403 | 404 | 500;
  * 服务器基本响应类型
  */
 export interface restrictResponse {
-    message:string;
+    message:any;
     stateCode:stateCode;
 }

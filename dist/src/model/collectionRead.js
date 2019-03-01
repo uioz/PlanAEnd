@@ -40,13 +40,13 @@ async function collectionReadAllIfHave(collection) {
 }
 exports.collectionReadAllIfHave = collectionReadAllIfHave;
 /**
- * TODO 基准测试
- * 读取数据库中一部分内容
+ * **注意**:该函数已经废弃,原因分页排序需要根据不同集合进行针对优化.
+ * 指定范围读取数据库中的内容
  * 该函数结合了多种查询策略.
  * 1. 提供sortkey则默认使用最优策略
  * 2. 不提供sortKey则使用skip+limit(不适合数据量大的情况)
  * 3. 不提供start或者end则查询给定数据库的所有内容
- * **注意**:只适合查询返回内容小于16Mib下的使用
+ * **注意**:当sorkKey作为排序键的时候才会获取高性能
  * **注意**:建议给提供的sortKey添加索引
  * **注意**:当start<end的时候报错
  *
@@ -54,25 +54,50 @@ exports.collectionReadAllIfHave = collectionReadAllIfHave;
  * @param start 开始的起点
  * @param end 结束的起点
  * @param sortKey 排序需要使用的键
+ * @param gteNumber 要进行大小比较的键
  */
-async function readOfRange(collection, start = 0, end = 0, sortKey) {
-    if (start > end) {
-        if (start === 0 && end === 0) {
-            return await collection.find().toArray();
-        }
+async function readOfRange(collection, start = 0, end = 0, gteNumber, sortKey) {
+    if (start === 0 && end === 0) {
+        return await collection.find({}, {
+            projection: { _id: false }
+        }).toArray();
+    }
+    if (end > start) {
         if (sortKey) {
             return await collection.find({
                 [sortKey]: {
-                    $lt: start
+                    $gte: gteNumber
                 }
+            }, {
+                projection: { _id: false }
             }).sort({
                 [sortKey]: 1
-            }).limit(end).toArray();
+            }).limit(start - end).toArray();
         }
-        return await collection.find().skip(start).limit(end).toArray();
+        return await collection.find({}, {
+            projection: { _id: false }
+        }).skip(start).limit(start - end).toArray();
     }
     else {
-        throw new Error("Start number must be greater end number!");
+        throw new Error("End number must be greater start number!");
     }
 }
 exports.readOfRange = readOfRange;
+/**
+ * 范围读取内容的简单版本,适合用于文档数量较少的集合.
+ * **注意**:文档的start指的是跳过的内容,例如我们想从第20条记录开始,start需要指定为19
+ * **注意**:当start<end的时候报错
+ * @param collection 集合对象
+ * @param start 范围开始的起点
+ * @param end 范围结束
+ * @param sortObj 排序对象
+ */
+async function readOfRangeEasy(collection, start, end, sortObj = {}) {
+    if (end > start) {
+        return await collection.find({}, { projection: { _id: false } }).sort(sortObj).skip(start).limit(end - start).toArray();
+    }
+    else {
+        throw new Error("End number must be greater start number!");
+    }
+}
+exports.readOfRangeEasy = readOfRangeEasy;

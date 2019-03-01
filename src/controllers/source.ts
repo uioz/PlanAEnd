@@ -21,7 +21,7 @@ import { InsertWriteOpResult } from "mongodb";
 * 用于检测url中的参数数值是否在合理范围区间内
 * @param number 整形数值
 */
-export const checkNumber = number => number !== NaN && number > 0 && number < Number.MAX_SAFE_INTEGER;
+export const checkNumber = number => number !== NaN && number >= 0 && number < Number.MAX_SAFE_INTEGER;
 
 /**
  * 源数据上传配置
