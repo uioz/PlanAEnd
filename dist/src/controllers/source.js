@@ -31,7 +31,7 @@ const Multer = multer({
     }
 });
 /**
- * 本文件中的路由地址
+ * 本模块对应的URL地址
  */
 exports.URL = '/source/:year';
 /**
@@ -106,7 +106,7 @@ exports.MiddlewaresOfPost = [Multer.single('data'), (error, request, response, n
             type: 'buffer'
         })), workSheet = planaend_source_1.getDefaultSheets(workBook);
         if (workSheet && planaend_source_1.checkSourceData(workSheet)) {
-            collectionWrite_1.writeOfSource(globalData_1.globalDataInstance.getMongoDatabase(), xlsx_1.utils.sheet_to_json(workSheet), year).then((results) => {
+            collectionWrite_1.writeOfSource(globalData_1.globalDataInstance.getMongoDatabase().collection(exports.DatabasePrefixName + year), xlsx_1.utils.sheet_to_json(workSheet)).then((results) => {
                 for (const insertResult of results) {
                     if (insertResult.result.ok !== 1) {
                         request.logger.error(`${code_1.SystemErrorCode['错误:数据库写入失败']} DIR:${__dirname} CollectionName:${exports.DatabasePrefixName + year} userID:${request.session.userId}`);

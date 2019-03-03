@@ -5,7 +5,8 @@ import { verifyMiddleware } from "./middleware/filter";
 import { LogMiddleware } from "./middleware/logger";
 import { NODE_ENV } from "./types";
 import * as source from "./controllers/source";
-import * as sourceJson from "./controllers/source.json"
+import * as sourceJson from "./controllers/source.json";
+import * as model from "./controllers/model";
 
 export default (app: Express, globalData: GlobalData) => {
 
@@ -23,5 +24,8 @@ export default (app: Express, globalData: GlobalData) => {
     app.get(source.URL, SessionMiddleware,LogMiddleware,verifyMiddleware(source.LevelIndexOfGet),source.MiddlewaresOfGet);
     app.post(source.URL, SessionMiddleware,LogMiddleware,verifyMiddleware(source.LevelIndexOfPost),source.MiddlewaresOfPost);
     app.get(sourceJson.URL,SessionMiddleware,LogMiddleware,verifyMiddleware(sourceJson.LevelIndexOfGet),sourceJson.MiddlewaresOfGet);
+    app.get(model.URL,SessionMiddleware,LogMiddleware,verifyMiddleware(model.LevelIndexOfGet),model.MiddlewaresOfGet);
+    app.post(model.URL,SessionMiddleware,LogMiddleware,verifyMiddleware(model.LevelIndexOfPost),model.MiddlewaresOfPost);
+    
 
 }

@@ -1,7 +1,5 @@
-import { Db, InsertWriteOpResult } from "mongodb";
+import { Db, InsertWriteOpResult, Collection } from "mongodb";
 import {limitWrite} from "./utils";
-
-export const DatabasePrefixName = 'source_';
 
 /**
  * 向数据库中插入指定年份的源数据
@@ -9,11 +7,7 @@ export const DatabasePrefixName = 'source_';
  * @param data 要插入的数据
  * @param year 插入的年份
  */
-export async function writeOfSource(database: Db, data: Array<any>, year: string) {
-
-    const 
-        collection = database.collection(DatabasePrefixName + year),
-        pros = [];
+export async function writeOfSource(collection: Collection,data: Array<any>) {
 
     // 重复创建索引是没有问题的
     await collection.createIndex({ number: 1 }, {

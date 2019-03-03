@@ -64,4 +64,5 @@ var responseMessage;
     responseMessage["\u9519\u8BEF:\u8868\u5355\u4E0A\u4F20\u9519\u8BEF"] = "\u9519\u8BEF:\u8868\u5355\u4E0A\u4F20\u9519\u8BEF";
     responseMessage["\u9519\u8BEF:\u5730\u5740\u53C2\u6570\u9519\u8BEF"] = "\u9519\u8BEF:\u5730\u5740\u53C2\u6570\u9519\u8BEF";
     responseMessage["\u9519\u8BEF:\u6570\u636E\u6821\u9A8C\u9519\u8BEF"] = "\u9519\u8BEF:\u6570\u636E\u6821\u9A8C\u9519\u8BEF";
+    responseMessage["\u9519\u8BEF:\u6682\u65E0\u6570\u636E"] = "\u9519\u8BEF:\u6682\u65E0\u6570\u636E";
 })(responseMessage = exports.responseMessage || (exports.responseMessage = {}));

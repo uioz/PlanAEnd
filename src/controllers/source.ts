@@ -38,7 +38,7 @@ const Multer = multer({
 });
 
 /**
- * 本文件中的路由地址
+ * 本模块对应的URL地址
  */
 export const URL = '/source/:year';
 /**
@@ -88,7 +88,7 @@ export const MiddlewaresOfGet: Array<Middleware> = [(request, response, next) =>
             return response.json({
                 message: responseMessage['错误:找不到文件'],
                 stateCode: 404
-            });
+            } as restrictResponse);
         }
 
     }).catch((error) => {
@@ -100,7 +100,7 @@ export const MiddlewaresOfGet: Array<Middleware> = [(request, response, next) =>
         return response.json({
             stateCode: 500,
             message: responseMessage['错误:服务器错误']
-        });
+        } as restrictResponse);
 
     });
 
@@ -142,7 +142,7 @@ export const MiddlewaresOfPost: Array<Middleware | ErrorMiddleware> = [Multer.si
 
     if (workSheet && checkSourceData(workSheet)) {
 
-        writeOfSource(globalDataInstance.getMongoDatabase(), XlsxUtils.sheet_to_json(workSheet), year).then((results: Array<InsertWriteOpResult>) => {
+        writeOfSource(globalDataInstance.getMongoDatabase().collection(DatabasePrefixName+year), XlsxUtils.sheet_to_json(workSheet)).then((results: Array<InsertWriteOpResult>) => {
 
             for (const insertResult of results) {
                 if (insertResult.result.ok !== 1) {

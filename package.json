@@ -26,6 +26,7 @@
   },
   "homepage": "https://github.com/uioz/PlanAEnd#readme",
   "devDependencies": {
+    "@types/body-parser": "^1.17.0",
     "@types/chai": "^4.1.7",
     "@types/connect-mongo": "0.0.40",
     "@types/express": "^4.16.1",
@@ -39,13 +40,14 @@
     "typescript": "^3.3.1"
   },
   "dependencies": {
+    "body-parser": "^1.18.3",
     "connect-mongo": "^2.0.3",
     "express": "^4.16.4",
     "express-session": "^1.15.6",
     "log4js": "^4.0.2",
     "mongodb": "^3.1.13",
     "multer": "^1.4.1",
-    "xlsx": "^0.14.1",
-    "planaend-source":"^1.0.0"
+    "planaend-source": "^1.0.0",
+    "xlsx": "^0.14.1"
   }
 }

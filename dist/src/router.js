@@ -6,6 +6,7 @@ const logger_1 = require("./middleware/logger");
 const types_1 = require("./types");
 const source = require("./controllers/source");
 const sourceJson = require("./controllers/source.json");
+const model = require("./controllers/model");
 exports.default = (app, globalData) => {
     const CookieSecure = 'hello world', Database = globalData.getMongoDatabase(), SessionStore = initMiddleware_1.GetMongoStore(Database), SessionMiddleware = initMiddleware_1.GetExpressSession({
         store: SessionStore,
@@ -14,4 +15,6 @@ exports.default = (app, globalData) => {
     app.get(source.URL, SessionMiddleware, logger_1.LogMiddleware, filter_1.verifyMiddleware(source.LevelIndexOfGet), source.MiddlewaresOfGet);
     app.post(source.URL, SessionMiddleware, logger_1.LogMiddleware, filter_1.verifyMiddleware(source.LevelIndexOfPost), source.MiddlewaresOfPost);
     app.get(sourceJson.URL, SessionMiddleware, logger_1.LogMiddleware, filter_1.verifyMiddleware(sourceJson.LevelIndexOfGet), sourceJson.MiddlewaresOfGet);
+    app.get(model.URL, SessionMiddleware, logger_1.LogMiddleware, filter_1.verifyMiddleware(model.LevelIndexOfGet), model.MiddlewaresOfGet);
+    app.post(model.URL, SessionMiddleware, logger_1.LogMiddleware, filter_1.verifyMiddleware(model.LevelIndexOfPost), model.MiddlewaresOfPost);
 };

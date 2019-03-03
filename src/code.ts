@@ -50,7 +50,7 @@ export enum LevelCode{
     'EditIndex' = 3,
     'UploadIndex' = 4,
     'StaticMessageIndex' = 5,
-    'ViewIndex' = 6
+    'ViewIndex' = 6,
 }
 
 /**
@@ -62,5 +62,6 @@ export enum responseMessage {
     '错误:服务器错误' = '服务器错误',
     '错误:表单上传错误' = '错误:表单上传错误',
     '错误:地址参数错误' = '错误:地址参数错误',
-    '错误:数据校验错误' = '错误:数据校验错误'
+    '错误:数据校验错误' = '错误:数据校验错误',
+    '错误:暂无数据' = '错误:暂无数据'
 }
