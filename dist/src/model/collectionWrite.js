@@ -17,3 +17,12 @@ async function writeOfSource(collection, data) {
     });
 }
 exports.writeOfSource = writeOfSource;
+/**
+ * 向指定集合写入新的专业模型
+ */
+async function writeOfModel(collection, data) {
+    return await collection.findOneAndReplace({}, data, {
+        upsert: true
+    });
+}
+exports.writeOfModel = writeOfModel;

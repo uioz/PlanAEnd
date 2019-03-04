@@ -19,3 +19,12 @@ export async function writeOfSource(collection: Collection,data: Array<any>) {
     });
 
 }
+
+/**
+ * 向指定集合写入新的专业模型
+ */
+export async function writeOfModel(collection:Collection,data:object) {
+    return await collection.findOneAndReplace({},data,{
+        upsert:true
+    });
+}

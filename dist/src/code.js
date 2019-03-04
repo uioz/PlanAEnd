@@ -15,6 +15,7 @@ var SystemErrorCode;
 (function (SystemErrorCode) {
     SystemErrorCode[SystemErrorCode["\u9519\u8BEF:\u6570\u636E\u5E93\u8BFB\u53D6\u9519\u8BEF"] = 8602] = "\u9519\u8BEF:\u6570\u636E\u5E93\u8BFB\u53D6\u9519\u8BEF";
     SystemErrorCode[SystemErrorCode["\u9519\u8BEF:\u6570\u636E\u5E93\u5199\u5165\u5931\u8D25"] = 8603] = "\u9519\u8BEF:\u6570\u636E\u5E93\u5199\u5165\u5931\u8D25";
+    SystemErrorCode[SystemErrorCode["\u9519\u8BEF:\u6570\u636E\u5E93\u56DE\u8C03\u5F02\u5E38"] = 8604] = "\u9519\u8BEF:\u6570\u636E\u5E93\u56DE\u8C03\u5F02\u5E38";
 })(SystemErrorCode = exports.SystemErrorCode || (exports.SystemErrorCode = {}));
 /**
  * 对外可以响应的错误代码
@@ -58,7 +59,7 @@ var LevelCode;
  */
 var responseMessage;
 (function (responseMessage) {
-    responseMessage["\u6E90\u6570\u636E\u4E0A\u4F20\u6210\u529F"] = "\u6E90\u6570\u636E\u4E0A\u4F20\u6210\u529F";
+    responseMessage["\u6570\u636E\u4E0A\u4F20\u6210\u529F"] = "\u6570\u636E\u4E0A\u4F20\u6210\u529F";
     responseMessage["\u9519\u8BEF:\u627E\u4E0D\u5230\u6587\u4EF6"] = "\u627E\u4E0D\u5230\u6587\u4EF6";
     responseMessage["\u9519\u8BEF:\u670D\u52A1\u5668\u9519\u8BEF"] = "\u670D\u52A1\u5668\u9519\u8BEF";
     responseMessage["\u9519\u8BEF:\u8868\u5355\u4E0A\u4F20\u9519\u8BEF"] = "\u9519\u8BEF:\u8868\u5355\u4E0A\u4F20\u9519\u8BEF";

@@ -114,7 +114,7 @@ exports.MiddlewaresOfPost = [Multer.single('data'), (error, request, response, n
                 }
             }).catch(next);
             return response.json({
-                message: code_1.responseMessage['源数据上传成功'],
+                message: code_1.responseMessage['数据上传成功'],
                 stateCode: 200
             });
         }

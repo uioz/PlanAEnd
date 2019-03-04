@@ -153,7 +153,7 @@ export const MiddlewaresOfPost: Array<Middleware | ErrorMiddleware> = [Multer.si
         }).catch(next);
 
         return response.json({
-            message: responseMessage['源数据上传成功'],
+            message: responseMessage['数据上传成功'],
             stateCode: 200
         } as restrictResponse)
     }

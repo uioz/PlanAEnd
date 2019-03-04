@@ -1,8 +1,9 @@
-import { LevelCode, responseMessage, ResponseErrorCode } from "../code";
+import { LevelCode, responseMessage, ResponseErrorCode, SystemErrorCode } from "../code";
 import { Middleware, restrictResponse, ErrorMiddleware } from "../types";
 import { globalDataInstance } from "../globalData";
 import { collectionReadAllIfHave } from "../model/collectionRead";
 import * as bodyParser from "body-parser";
+import { writeOfModel } from "../model/collectionWrite";
 
 /**
  * 使用body-paser定义JSON解析中间件
@@ -37,7 +38,7 @@ export const LevelIndexOfPost = LevelCode.EditIndex.toString();
 /**
  * 数据库名称
  */
-export const DatabaseName = 'model_speciality';
+export const CollectionName = 'model_speciality';
 
 /**
  * GET 对应的中间件
@@ -48,7 +49,7 @@ export const MiddlewaresOfGet: Array<Middleware> = [
     // 此时通过的请求都是经过session验证的请求
     // 此时挂载了logger 和 express-session 中间件
 
-    const collection = globalDataInstance.getMongoDatabase().collection(DatabaseName);
+    const collection = globalDataInstance.getMongoDatabase().collection(CollectionName);
 
     collectionReadAllIfHave(collection)
       .then(result => {
@@ -82,6 +83,37 @@ export const MiddlewaresOfGet: Array<Middleware> = [
   }
 ]
 
+const patternOfData = new RegExp(`^[\u2E80-\u2EFF\u2F00-\u2FDF\u3000-\u303F\u31C0-\u31EF\u3200-\u32FF\u3300-\u33FF\u3400-\u4DBF\u4DC0-\u4DFF\u4E00-\u9FBF\uF900-\uFAFF\uFE30-\uFE4F\uFF00-\uFFEF\\w]{1,10}$`);
+
+/**
+ * 递归数据检测上传的专业模型是否符合规范
+ * **注意**:一旦检测到错误会抛出异常
+ * @param data 要被检测的数据
+ */
+const checkBody = (data: any) => {
+  if (Array.isArray(data)) {
+    for (const item of data) {
+      if (!patternOfData.test(item)) {
+        throw new Error(`The ${item} of element of Array unable to pass verify.`);
+      }
+    }
+    return;
+  }
+
+  for (const key of Object.keys(data)) {
+    if (patternOfData.test(key)) {
+      if (typeof data[key] === 'object') {
+        checkBody(data[key]);
+      } else {
+        throw new Error(`The Object-value ${data[key]} type is not object or array`);
+      }
+
+    } else {
+      throw new Error(`The Object-key ${key} unable to pass verify.`);
+    }
+  }
+}
+
 /**
  * POST 对应的中间件
  */
@@ -91,9 +123,41 @@ export const MiddlewaresOfPost: Array<Middleware | ErrorMiddleware> = [
 
     // 记录错误栈
     (request as any).logger.error(error);
-    return next(ResponseErrorCode['错误:数据校验错误']);
+    return next(responseMessage['错误:数据校验错误']);
 
-  },(request,response,next)=>{
+  }, (request, response, next) => {
+
+    try {
+
+      const SourceData = request.body;
+
+      checkBody(SourceData);
+
+      writeOfModel(globalDataInstance.getMongoDatabase().collection(CollectionName), SourceData)
+        .then(result => {
+          if(!result.ok){
+            request.logger.warn(`${SystemErrorCode['错误:数据库回调异常']} ${result}`);
+          }
+        })
+        .catch(error => {
+          request.logger.error(error);
+          request.logger.error(SystemErrorCode['错误:数据库写入失败']);
+        });
+
+      response.json({
+        stateCode: 200,
+        message: responseMessage['数据上传成功']
+      } as restrictResponse);
+
+    } catch (error) {
+      // TODO 记录用户
+      request.logger.error(error);
+      response.json({
+        stateCode: 400,
+        message: responseMessage['错误:数据校验错误']
+      } as restrictResponse);
+    }
+
 
     // TODO 编写 模型正则过滤,长度过滤,底部数组过滤
 

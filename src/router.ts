@@ -7,6 +7,7 @@ import { NODE_ENV } from "./types";
 import * as source from "./controllers/source";
 import * as sourceJson from "./controllers/source.json";
 import * as model from "./controllers/model";
+import * as user from "./controllers/user";
 
 export default (app: Express, globalData: GlobalData) => {
 
@@ -26,6 +27,9 @@ export default (app: Express, globalData: GlobalData) => {
     app.get(sourceJson.URL,SessionMiddleware,LogMiddleware,verifyMiddleware(sourceJson.LevelIndexOfGet),sourceJson.MiddlewaresOfGet);
     app.get(model.URL,SessionMiddleware,LogMiddleware,verifyMiddleware(model.LevelIndexOfGet),model.MiddlewaresOfGet);
     app.post(model.URL,SessionMiddleware,LogMiddleware,verifyMiddleware(model.LevelIndexOfPost),model.MiddlewaresOfPost);
+    app.get(user.URL,SessionMiddleware,LogMiddleware,verifyMiddleware(user.LevelIndexOfGet),user.MiddlewareOfGet);
+    app.post(user.URL,SessionMiddleware,LogMiddleware,verifyMiddleware(user.LevelIndexOfPost),user.MiddlewareOfPost);
+    app.delete(user.URL,SessionMiddleware,LogMiddleware,verifyMiddleware(user.LevelIndexOfDelete),user.MiddlewareOfDelete);
     
 
 }
