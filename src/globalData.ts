@@ -9,7 +9,7 @@ type loggerType = 'default' | 'production' | 'developmentAll' | 'developmentOnly
 /**
  * 默认的配置文件,包括系统配置等
  */
-type configType = 'systemConfig' | 'logType';
+type configType = 'systemConfig' | 'logType' | 'userConfig';
 
 /**
  * 默认的数据的垫片文件,数据库初始化时候需要使用到

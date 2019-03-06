@@ -4,7 +4,7 @@ const code_1 = require("../code");
 /**
  * 简介:
  * 该模块负责用户信息的获取 GET
- * 该模块复杂用户的添加 POST
+ * 该模块负责用户的添加 POST
  * 该模块负责用户的删除 DELETE
  * URL:
  * /user
