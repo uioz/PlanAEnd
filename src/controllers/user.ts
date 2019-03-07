@@ -1,5 +1,7 @@
-import { LevelCode } from "../code";
-import { Middleware, ErrorMiddleware } from "../types";
+import { LevelCode, responseMessage, SystemErrorCode } from "../code";
+import { Middleware, ErrorMiddleware, restrictResponse } from "../types";
+import { readUserList } from "../model/collectionRead";
+import { globalDataInstance } from "../globalData";
 /**
  * 简介:
  * 该模块负责用户信息的获取 GET
@@ -36,13 +38,31 @@ export const CollectionName = 'model_users';
  * GET 对应的中间件
  */
 export const MiddlewareOfGet: Array<Middleware> = [(request,response,next) => { 
-  response.end('ok');
+
+  const collection = globalDataInstance.getMongoDatabase().collection(CollectionName);
+
+  readUserList(collection).then(list => response.json({
+    stateCode: 200,
+    message: list
+  } as restrictResponse))
+  .catch(error=>{
+
+    response.json({
+      stateCode:500,
+      message:responseMessage['错误:服务器错误']
+    } as restrictResponse);
+
+    (request as any).logger.error(SystemErrorCode['错误:数据库读取错误']);
+    (request as any).logger.error(error);
+
+  });
 }];
 
 /**
  * POST 对应的中间件
  */
 export const MiddlewareOfPost: Array<Middleware> = [(request,response,next) => { 
+
   response.end('ok');
 }];
 /**

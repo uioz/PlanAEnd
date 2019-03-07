@@ -61,3 +61,12 @@ export async function limitWrite(collection: Collection, data: Array<any>, limit
 
     return Promise.all(pros);
 }
+
+/**
+ * 获取过滤器,用于过滤结果中的_id
+ */
+export const getRemoveIdProjection = ()=>{
+    return {
+        _id: false
+    }
+}

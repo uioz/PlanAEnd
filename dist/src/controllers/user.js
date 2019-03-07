@@ -1,6 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const code_1 = require("../code");
+const collectionRead_1 = require("../model/collectionRead");
+const globalData_1 = require("../globalData");
 /**
  * 简介:
  * 该模块负责用户信息的获取 GET
@@ -33,7 +35,19 @@ exports.CollectionName = 'model_users';
  * GET 对应的中间件
  */
 exports.MiddlewareOfGet = [(request, response, next) => {
-        response.end('ok');
+        const collection = globalData_1.globalDataInstance.getMongoDatabase().collection(exports.CollectionName);
+        collectionRead_1.readUserList(collection).then(list => response.json({
+            stateCode: 200,
+            message: list
+        }))
+            .catch(error => {
+            response.json({
+                stateCode: 500,
+                message: code_1.responseMessage['错误:服务器错误']
+            });
+            request.logger.error(code_1.SystemErrorCode['错误:数据库读取错误']);
+            request.logger.error(error);
+        });
     }];
 /**
  * POST 对应的中间件

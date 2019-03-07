@@ -1,8 +1,8 @@
 import { Db, Collection, } from "mongodb";
 import { Logger } from "log4js";
-import { StreamReadAsync } from "planaend-source";
+import { getRemoveIdProjection } from "./utils";
 
-function autoLog<T extends Error>(error:T,logger:Logger) {
+function autoLog<T extends Error>(error: T, logger: Logger) {
     if (logger) {
         return logger.error(error);
     } else {
@@ -14,19 +14,17 @@ function autoLog<T extends Error>(error:T,logger:Logger) {
  * 从指定的集合中读取所有的内容以Buffer的形式返回
  * @param collection 集合对象
  */
-export const collectionReadAll = (collection: Collection):Promise<Array<any>>=>new Promise((resolve,reject)=>{
+export const collectionReadAll = (collection: Collection): Promise<Array<any>> => new Promise((resolve, reject) => {
     const
-        cursor = collection.find({},{
-            projection:{
-                _id:false
-            }
+        cursor = collection.find({}, {
+            projection: getRemoveIdProjection()
         }),
         buffers = [];
 
     cursor.on('data', (chunk) => buffers.push(chunk));
     cursor.on('end', () => {
 
-        cursor.close().catch((error)=>{
+        cursor.close().catch((error) => {
             throw error;
         });
         // 震惊,MongoDB流返回的居然不是Buffer而是已经格式化好的数据
@@ -45,9 +43,9 @@ export const collectionReadAll = (collection: Collection):Promise<Array<any>>=>n
  * @param collection 集合对象
  * @param logger 日志对象
  */
-export async function collectionReadAllIfHave(collection:Collection){
+export async function collectionReadAllIfHave(collection: Collection) {
 
-    if (await collection.find().limit(1).hasNext()){
+    if (await collection.find().limit(1).hasNext()) {
         return await collectionReadAll(collection);
     }
 
@@ -72,36 +70,36 @@ export async function collectionReadAllIfHave(collection:Collection){
  * @param sortKey 排序需要使用的键
  * @param gteNumber 要进行大小比较的键
  */
-export async function readOfRange(collection: Collection, start: number = 0, end: number = 0, gteNumber?:any,sortKey?: string,): Promise<Array<any>> {
+export async function readOfRange(collection: Collection, start: number = 0, end: number = 0, gteNumber?: any, sortKey?: string, ): Promise<Array<any>> {
 
     if (start === 0 && end === 0) {
-        return await collection.find({},{
-            projection:{_id:false}
+        return await collection.find({}, {
+            projection: getRemoveIdProjection()
         }).toArray();
     }
 
-    if(end > start){
+    if (end > start) {
 
-        if(sortKey){
+        if (sortKey) {
             return await collection.find({
-                [sortKey]:{
+                [sortKey]: {
                     $gte: gteNumber
                 }
-            },{
-                projection:{_id:false}
-            }).sort({
-                [sortKey]: 1
-            }).limit(start-end).toArray();
+            }, {
+                    projection: getRemoveIdProjection()
+                }).sort({
+                    [sortKey]: 1
+                }).limit(start - end).toArray();
         }
 
-        return await collection.find({},{
-            projection:{_id:false}
-        }).skip(start).limit(start-end).toArray();
+        return await collection.find({}, {
+            projection: getRemoveIdProjection()
+        }).skip(start).limit(start - end).toArray();
 
-    }else {
+    } else {
         throw new Error("End number must be greater start number!")
     }
-    
+
 }
 
 /**
@@ -113,10 +111,22 @@ export async function readOfRange(collection: Collection, start: number = 0, end
  * @param end 范围结束
  * @param sortObj 排序对象
  */
-export async function readOfRangeEasy(collection:Collection,start:number,end:number,sortObj:object = {}):Promise<Array<any>>{
+export async function readOfRangeEasy(collection: Collection, start: number, end: number, sortObj: object = {}): Promise<Array<any>> {
     if (end > start) {
-        return await collection.find({},{projection:{_id:false}}).sort(sortObj).skip(start).limit(end-start).toArray();
-    }else{
+        return await collection.find({}, { projection: { _id: false } }).sort(sortObj).skip(start).limit(end - start).toArray();
+    } else {
         throw new Error("End number must be greater start number!");
     }
+}
+
+/**
+ * 从指定集合中读取用户列表(不包含超级管理员)
+ * @param collection 集合对象
+ */
+export async function readUserList(collection: Collection) {
+    return await collection.find({
+        level:{
+            $ne:0
+        }
+    }, { projection: getRemoveIdProjection() }).toArray();
 }

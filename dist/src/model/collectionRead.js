@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const utils_1 = require("./utils");
 function autoLog(error, logger) {
     if (logger) {
         return logger.error(error);
@@ -14,9 +15,7 @@ function autoLog(error, logger) {
  */
 exports.collectionReadAll = (collection) => new Promise((resolve, reject) => {
     const cursor = collection.find({}, {
-        projection: {
-            _id: false
-        }
+        projection: utils_1.getRemoveIdProjection()
     }), buffers = [];
     cursor.on('data', (chunk) => buffers.push(chunk));
     cursor.on('end', () => {
@@ -63,7 +62,7 @@ exports.collectionReadAllIfHave = collectionReadAllIfHave;
 async function readOfRange(collection, start = 0, end = 0, gteNumber, sortKey) {
     if (start === 0 && end === 0) {
         return await collection.find({}, {
-            projection: { _id: false }
+            projection: utils_1.getRemoveIdProjection()
         }).toArray();
     }
     if (end > start) {
@@ -73,13 +72,13 @@ async function readOfRange(collection, start = 0, end = 0, gteNumber, sortKey) {
                     $gte: gteNumber
                 }
             }, {
-                projection: { _id: false }
+                projection: utils_1.getRemoveIdProjection()
             }).sort({
                 [sortKey]: 1
             }).limit(start - end).toArray();
         }
         return await collection.find({}, {
-            projection: { _id: false }
+            projection: utils_1.getRemoveIdProjection()
         }).skip(start).limit(start - end).toArray();
     }
     else {
@@ -105,3 +104,15 @@ async function readOfRangeEasy(collection, start, end, sortObj = {}) {
     }
 }
 exports.readOfRangeEasy = readOfRangeEasy;
+/**
+ * 从指定集合中读取用户列表(不包含超级管理员)
+ * @param collection 集合对象
+ */
+async function readUserList(collection) {
+    return await collection.find({
+        level: {
+            $ne: 0
+        }
+    }, { projection: utils_1.getRemoveIdProjection() }).toArray();
+}
+exports.readUserList = readUserList;
