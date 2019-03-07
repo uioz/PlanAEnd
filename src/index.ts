@@ -1,7 +1,7 @@
 import { resolve } from "path";
 import * as log4js from "log4js";
 import { globalDataInstance, GlobalData } from "./globalData";
-import { connect, MongoClient, Collection, Db } from "mongodb";
+import { connect, MongoClient, Collection, Db, } from "mongodb";
 import { createCollection } from "./model/collectionCreate";
 import { NODE_ENV } from "./types";
 import App from "./app";
@@ -16,7 +16,6 @@ enum ConfigNameMap {
     'userConfig' = 'model_users',
     'model_users' = 'userConfig'
 }
-
 
 /**
  * 检测数据库中是否包含了给定名称的集合名称
@@ -54,22 +53,22 @@ function verifyDatabase(databaseList: Array<any>): Array<string> {
 }
 
 /**
- * 根据给定的集合名称
- * 利用全局单例中的数据库和单例中的配置
- * 创建对应的集合,并且插入来自单例中的位置到创建的集合中
+ * 从指定的源路径中读取JSON数据
+ * 然后存放到指定名称的数据库中的集合中
  * @param collectionNames 由集合名组成的数组
- * @param globalData 全局单例
+ * @param database 在该数据库中创建集合
+ * @param filePath 存放源配置的路径
  */
-async function fillDatabase(collectionNames: Array<string>, globalData: GlobalData) {
-
+async function fillDatabase(collectionNames: Array<string>, database: Db,filePath:string,logger:log4js.Logger) {
     const pros = [];
 
     for (const name of collectionNames) {
-        pros.push(createCollection(name, globalData.getMongoDatabase(), {
-            insertData: globalData.getConfig(ConfigNameMap[name]),
+        pros.push(createCollection(name, database, {
+            insertData: require(resolve(filePath,`${ConfigNameMap[name]}.json`)),
             force: true
         }));
-        globalData.getLogger().info(`${name} started rebuild!`);
+        
+        logger.info(`${name} started rebuilding!`);
     }
 
     try {
@@ -77,9 +76,8 @@ async function fillDatabase(collectionNames: Array<string>, globalData: GlobalDa
             const result = await item;
         }
     } catch (error) {
-        globalData.getLogger().error(`initialization Database failed, reason: ${error}`);
+        logger.error(`initialization Database failed, reason: ${error}`);
     }
-
 
 }
 
@@ -96,13 +94,11 @@ export default async function (Cwd: string) {
         ConfigDir = resolve(Cwd, './config'),
         LogConfig = require(resolve(ConfigDir, './logconfig.json')),
         SystemConfig = require(resolve(ConfigDir, './systemConfig.json')),
-        userConfig = require(resolve(ConfigDir, './userConfig.json')),
         MongoURl = SystemConfig.system.mongodbUrl,
         DatabaseName = SystemConfig.system.mongodbDataBase;
 
     globalDataInstance.setConfig('logType', LogConfig);
     globalDataInstance.setConfig('systemConfig', SystemConfig);
-    globalDataInstance.setConfig('userConfig', userConfig);
     globalDataInstance.setLog4js(log4js.configure(LogConfig));
 
     // TODO 默认开发时候使用该log策略
@@ -115,9 +111,8 @@ export default async function (Cwd: string) {
 
     let
         MongoClient: MongoClient,
-        Database: Db,
-        Collection: Collection;
-
+        Database: Db;
+    
     try {
 
         logger.info('Connect to MongoDB!');
@@ -149,16 +144,15 @@ export default async function (Cwd: string) {
      * - PRON模式
      *  - 检测是否有未初始化的集合,如果有则根据JSON配置文件初始化它
      */
-    await fillDatabase(verifyDatabase(databaseList),globalDataInstance);
+    await fillDatabase(verifyDatabase(databaseList),Database,ConfigDir,logger);
 
-    // 读取数据库中的配置文件然后覆写systemConfig
+    // 读取数据库中的配置文件然后覆写全局配置中的systemConfig
     try {
-        const systemConfig = await collectionReadAll(globalDataInstance.getMongoDatabase().collection('systemConfig'));
-        globalDataInstance.setConfig('systemConfig',systemConfig);
+        const systemConfig = await collectionReadAll(globalDataInstance.getMongoDatabase().collection(ConfigNameMap['systemConfig']));
+        globalDataInstance.setConfig('systemConfig',systemConfig[0]);
     } catch (error) {
         globalDataInstance.getLogger().error(error)
     }
-
 
     // 启动服务器
     App(Cwd, globalDataInstance);

@@ -13,7 +13,11 @@ function autoLog(error, logger) {
  * @param collection 集合对象
  */
 exports.collectionReadAll = (collection) => new Promise((resolve, reject) => {
-    const cursor = collection.find(), buffers = [];
+    const cursor = collection.find({}, {
+        projection: {
+            _id: false
+        }
+    }), buffers = [];
     cursor.on('data', (chunk) => buffers.push(chunk));
     cursor.on('end', () => {
         cursor.close().catch((error) => {

@@ -16,7 +16,11 @@ function autoLog<T extends Error>(error:T,logger:Logger) {
  */
 export const collectionReadAll = (collection: Collection):Promise<Array<any>>=>new Promise((resolve,reject)=>{
     const
-        cursor = collection.find(),
+        cursor = collection.find({},{
+            projection:{
+                _id:false
+            }
+        }),
         buffers = [];
 
     cursor.on('data', (chunk) => buffers.push(chunk));

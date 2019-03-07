@@ -86,19 +86,6 @@ class GlobalData {
         return this.mongoDatabase;
     }
     /**
-     * 读取mongo中的服务器配置,并且到对象的内部
-     * @param collection mongo集合对象
-     * @param configType 读取的类型
-     */
-    async readConfigFromMongo(collection, configType) {
-        return this.configs[configType] = await collection.findOne({});
-    }
-    /**
-     * 重写
-     */
-    async writeConfigToMongo() {
-    }
-    /**
      * 关闭全局的MongoClient客户端
      * @param force 是否强制关闭
      */
