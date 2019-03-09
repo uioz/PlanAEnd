@@ -1,5 +1,6 @@
-import { Db, InsertWriteOpResult, Collection } from "mongodb";
+import { Collection } from "mongodb";
 import {limitWrite} from "./utils";
+import { PostShape } from "../controllers/user";
 
 /**
  * 向数据库中插入指定年份的源数据
@@ -25,6 +26,18 @@ export async function writeOfSource(collection: Collection,data: Array<any>) {
  */
 export async function writeOfModel(collection:Collection,data:object) {
     return await collection.findOneAndReplace({},data,{
+        upsert:true
+    });
+}
+
+export async function writeOfUser(collection:Collection,data:PostShape) {
+    return await collection.updateOne({
+        account:data.account
+    } as PostShape,{
+        $set:{
+            ...data
+        }
+    },{
         upsert:true
     });
 }

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>test</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+
+<body>
+  <button id="repeat" >创建重复用户</button>
+  <button id="superuser" >创建超级用户</button>
+  <script>
+    // 创建重复用户
+    document.getElementById('repeat').addEventListener('click',()=>{
+      fetch('/user',{
+        method:'POST',
+        body:{
+          account:'admin',
+        },
+        headers:{
+          'Content-Type': 'application/json'
+        }
+      })
+    });
+    // 创建超级管理员
+    document.getElementById('superuser').addEventListener('click',()=>{
+      fetch('/user',{
+        method:'POST',
+        body:{
+          account:'123',
+          levelcoderaw:'0000000'
+        },
+        headers:{
+          'Content-Type': 'application/json'
+        }
+      })
+    });
+  </script>
+</body>
+
+</html>

@@ -4,6 +4,7 @@ import { globalDataInstance } from "../globalData";
 import { collectionReadAllIfHave } from "../model/collectionRead";
 import * as bodyParser from "body-parser";
 import { writeOfModel } from "../model/collectionWrite";
+import { responseAndTypeAuth } from "./public";
 
 /**
  * 使用body-paser定义JSON解析中间件
@@ -56,28 +57,27 @@ export const MiddlewaresOfGet: Array<Middleware> = [
 
         if (result) {
 
-          return response.json({
+          return responseAndTypeAuth(response, {
             message: result,
             stateCode: 200
-          } as restrictResponse);
+          });
 
-        } else {
-          return response.json({
-            message: responseMessage['错误:暂无数据'],
-            stateCode: 400
-          } as restrictResponse)
         }
+
+        return responseAndTypeAuth(response, {
+          message: responseMessage['错误:暂无数据'],
+          stateCode: 400
+        });
 
       })
       .catch(error => {
 
         (request as any).logger.error(error.stack);
 
-        return response.json({
+        return responseAndTypeAuth(response, {
           stateCode: 500,
           message: responseMessage['错误:服务器错误']
-        } as restrictResponse);
-
+        });
       });
 
   }
@@ -144,23 +144,20 @@ export const MiddlewaresOfPost: Array<Middleware | ErrorMiddleware> = [
           request.logger.error(SystemErrorCode['错误:数据库写入失败']);
         });
 
-      response.json({
+      return responseAndTypeAuth(response, {
         stateCode: 200,
         message: responseMessage['数据上传成功']
-      } as restrictResponse);
+      });
 
     } catch (error) {
       // TODO 记录用户
       request.logger.error(error);
-      response.json({
+
+      return responseAndTypeAuth(response, {
         stateCode: 400,
         message: responseMessage['错误:数据校验错误']
-      } as restrictResponse);
+      });
     }
 
-
-    // TODO 编写 模型正则过滤,长度过滤,底部数组过滤
-
-    response.end('ok')
   }
 ]

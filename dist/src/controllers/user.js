@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const code_1 = require("../code");
 const collectionRead_1 = require("../model/collectionRead");
 const globalData_1 = require("../globalData");
+const apiCheck = require("api-check");
 /**
  * 简介:
  * 该模块负责用户信息的获取 GET
@@ -31,6 +32,14 @@ exports.LevelIndexOfDelete = code_1.LevelCode.ManagementIndex.toString();
  * 本模块对应的集合名称
  */
 exports.CollectionName = 'model_users';
+const postShape = apiCheck.shape({
+    account: apiCheck.string,
+    nickname: apiCheck.string,
+    level: apiCheck.number,
+    levelcoderaw: apiCheck.string,
+    password: apiCheck.string,
+    controlarea: apiCheck.arrayOf(apiCheck.number)
+});
 /**
  * GET 对应的中间件
  */
