@@ -16,26 +16,27 @@
     document.getElementById('repeat').addEventListener('click',()=>{
       fetch('/user',{
         method:'POST',
-        body:{
-          account:'admin',
-        },
+        body:JSON.stringify({
+          account: 'admin',
+        }),
         headers:{
           'Content-Type': 'application/json'
         }
-      })
+      }).then(response=> console.log(response.json())).catch(error=>console.log(error));
+
     });
     // 创建超级管理员
     document.getElementById('superuser').addEventListener('click',()=>{
       fetch('/user',{
         method:'POST',
-        body:{
-          account:'123',
-          levelcoderaw:'0000000'
-        },
+        body:JSON.stringify({
+          account: '123',
+          levelcoderaw: '0000000'
+        }),
         headers:{
           'Content-Type': 'application/json'
         }
-      })
+      }).then(response => console.log(response.json())).catch(error => console.log(error));
     });
   </script>
 </body>

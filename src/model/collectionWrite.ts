@@ -30,9 +30,18 @@ export async function writeOfModel(collection:Collection,data:object) {
     });
 }
 
+/**
+ * 更新或者添加用户信息
+ * @param collection 集合对象
+ * @param data 用户数据
+ */
 export async function writeOfUser(collection:Collection,data:PostShape) {
+
+    const account = data.account;
+    delete data.account;
+
     return await collection.updateOne({
-        account:data.account
+        account
     } as PostShape,{
         $set:{
             ...data

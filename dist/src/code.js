@@ -16,6 +16,8 @@ var SystemErrorCode;
     SystemErrorCode[SystemErrorCode["\u9519\u8BEF:\u6570\u636E\u5E93\u8BFB\u53D6\u9519\u8BEF"] = 8602] = "\u9519\u8BEF:\u6570\u636E\u5E93\u8BFB\u53D6\u9519\u8BEF";
     SystemErrorCode[SystemErrorCode["\u9519\u8BEF:\u6570\u636E\u5E93\u5199\u5165\u5931\u8D25"] = 8603] = "\u9519\u8BEF:\u6570\u636E\u5E93\u5199\u5165\u5931\u8D25";
     SystemErrorCode[SystemErrorCode["\u9519\u8BEF:\u6570\u636E\u5E93\u56DE\u8C03\u5F02\u5E38"] = 8604] = "\u9519\u8BEF:\u6570\u636E\u5E93\u56DE\u8C03\u5F02\u5E38";
+    SystemErrorCode[SystemErrorCode["\u8B66\u544A:\u6570\u636E\u6821\u9A8C\u9519\u8BEF"] = 8502] = "\u8B66\u544A:\u6570\u636E\u6821\u9A8C\u9519\u8BEF";
+    SystemErrorCode[SystemErrorCode["\u9519\u8BEF:\u5BC6\u94A5\u9A8C\u8BC1\u9519\u8BEF"] = 8503] = "\u9519\u8BEF:\u5BC6\u94A5\u9A8C\u8BC1\u9519\u8BEF";
 })(SystemErrorCode = exports.SystemErrorCode || (exports.SystemErrorCode = {}));
 /**
  * 对外可以响应的错误代码

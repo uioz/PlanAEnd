@@ -3,7 +3,8 @@ import { Middleware, ErrorMiddleware, restrictResponse } from "../types";
 import { readUserList } from "../model/collectionRead";
 import { globalDataInstance } from "../globalData";
 import * as apiCheck from "api-check";
-import { responseAndTypeAuth } from "./public";
+import { responseAndTypeAuth,JSONParser,code500,code400,code200 } from "./public";
+import { writeOfUser } from "../model/collectionWrite";
 
 
 /**
@@ -49,21 +50,21 @@ export interface PostShape{
   /**
    * 用户昵称
    */
-  nickname:string;
+  nickname?:string;
   /**
    * 用户权限2进制转10进制数值
    * 由于一共有6个权限位,所以二进制111111十进制表示63
    * 所以该数值被限制在了1-63闭区间中
    */
-  level:number;
+  level?:number;
   /**
    * 密码SHA1格式
    */
-  password:string;
+  password?:string;
   /**
    * 所管理的顶级区域
    */
-  controlarea:Array<string>;
+  controlarea?:Array<string>;
 }
 
 /**
@@ -71,10 +72,10 @@ export interface PostShape{
  */
 const postShape = apiCheck.shape({
   account: apiCheck.string,
-  nickname: apiCheck.string,
-  level: apiCheck.range(1, 63),
-  password: apiCheck.string,
-  controlarea: apiCheck.arrayOf(apiCheck.string)
+  nickname: apiCheck.string.optional,
+  level: apiCheck.range(1, 63).optional,
+  password: apiCheck.string.optional,
+  controlarea: apiCheck.arrayOf(apiCheck.string).optional
 });
 
 /**
@@ -91,48 +92,53 @@ export const MiddlewareOfGet: Array<Middleware> = [(request,response,next) => {
     message: list
   }))
   .catch(error=>{
-
-    responseAndTypeAuth(response,({
-      stateCode:500,
-      message:responseMessage['错误:服务器错误']
-    }));
-
     (request as any).logger.error(SystemErrorCode['错误:数据库读取错误']);
     (request as any).logger.error(error);
-
+    return code500(response);
   });
 }];
 
 /**
  * POST 对应的中间件
  */
-export const MiddlewareOfPost: Array<Middleware> = [(request,response,next) => { 
-
-  const 
-    dataOfRequest:PostShape = request.body,
-    badRequestResponse:restrictResponse = {
-      stateCode: 400,
-      message: responseMessage['错误:数据校验错误']
-    };
-
-  try {
-    postShape(dataOfRequest);
-  } catch (error) {
-
+export const MiddlewareOfPost: Array<Middleware | ErrorMiddleware> = [JSONParser,(request,response,next)=>{
+  postShape(request.body);
+  next();
+},(error,request,response,next)=>{
     // TODO 记录用户
-    (request as any).logger.warn(`${SystemErrorCode['警告:数据校验错误']} Original data from user ${dataOfRequest}`);
+    (request as any).logger.warn(`${SystemErrorCode['警告:数据校验错误']} Original data from user ${JSON.parse(request.body)}`);
     (request as any).logger.warn(error);
+    return code400(response);
+},(request,response) => { 
 
-    return responseAndTypeAuth(response,badRequestResponse);
+  const dataOfRequest:PostShape = request.body;
+
+  request.logger.debug(dataOfRequest);
+  // SHA1加密后的密钥长度为40位
+  if(dataOfRequest.password){
+    if(dataOfRequest.password.length !== 40){
+      (request as any).logger.error(`${SystemErrorCode['错误:密钥验证错误']} Original data from user ${dataOfRequest}`);
+      return code400(response);
+    }
   }
 
-  if(dataOfRequest.password.length !==40){
-    (request as any).logger.error(`${SystemErrorCode['错误:密钥验证错误']} Original data from user ${dataOfRequest}`);
-    return responseAndTypeAuth(response,badRequestResponse);
-  }
+  const collection = globalDataInstance.getMongoDatabase().collection(CollectionName);
 
+  writeOfUser(collection,dataOfRequest).then(writeReaponse=>{
 
+    if(writeReaponse.result.ok){
+      return code200(response);
+    }else{
+      (request as any).logger.error(SystemErrorCode['错误:数据库写入失败']);
+      return code500(response);
+    }
 
+  })
+  .catch(error=>{
+    (request as any).logger.error(SystemErrorCode['错误:数据库写入失败']);
+    (request as any).logger.error(error);
+    return code500(response);
+  });
 
 }];
 /**

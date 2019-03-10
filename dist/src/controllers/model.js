@@ -3,17 +3,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const code_1 = require("../code");
 const globalData_1 = require("../globalData");
 const collectionRead_1 = require("../model/collectionRead");
-const bodyParser = require("body-parser");
 const collectionWrite_1 = require("../model/collectionWrite");
-/**
- * 使用body-paser定义JSON解析中间件
- */
-const JSONParser = bodyParser.json({
-    inflate: true,
-    limit: '100kb',
-    strict: true,
-    type: 'application/json',
-});
+const public_1 = require("./public");
+const public_2 = require("./public");
 /**
  * 简介:
  * 本模块用于管理专业模型的获取和修改
@@ -46,21 +38,19 @@ exports.MiddlewaresOfGet = [
         collectionRead_1.collectionReadAllIfHave(collection)
             .then(result => {
             if (result) {
-                return response.json({
+                return public_1.responseAndTypeAuth(response, {
                     message: result,
                     stateCode: 200
                 });
             }
-            else {
-                return response.json({
-                    message: code_1.responseMessage['错误:暂无数据'],
-                    stateCode: 400
-                });
-            }
+            return public_1.responseAndTypeAuth(response, {
+                message: code_1.responseMessage['错误:暂无数据'],
+                stateCode: 400
+            });
         })
             .catch(error => {
             request.logger.error(error.stack);
-            return response.json({
+            return public_1.responseAndTypeAuth(response, {
                 stateCode: 500,
                 message: code_1.responseMessage['错误:服务器错误']
             });
@@ -100,11 +90,15 @@ const checkBody = (data) => {
  * POST 对应的中间件
  */
 exports.MiddlewaresOfPost = [
-    JSONParser,
+    public_2.JSONParser,
     (error, request, response, next) => {
         // 记录错误栈
+        request.logger.warn(`${code_1.SystemErrorCode['警告:数据校验错误']} Original data from user ${request.body}`);
         request.logger.error(error);
-        return next(code_1.responseMessage['错误:数据校验错误']);
+        return public_1.responseAndTypeAuth(response, {
+            stateCode: 400,
+            message: code_1.responseMessage['错误:数据校验错误']
+        });
     }, (request, response, next) => {
         try {
             const SourceData = request.body;
@@ -119,7 +113,7 @@ exports.MiddlewaresOfPost = [
                 request.logger.error(error);
                 request.logger.error(code_1.SystemErrorCode['错误:数据库写入失败']);
             });
-            response.json({
+            return public_1.responseAndTypeAuth(response, {
                 stateCode: 200,
                 message: code_1.responseMessage['数据上传成功']
             });
@@ -127,12 +121,10 @@ exports.MiddlewaresOfPost = [
         catch (error) {
             // TODO 记录用户
             request.logger.error(error);
-            response.json({
+            return public_1.responseAndTypeAuth(response, {
                 stateCode: 400,
                 message: code_1.responseMessage['错误:数据校验错误']
             });
         }
-        // TODO 编写 模型正则过滤,长度过滤,底部数组过滤
-        response.end('ok');
     }
 ];

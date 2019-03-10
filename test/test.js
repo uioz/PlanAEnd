@@ -4,10 +4,10 @@ var apiCheck = require('api-check')({
 
 const postShape = apiCheck.shape({
   account: apiCheck.string,
-  nickname: apiCheck.string,
-  level: apiCheck.range(1,63),
-  password: apiCheck.string,
-  controlarea: apiCheck.arrayOf(apiCheck.string)
+  nickname: apiCheck.string.optional,
+  level: apiCheck.range(1,63).optional,
+  password: apiCheck.string.optional,
+  controlarea: apiCheck.arrayOf(apiCheck.string).optional
 });
 
 console.log(postShape({
