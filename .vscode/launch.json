@@ -8,10 +8,7 @@
             "type": "node",
             "request": "launch",
             "name": "启动程序",
-            "program": "${workspaceFolder}/index.js",
-            "outFiles": [
-                "${workspaceFolder}/**/*.js"
-            ],
+            "program": "F:\\html\\typescriptProject\\PlanAEnd\\index.js",
             "args": ["development"]
         }
     ]

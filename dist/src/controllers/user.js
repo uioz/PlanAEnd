@@ -43,7 +43,13 @@ const postShape = apiCheck.shape({
     level: apiCheck.range(1, 63).optional,
     password: apiCheck.string.optional,
     controlarea: apiCheck.arrayOf(apiCheck.string).optional
-});
+}).strict;
+/**
+ * 定义删除验证模板
+ */
+const deleteShape = apiCheck.shape({
+    account: apiCheck.string
+}).strict;
 /**
  * GET 对应的中间件
  */
@@ -62,21 +68,19 @@ exports.MiddlewareOfGet = [(request, response, next) => {
 /**
  * POST 对应的中间件
  */
-exports.MiddlewareOfPost = [public_1.JSONParser, (request, response, next) => {
-        postShape(request.body);
-        next();
-    }, (error, request, response, next) => {
-        // TODO 记录用户
-        request.logger.warn(`${code_1.SystemErrorCode['警告:数据校验错误']} Original data from user ${JSON.parse(request.body)}`);
-        request.logger.warn(error);
-        return public_1.code400(response);
+exports.MiddlewareOfPost = [public_1.JSONParser, (request, response) => {
+        const result = postShape(request.body);
+        if (result instanceof Error) {
+            // TODO 记录用户
+            public_1.logger400(request.logger, request.body, undefined, result);
+            return public_1.code400(response);
+        }
     }, (request, response) => {
         const dataOfRequest = request.body;
-        request.logger.debug(dataOfRequest);
         // SHA1加密后的密钥长度为40位
         if (dataOfRequest.password) {
             if (dataOfRequest.password.length !== 40) {
-                request.logger.error(`${code_1.SystemErrorCode['错误:密钥验证错误']} Original data from user ${dataOfRequest}`);
+                public_1.logger400(request.logger, dataOfRequest, code_1.SystemErrorCode['错误:密钥验证错误']);
                 return public_1.code400(response);
             }
         }
@@ -100,5 +104,12 @@ exports.MiddlewareOfPost = [public_1.JSONParser, (request, response, next) => {
  * Delete 对应的中间件
  */
 exports.MiddlewareOfDelete = [(request, response, next) => {
+        const DataOfRequest = request.body, result = deleteShape(DataOfRequest);
+        // TODO 等待编写
+        if (result instanceof Error) {
+            public_1.logger400(request.logger, DataOfRequest, undefined, result);
+            return public_1.code400(response);
+        }
+    }, (request, response, next) => {
         response.end('ok');
     }];

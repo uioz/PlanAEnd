@@ -1,7 +1,8 @@
 import { Response } from "express";
 import { restrictResponse } from "../types";
 import * as bodyParser from "body-parser";
-import { responseMessage } from "../code";
+import { responseMessage, SystemErrorCode } from "../code";
+import { Logger } from "log4js";
 
 /**
  * 含有类型验证的JSON响应
@@ -74,4 +75,17 @@ export const code400 = GeneratorCodeResponse(400);
  */
 export const code200 = GeneratorCodeResponse(200);
 
+/**
+ * 记录400错误
+ * @param logger log4js-logger实例
+ * @param message 系统内部使用的错误码
+ * @param data 用户请求的数据
+ * @param error 错误的内容
+ */
+export const logger400 = (logger: Logger, data: object, message: SystemErrorCode = SystemErrorCode['警告:数据校验错误'],error?:Error) => {
+  logger.warn(`${message} Original data from user ${JSON.stringify(data)}`);
+  if(error){
+    logger.warn(error);
+  }
+}
 
