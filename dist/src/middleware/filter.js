@@ -2,6 +2,12 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const code_1 = require("../code");
 const types_1 = require("../types");
+const apiCheck = require("api-check");
+const AuthShape = apiCheck.shape({
+    account: apiCheck.string,
+    level: apiCheck.number,
+    levelCodeRaw: apiCheck.number
+});
 /**
  * 认证中间件,主要有两个功能
  * 1. 拦截session内容是空的请求
@@ -14,14 +20,16 @@ const types_1 = require("../types");
  * @param next
  */
 exports.verifyMiddleware = (level) => (request, response, next) => {
+    const session = request.session;
     // TODO 添加测试分支
     if (process.env.NODE_ENV === types_1.NODE_ENV.dev) {
         return next();
     }
-    if (!request.session.userId) {
-        return next(code_1.ResponseErrorCode['错误:非法请求']);
+    const AuthResult = AuthShape(session);
+    if (AuthResult) {
+        return next(AuthResult);
     }
-    const levelCodeRaw = request.session.levelCode;
+    const levelCodeRaw = session.levelCodeRaw;
     // 管理员
     if (levelCodeRaw[0] === '0') {
         return next();

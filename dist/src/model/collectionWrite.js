@@ -26,20 +26,3 @@ async function writeOfModel(collection, data) {
     });
 }
 exports.writeOfModel = writeOfModel;
-/**
- * 更新或者添加用户信息
- * @param collection 集合对象
- * @param data 用户数据
- */
-async function writeOfUser(collection, data) {
-    const account = data.account;
-    delete data.account;
-    return await collection.updateOne({
-        account
-    }, {
-        $set: Object.assign({}, data)
-    }, {
-        upsert: true
-    });
-}
-exports.writeOfUser = writeOfUser;

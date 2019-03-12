@@ -78,8 +78,8 @@ export const code200 = GeneratorCodeResponse(200);
 /**
  * 记录400错误
  * @param logger log4js-logger实例
- * @param message 系统内部使用的错误码
  * @param data 用户请求的数据
+ * @param message 系统内部使用的错误码
  * @param error 错误对象或者含有错误信息的对象
  */
 export const logger400 = (logger: Logger, data: object, message: SystemErrorCode = SystemErrorCode['警告:数据校验错误'],error?:Error) => {
@@ -92,8 +92,8 @@ export const logger400 = (logger: Logger, data: object, message: SystemErrorCode
 /**
  * 记录500错误
  * @param logger log4js-logger实例
- * @param data 系统内部使用的错误码
- * @param message 用户请求的数据
+ * @param data 用户请求的数据
+ * @param message 系统内部使用的错误码
  * @param error 错误对象或者含有错误信息的对象
  */
 export const logger500 = (logger:Logger,data?:object,message:SystemErrorCode = SystemErrorCode['错误:数据库读取错误'],error?:Error | object)=>{

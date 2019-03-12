@@ -3,15 +3,17 @@ import { Middleware, ErrorMiddleware, restrictResponse } from "../types";
 import { readUserList } from "../model/collectionRead";
 import { globalDataInstance } from "../globalData";
 import * as apiCheck from "api-check";
-import { responseAndTypeAuth, JSONParser, code500, code400, code200, logger400,logger500 } from "./public";
-import { writeOfUser } from "../model/collectionWrite";
+import { responseAndTypeAuth, JSONParser, code500, code400, code200, logger400, logger500 } from "./public";
+import { updateOfUser } from "../model/collectionUpdate";
+import { deleteOfUser } from "../model/collectionDelete";
 
 
 /**
  * 简介:
  * 该模块负责用户信息的获取 GET
- * 该模块负责用户的添加 POST
+ * 该模块负责用户信息的更新 POST
  * 该模块负责用户的删除 DELETE
+ * 该模块负责用户的添加 PUT(明确更新和创建)
  * URL:
  * /user
  */
@@ -75,7 +77,7 @@ export interface DeleteShape {
   /**
    * 账户的名称
    */
-  account:string;
+  account: string;
 }
 
 /**
@@ -93,7 +95,7 @@ const postShape = apiCheck.shape({
  * 定义删除验证模板
  */
 const deleteShape = apiCheck.shape({
-  account:apiCheck.string
+  account: apiCheck.string
 }).strict;
 
 /**
@@ -108,7 +110,7 @@ export const MiddlewareOfGet: Array<Middleware> = [(request, response, next) => 
     message: list
   }))
     .catch(error => {
-      logger500(request.logger,undefined,undefined,error);
+      logger500(request.logger, undefined, undefined, error);
       return code500(response);
     });
 }];
@@ -116,19 +118,20 @@ export const MiddlewareOfGet: Array<Middleware> = [(request, response, next) => 
 /**
  * POST 对应的中间件
  */
-export const MiddlewareOfPost: Array<Middleware> = [JSONParser, (request, response) => {
+export const MiddlewareOfPost: Array<Middleware> = [JSONParser, (request, response, next) => {
 
   const result = postShape(request.body);
   if (result instanceof Error) {
     // TODO 记录用户
-    logger400(request.logger,request.body,undefined,result);
+    logger400(request.logger, request.body, undefined, result);
     return code400(response);
   }
+  return next();
 }, (request, response) => {
 
   const dataOfRequest: PostShape = request.body;
 
-  // SHA1加密后的密钥长度为40位
+  // 如果更新密码 - SHA1加密后的密钥长度为40位
   if (dataOfRequest.password) {
     if (dataOfRequest.password.length !== 40) {
       logger400(request.logger, dataOfRequest, SystemErrorCode['错误:密钥验证错误']);
@@ -138,43 +141,61 @@ export const MiddlewareOfPost: Array<Middleware> = [JSONParser, (request, respon
 
   const collection = globalDataInstance.getMongoDatabase().collection(CollectionName);
 
-  writeOfUser(collection, dataOfRequest).then(writeReaponse => {
+  updateOfUser(collection, dataOfRequest).then(writeReaponse => {
 
     if (writeReaponse.result.ok) {
+      // TODO 如果更新的是自己则清空session且重定向
       return code200(response);
     } else {
-      logger500(request.logger,dataOfRequest,SystemErrorCode['错误:数据库写入失败'],writeReaponse);
+      logger500(request.logger, dataOfRequest, SystemErrorCode['错误:数据库写入失败'], writeReaponse);
       return code500(response);
     }
 
   })
     .catch(error => {
-      logger500(request.logger,dataOfRequest,SystemErrorCode['错误:数据库写入失败'],error);
+      logger500(request.logger, dataOfRequest, SystemErrorCode['错误:数据库写入失败'], error);
       return code500(response);
     });
 
 }];
+
 /**
  * Delete 对应的中间件
  */
-export const MiddlewareOfDelete: Array<Middleware> = [(request,response,next)=>{
-  const 
-    DataOfRequest: DeleteShape = request.body,
-    result = deleteShape(DataOfRequest);
+export const MiddlewareOfDelete: Array<Middleware> = [(request, response, next) => {
 
-    // TODO 等待编写
+  const
+    SuperUserAccount = globalDataInstance.getSuperUserAccount(),
+    DataOfRequest: DeleteShape = request.query,
+    result = deleteShape(DataOfRequest),
+    Collection = globalDataInstance.getMongoDatabase().collection(CollectionName);
 
-  if(result instanceof Error){
-    logger400(request.logger,DataOfRequest,undefined,result);
+  // 是否格式错误
+  if (result) {
+    logger400(request.logger, DataOfRequest, undefined, result);
     return code400(response);
   }
-  // TODO 验证是否是超级管理员
-  if(DataOfRequest.account === ''){
-    request.session;
+
+  // 不可以删除超级管理员
+  if (DataOfRequest.account === SuperUserAccount) {
+    logger400(request.logger, DataOfRequest, SystemErrorCode['错误:尝试修改超级管理员']);
+    return code400(response);
   }
 
+  deleteOfUser(Collection,DataOfRequest.account).then(result=>{
+    if(!result.deletedCount){
+      // TODO 如果删除的是自己则清空session并且重定向
+      return code200(response);
+    }else{
+      return responseAndTypeAuth(response,{
+        stateCode:400,
+        message: responseMessage['错误:指定的数据不存在']
+      });
+    }
+  })
+  .catch(error=>{
+    logger500(request.logger,DataOfRequest,undefined,error);
+    return code500(response);
+  });
 
-
-},(request, response, next) => {
-  response.end('ok');
 }];

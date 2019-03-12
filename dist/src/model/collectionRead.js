@@ -116,3 +116,13 @@ async function readUserList(collection) {
     }, { projection: utils_1.getRemoveIdProjection() }).toArray();
 }
 exports.readUserList = readUserList;
+/**
+ * 获取超级用户的账户名称
+ * @param collection 集合对象
+ */
+async function getSuperUserAccount(collection) {
+    return await collection.findOne({
+        level: 0
+    }, { projection: utils_1.getRemoveIdProjection() });
+}
+exports.getSuperUserAccount = getSuperUserAccount;

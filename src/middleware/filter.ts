@@ -1,6 +1,13 @@
-import { Request, Response, NextFunction } from "express";
+import { Response, NextFunction } from "express";
 import { ResponseErrorCode } from "../code";
-import { LeveCodeRawType, NODE_ENV,Middleware } from "../types";
+import { LeveCodeRawType, NODE_ENV,RequestHaveSession,ParsedSession } from "../types";
+import * as apiCheck from "api-check";
+
+const AuthShape = apiCheck.shape({
+    account:apiCheck.string,
+    level:apiCheck.number,
+    levelCodeRaw:apiCheck.number
+} as ParsedSession);
 
 /**
  * 认证中间件,主要有两个功能
@@ -13,7 +20,7 @@ import { LeveCodeRawType, NODE_ENV,Middleware } from "../types";
  * @param response 
  * @param next 
  */
-export const verifyMiddleware = (level: string) => (request: Request, response: Response, next: NextFunction) => {
+export const verifyMiddleware = (level: string) => (request: RequestHaveSession, response: Response, next: NextFunction) => {
 
     const session = request.session
 
@@ -22,11 +29,13 @@ export const verifyMiddleware = (level: string) => (request: Request, response: 
         return next();
     }
 
-    if (!request.session.userId) {
-        return next(ResponseErrorCode['错误:非法请求']);
+    const AuthResult = AuthShape(session);
+
+    if (AuthResult){
+        return next(AuthResult);
     }
 
-    const levelCodeRaw: LeveCodeRawType = request.session.levelCode;
+    const levelCodeRaw: LeveCodeRawType = session.levelCodeRaw;
     // 管理员
     if (levelCodeRaw[0] === '0') {
         return next();

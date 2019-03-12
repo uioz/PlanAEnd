@@ -9,15 +9,21 @@
 </head>
 
 <body>
-  <button id="repeat" >创建重复用户</button>
-  <button id="superuser" >创建超级用户</button>
+  <button id="repeat" >点击创建用户</button>
+  <button id="superuser" >更新超级用户信息</button>
+  <button id="delete" >删除超级用户</button>
+  <button id="deleteForNormal" >删除普通用户</button>
   <script>
     // 创建重复用户
     document.getElementById('repeat').addEventListener('click',()=>{
       fetch('/user',{
         method:'POST',
         body:JSON.stringify({
-          account: 'admin',
+          account: 'oldwang',
+          nickname:'老王',
+          password:'d033e22ae348aeb5660fc2140aec35850c4da997',
+          level:63,
+          controlarea:['信息工程系']
         }),
         headers:{
           'Content-Type': 'application/json'
@@ -25,19 +31,35 @@
       }).then(response=> console.log(response.json())).catch(error=>console.log(error));
 
     });
-    // 创建超级管理员
+    // 更新超级用户
     document.getElementById('superuser').addEventListener('click',()=>{
       fetch('/user',{
         method:'POST',
         body:JSON.stringify({
-          account: '123',
-          levelcoderaw: '0000000'
+          account: 'admin',
+          nickname:'弱鸡管理员'
         }),
         headers:{
           'Content-Type': 'application/json'
         }
       }).then(response => console.log(response.json())).catch(error => console.log(error));
     });
+    // 删除超级用户
+    document.getElementById('delete').addEventListener('click',()=>{
+
+      fetch('/user?account=admin',{
+        method:'DELETE',
+      });
+
+    });
+    // 删除普通用户
+    document.getElementById('deleteForNormal').addEventListener('click',()=>{
+
+      fetch('/user?account=oldwang',{
+        method:'DELETE'
+      })
+
+    })
   </script>
 </body>
 

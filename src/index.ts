@@ -3,7 +3,7 @@ import * as log4js from "log4js";
 import { globalDataInstance } from "./globalData";
 import { connect, MongoClient, Db } from "mongodb";
 import App from "./app";
-import { collectionReadAll } from "./model/collectionRead";
+import { collectionReadAll, getSuperUserAccount } from "./model/collectionRead";
 import { ConfigNameMap,fillDatabase,verifyDatabase } from "./init/initDatabase";
 
 /**
@@ -73,10 +73,18 @@ export default async function (Cwd: string) {
 
     // 读取数据库中的配置文件然后覆写全局配置中的systemConfig
     try {
-        const systemConfig = await collectionReadAll(globalDataInstance.getMongoDatabase().collection(ConfigNameMap['systemConfig']));
+        const systemConfig = await collectionReadAll(Database.collection(ConfigNameMap['systemConfig']));
         globalDataInstance.setConfig('systemConfig',systemConfig[0]);
     } catch (error) {
-        globalDataInstance.getLogger().error(error)
+        logger.error(error)
+    }
+
+    // 将超级管理员账户读取到全局变量中保存,为后面鉴权使用
+    try{
+        const SuperAccountData = await getSuperUserAccount(Database.collection(ConfigNameMap['userConfig']));
+        globalDataInstance.setSuperUserAccount(SuperAccountData.account);
+    }catch(error){
+        logger.error(error);
     }
 
     // 启动服务器

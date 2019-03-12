@@ -34,6 +34,8 @@ export class GlobalData {
 
     private mongoDatabase: Db;
 
+    private superAccount:string;
+
     setLog4js(obj: Log4js) {
         this.log4js = obj;
         return this;
@@ -140,6 +142,22 @@ export class GlobalData {
     databaseClose(force: boolean = false) {
         this.getLogger().warn('The MongoClient is gonna close!');
         this.mongoClient.close(false);
+    }
+
+    /**
+     * 设置超级管理员的账户名称
+     * @param account 账户名称
+     */
+    setSuperUserAccount(account:string){
+        this.superAccount = account;
+        return this;
+    }
+
+    /**
+     * 获取超级管理员的账户名称
+     */
+    getSuperUserAccount(){
+        return this.superAccount;
     }
 
 }

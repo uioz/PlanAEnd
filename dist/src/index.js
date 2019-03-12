@@ -51,11 +51,19 @@ async function default_1(Cwd) {
     await initDatabase_1.fillDatabase(initDatabase_1.verifyDatabase(databaseList), Database, ConfigDir, logger);
     // 读取数据库中的配置文件然后覆写全局配置中的systemConfig
     try {
-        const systemConfig = await collectionRead_1.collectionReadAll(globalData_1.globalDataInstance.getMongoDatabase().collection(initDatabase_1.ConfigNameMap['systemConfig']));
+        const systemConfig = await collectionRead_1.collectionReadAll(Database.collection(initDatabase_1.ConfigNameMap['systemConfig']));
         globalData_1.globalDataInstance.setConfig('systemConfig', systemConfig[0]);
     }
     catch (error) {
-        globalData_1.globalDataInstance.getLogger().error(error);
+        logger.error(error);
+    }
+    // 将超级管理员账户读取到全局变量中保存,为后面鉴权使用
+    try {
+        const SuperAccountData = await collectionRead_1.getSuperUserAccount(Database.collection(initDatabase_1.ConfigNameMap['userConfig']));
+        globalData_1.globalDataInstance.setSuperUserAccount(SuperAccountData.account);
+    }
+    catch (error) {
+        logger.error(error);
     }
     // 启动服务器
     app_1.default(Cwd, globalData_1.globalDataInstance);

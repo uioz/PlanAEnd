@@ -93,6 +93,20 @@ class GlobalData {
         this.getLogger().warn('The MongoClient is gonna close!');
         this.mongoClient.close(false);
     }
+    /**
+     * 设置超级管理员的账户名称
+     * @param account 账户名称
+     */
+    setSuperUserAccount(account) {
+        this.superAccount = account;
+        return this;
+    }
+    /**
+     * 获取超级管理员的账户名称
+     */
+    getSuperUserAccount() {
+        return this.superAccount;
+    }
 }
 exports.GlobalData = GlobalData;
 const instance = new GlobalData();
