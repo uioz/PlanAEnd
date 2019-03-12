@@ -3,9 +3,8 @@ import { Middleware, ErrorMiddleware, restrictResponse } from "../types";
 import { readUserList } from "../model/collectionRead";
 import { globalDataInstance } from "../globalData";
 import * as apiCheck from "api-check";
-import { responseAndTypeAuth, JSONParser, code500, code400, code200, logger400 } from "./public";
+import { responseAndTypeAuth, JSONParser, code500, code400, code200, logger400,logger500 } from "./public";
 import { writeOfUser } from "../model/collectionWrite";
-import { Logger } from "log4js";
 
 
 /**
@@ -68,6 +67,17 @@ export interface PostShape {
   controlarea?: Array<string>;
 }
 
+
+/**
+ * 该接口描述了DELETE请求用户传递内容数据的类型
+ */
+export interface DeleteShape {
+  /**
+   * 账户的名称
+   */
+  account:string;
+}
+
 /**
  * 定义请求格式验证模板
  */
@@ -98,8 +108,7 @@ export const MiddlewareOfGet: Array<Middleware> = [(request, response, next) => 
     message: list
   }))
     .catch(error => {
-      (request as any).logger.error(SystemErrorCode['错误:数据库读取错误']);
-      (request as any).logger.error(error);
+      logger500(request.logger,undefined,undefined,error);
       return code500(response);
     });
 }];
@@ -112,7 +121,7 @@ export const MiddlewareOfPost: Array<Middleware> = [JSONParser, (request, respon
   const result = postShape(request.body);
   if (result instanceof Error) {
     // TODO 记录用户
-    logger400((request as any).logger,request.body,undefined,result);
+    logger400(request.logger,request.body,undefined,result);
     return code400(response);
   }
 }, (request, response) => {
@@ -122,7 +131,7 @@ export const MiddlewareOfPost: Array<Middleware> = [JSONParser, (request, respon
   // SHA1加密后的密钥长度为40位
   if (dataOfRequest.password) {
     if (dataOfRequest.password.length !== 40) {
-      logger400((request as any).logger, dataOfRequest, SystemErrorCode['错误:密钥验证错误']);
+      logger400(request.logger, dataOfRequest, SystemErrorCode['错误:密钥验证错误']);
       return code400(response);
     }
   }
@@ -134,14 +143,13 @@ export const MiddlewareOfPost: Array<Middleware> = [JSONParser, (request, respon
     if (writeReaponse.result.ok) {
       return code200(response);
     } else {
-      (request as any).logger.error(SystemErrorCode['错误:数据库写入失败']);
+      logger500(request.logger,dataOfRequest,SystemErrorCode['错误:数据库写入失败'],writeReaponse);
       return code500(response);
     }
 
   })
     .catch(error => {
-      (request as any).logger.error(SystemErrorCode['错误:数据库写入失败']);
-      (request as any).logger.error(error);
+      logger500(request.logger,dataOfRequest,SystemErrorCode['错误:数据库写入失败'],error);
       return code500(response);
     });
 
@@ -151,14 +159,18 @@ export const MiddlewareOfPost: Array<Middleware> = [JSONParser, (request, respon
  */
 export const MiddlewareOfDelete: Array<Middleware> = [(request,response,next)=>{
   const 
-    DataOfRequest = request.body,
+    DataOfRequest: DeleteShape = request.body,
     result = deleteShape(DataOfRequest);
 
     // TODO 等待编写
 
   if(result instanceof Error){
-    logger400((request as any).logger,DataOfRequest,undefined,result);
+    logger400(request.logger,DataOfRequest,undefined,result);
     return code400(response);
+  }
+  // TODO 验证是否是超级管理员
+  if(DataOfRequest.account === ''){
+    request.session;
   }
 
 

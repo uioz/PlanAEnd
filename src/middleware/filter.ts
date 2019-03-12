@@ -1,7 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { ResponseErrorCode } from "../code";
-import { LeveCodeRawType } from "../types";
-import { NODE_ENV } from "../types";
+import { LeveCodeRawType, NODE_ENV,Middleware } from "../types";
 
 /**
  * 认证中间件,主要有两个功能
@@ -15,6 +14,8 @@ import { NODE_ENV } from "../types";
  * @param next 
  */
 export const verifyMiddleware = (level: string) => (request: Request, response: Response, next: NextFunction) => {
+
+    const session = request.session
 
     // TODO 添加测试分支
     if(process.env.NODE_ENV === NODE_ENV.dev){
