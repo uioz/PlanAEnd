@@ -13,7 +13,6 @@ import { deleteOfUser } from "../model/collectionDelete";
  * 该模块负责用户信息的获取 GET
  * 该模块负责用户信息的更新 POST
  * 该模块负责用户的删除 DELETE
- * 该模块负责用户的添加 PUT(明确更新和创建)
  * URL:
  * /user
  */
@@ -144,8 +143,18 @@ export const MiddlewareOfPost: Array<Middleware> = [JSONParser, (request, respon
   updateOfUser(collection, dataOfRequest).then(writeReaponse => {
 
     if (writeReaponse.result.ok) {
-      // TODO 如果更新的是自己则清空session且重定向
-      return code200(response);
+      // TODO 如果更新的账户是自己则清空session后跳转到登陆页
+      if(dataOfRequest.account === request.session.account){
+        request.session.destroy(error=>{
+          if(error){
+            logger500(request.logger,dataOfRequest,undefined,error);
+          }
+          return response.redirect('/login');
+        });
+      }else{
+        return code200(response);
+      }
+
     } else {
       logger500(request.logger, dataOfRequest, SystemErrorCode['错误:数据库写入失败'], writeReaponse);
       return code500(response);
@@ -183,9 +192,20 @@ export const MiddlewareOfDelete: Array<Middleware> = [(request, response, next) 
   }
 
   deleteOfUser(Collection,DataOfRequest.account).then(result=>{
-    if(!result.deletedCount){
-      // TODO 如果删除的是自己则清空session并且重定向
-      return code200(response);
+    if(result.deletedCount){
+      
+      // TODO 如果删除的是自己则清空session并且重定向到登陆页
+      if(DataOfRequest.account === request.session.account){
+        request.session.destroy(error => {
+          if (error) {
+            logger500(request.logger, DataOfRequest, undefined, error);
+          }
+          return response.redirect('/login');
+        });
+      }else{
+        return code200(response);
+      }
+
     }else{
       return responseAndTypeAuth(response,{
         stateCode:400,

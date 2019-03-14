@@ -12,7 +12,6 @@ const collectionDelete_1 = require("../model/collectionDelete");
  * 该模块负责用户信息的获取 GET
  * 该模块负责用户信息的更新 POST
  * 该模块负责用户的删除 DELETE
- * 该模块负责用户的添加 PUT(明确更新和创建)
  * URL:
  * /user
  */
@@ -89,8 +88,18 @@ exports.MiddlewareOfPost = [public_1.JSONParser, (request, response, next) => {
         const collection = globalData_1.globalDataInstance.getMongoDatabase().collection(exports.CollectionName);
         collectionUpdate_1.updateOfUser(collection, dataOfRequest).then(writeReaponse => {
             if (writeReaponse.result.ok) {
-                // TODO 如果更新的是自己则清空session且重定向
-                return public_1.code200(response);
+                // TODO 如果更新的账户是自己则清空session后跳转到登陆页
+                if (dataOfRequest.account === request.session.account) {
+                    request.session.destroy(error => {
+                        if (error) {
+                            public_1.logger500(request.logger, dataOfRequest, undefined, error);
+                        }
+                        return response.redirect('/login');
+                    });
+                }
+                else {
+                    return public_1.code200(response);
+                }
             }
             else {
                 public_1.logger500(request.logger, dataOfRequest, code_1.SystemErrorCode['错误:数据库写入失败'], writeReaponse);
@@ -118,9 +127,19 @@ exports.MiddlewareOfDelete = [(request, response, next) => {
             return public_1.code400(response);
         }
         collectionDelete_1.deleteOfUser(Collection, DataOfRequest.account).then(result => {
-            if (!result.deletedCount) {
-                // TODO 如果删除的是自己则清空session并且重定向
-                return public_1.code200(response);
+            if (result.deletedCount) {
+                // TODO 如果删除的是自己则清空session并且重定向到登陆页
+                if (DataOfRequest.account === request.session.account) {
+                    request.session.destroy(error => {
+                        if (error) {
+                            public_1.logger500(request.logger, DataOfRequest, undefined, error);
+                        }
+                        return response.redirect('/login');
+                    });
+                }
+                else {
+                    return public_1.code200(response);
+                }
             }
             else {
                 return public_1.responseAndTypeAuth(response, {
