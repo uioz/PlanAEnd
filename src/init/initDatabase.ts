@@ -11,7 +11,9 @@ export enum ConfigNameMap {
   'systemConfig' = 'configuration_static',
   'configuration_static' = 'systemConfig',
   'userConfig' = 'model_users',
-  'model_users' = 'userConfig'
+  'model_users' = 'userConfig',
+  'model_assets' = 'assetsConfig',
+  'assetsConfig' = 'model_assets',
 }
 
 /**
@@ -24,7 +26,8 @@ export function verifyDatabase(databaseList: Array<any>): Array<string> {
   const
     CollectionNames = [
       'configuration_static',
-      'model_users'
+      'model_users',
+      'model_assets'
     ],
     haveLossName = [];
 

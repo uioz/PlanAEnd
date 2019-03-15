@@ -1,0 +1,17 @@
+{
+  "image": {
+    "brand": "",
+    "logo": "",
+    "clientBackGround": "",
+    "imagelist": []
+  },
+  "appname":{
+    "server":"",
+    "client":""
+  },
+  "globalnotcie":{
+    "server":"",
+    "client":""
+  },
+  "speciality":[]
+}

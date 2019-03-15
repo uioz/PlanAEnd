@@ -12,6 +12,8 @@ var ConfigNameMap;
     ConfigNameMap["configuration_static"] = "systemConfig";
     ConfigNameMap["userConfig"] = "model_users";
     ConfigNameMap["model_users"] = "userConfig";
+    ConfigNameMap["model_assets"] = "assetsConfig";
+    ConfigNameMap["assetsConfig"] = "model_assets";
 })(ConfigNameMap = exports.ConfigNameMap || (exports.ConfigNameMap = {}));
 /**
  * 检测数据库中是否包含了给定名称的集合名称
@@ -21,7 +23,8 @@ var ConfigNameMap;
 function verifyDatabase(databaseList) {
     const CollectionNames = [
         'configuration_static',
-        'model_users'
+        'model_users',
+        'model_assets'
     ], haveLossName = [];
     // 开发模式直接返回内容
     if (process.env.NODE_ENV === types_1.NODE_ENV.dev) {
