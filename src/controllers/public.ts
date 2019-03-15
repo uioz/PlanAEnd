@@ -1,5 +1,5 @@
 import { Response } from "express";
-import { restrictResponse } from "../types";
+import { restrictResponse, Middleware, ErrorMiddleware } from "../types";
 import * as bodyParser from "body-parser";
 import { responseMessage, SystemErrorCode } from "../code";
 import { Logger } from "log4js";
@@ -16,17 +16,17 @@ export const responseAndTypeAuth = (response: Response, responseData: restrictRe
  * 定义了响应码的基本体
  */
 const ResponseBodyCollection = {
-  200:{
-    stateCode:200,
-    message:responseMessage['数据上传成功']
+  200: {
+    stateCode: 200,
+    message: responseMessage['数据上传成功']
   },
-  400:{
-    stateCode:400,
-    message:responseMessage['错误:数据校验错误']
+  400: {
+    stateCode: 400,
+    message: responseMessage['错误:数据校验错误']
   },
-  500:{
-    stateCode:500,
-    message:responseMessage['错误:服务器错误']
+  500: {
+    stateCode: 500,
+    message: responseMessage['错误:服务器错误']
   }
 }
 
@@ -82,9 +82,9 @@ export const code200 = GeneratorCodeResponse(200);
  * @param message 系统内部使用的错误码
  * @param error 错误对象或者含有错误信息的对象
  */
-export const logger400 = (logger: Logger, data: object, message: SystemErrorCode = SystemErrorCode['警告:数据校验错误'],error?:Error) => {
+export const logger400 = (logger: Logger, data: object, message: SystemErrorCode = SystemErrorCode['警告:数据校验错误'], error?: Error) => {
   logger.warn(`${message} Original data from user ${JSON.stringify(data)}`);
-  if(error){
+  if (error) {
     logger.warn(error);
   }
 }
@@ -96,12 +96,40 @@ export const logger400 = (logger: Logger, data: object, message: SystemErrorCode
  * @param message 系统内部使用的错误码
  * @param error 错误对象或者含有错误信息的对象
  */
-export const logger500 = (logger:Logger,data?:object,message:SystemErrorCode = SystemErrorCode['错误:数据库读取错误'],error?:Error | object)=>{
-  if(message){
+export const logger500 = (logger: Logger, data?: object, message: SystemErrorCode = SystemErrorCode['错误:数据库读取错误'], error?: Error | object) => {
+  if (message) {
     logger.error(`${message} Original data from user ${JSON.stringify(data)}`);
   }
   if (error) {
     logger.error(error);
   }
+}
+
+// TODO 设计一个类要求继承迭代接口,用于快速生成路由模型
+
+class ControllerGenerator {
+
+  private sets: [string, string, Middleware | ErrorMiddleware];
+
+  public GET() {
+
+  }
+
+  public POST() {
+
+  }
+
+  public DELETE() {
+
+  }
+
+  public PUT() {
+
+  }
+
+  public [Symbol.iterator](){
+    
+  }
+
 }
 

@@ -8,6 +8,7 @@ import * as source from "./controllers/source";
 import * as sourceJson from "./controllers/source.json";
 import * as model from "./controllers/model";
 import * as user from "./controllers/user";
+import * as assets from "./controllers/assets";
 
 export default (app: Express, globalData: GlobalData) => {
 
@@ -30,6 +31,7 @@ export default (app: Express, globalData: GlobalData) => {
     app.get(user.URL,SessionMiddleware,LogMiddleware,verifyMiddleware(user.LevelIndexOfGet),user.MiddlewareOfGet);
     app.post(user.URL,SessionMiddleware,LogMiddleware,verifyMiddleware(user.LevelIndexOfPost),user.MiddlewareOfPost);
     app.delete(user.URL,SessionMiddleware,LogMiddleware,verifyMiddleware(user.LevelIndexOfDelete),user.MiddlewareOfDelete);
+    app.get(assets.URL,SessionMiddleware,LogMiddleware,assets.MiddlewareOfGet);
     
 
 }

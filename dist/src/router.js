@@ -8,6 +8,7 @@ const source = require("./controllers/source");
 const sourceJson = require("./controllers/source.json");
 const model = require("./controllers/model");
 const user = require("./controllers/user");
+const assets = require("./controllers/assets");
 exports.default = (app, globalData) => {
     const CookieSecure = 'hello world', Database = globalData.getMongoDatabase(), SessionStore = initMiddleware_1.GetMongoStore(Database), SessionMiddleware = initMiddleware_1.GetExpressSession({
         store: SessionStore,
@@ -21,4 +22,5 @@ exports.default = (app, globalData) => {
     app.get(user.URL, SessionMiddleware, logger_1.LogMiddleware, filter_1.verifyMiddleware(user.LevelIndexOfGet), user.MiddlewareOfGet);
     app.post(user.URL, SessionMiddleware, logger_1.LogMiddleware, filter_1.verifyMiddleware(user.LevelIndexOfPost), user.MiddlewareOfPost);
     app.delete(user.URL, SessionMiddleware, logger_1.LogMiddleware, filter_1.verifyMiddleware(user.LevelIndexOfDelete), user.MiddlewareOfDelete);
+    app.get(assets.URL, SessionMiddleware, logger_1.LogMiddleware, assets.MiddlewareOfGet);
 };

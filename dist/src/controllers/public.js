@@ -95,3 +95,16 @@ exports.logger500 = (logger, data, message = code_1.SystemErrorCode['错误:数�
         logger.error(error);
     }
 };
+// TODO 设计一个类要求继承迭代接口,用于快速生成路由模型
+class ControllerGenerator {
+    GET() {
+    }
+    POST() {
+    }
+    DELETE() {
+    }
+    PUT() {
+    }
+    [Symbol.iterator]() {
+    }
+}
