@@ -225,102 +225,34 @@ class ControllerGenerator implements Iterable<Tuple> {
    * @param url URL地址
    * @param middleware URL对应的中间件
    */
-  public get(url: string | Middlewares, middleware?: Middlewares) {
+  public get = CraeteMethodsForControllerGenerator('get');
 
-    const MethodName = 'get';
+  /**
+  * 向指定的URL地址挂载中间件,这些挂载的中间件是为get请求准备的
+  *
+  * 可以只传入中间件,这个时候URL使用构造函数中传入的内容作为URL
+  * @param url URL地址
+  * @param middleware URL对应的中间件
+  */
+  public post = CraeteMethodsForControllerGenerator('post');
 
-    if (typeof url === 'string') {
-      if (middleware) {
+  /**
+  * 向指定的URL地址挂载中间件,这些挂载的中间件是为get请求准备的
+  *
+  * 可以只传入中间件,这个时候URL使用构造函数中传入的内容作为URL
+  * @param url URL地址
+  * @param middleware URL对应的中间件
+  */
+  public delete = CraeteMethodsForControllerGenerator('delete');
 
-        this
-          .setThisTimeMethodName(MethodName)
-          .setThisTimeUrl(url)
-          .sets.push([MethodName, url, middleware]);
-
-      } else {
-        throw new Error("must specifically give middleware in arguments at second position if first params type is string");
-      }
-    } else {
-      this
-        .setThisTimeMethodName(MethodName)
-        .setThisTimeUrl(this.GlobalUrl)
-        .sets.push([MethodName, this.GlobalUrl, url]);
-    }
-
-    return this;
-  }
-
-  public post(url: string | Middlewares, middleware?: Middlewares) {
-    const MethodName = 'post';
-
-    if (typeof url === 'string') {
-      if (middleware) {
-
-        this
-          .setThisTimeMethodName(MethodName)
-          .setThisTimeUrl(url)
-          .sets.push([MethodName, url, middleware]);
-
-      } else {
-        throw new Error("must specifically give middleware in arguments at second position if first params type is string");
-      }
-    } else {
-      this
-        .setThisTimeMethodName(MethodName)
-        .setThisTimeUrl(this.GlobalUrl)
-        .sets.push([MethodName, this.GlobalUrl, url]);
-    }
-
-    return this;
-  }
-
-  public delete(url: string | Middlewares, middleware?: Middlewares) {
-    const MethodName = 'delete';
-
-    if (typeof url === 'string') {
-      if (middleware) {
-
-        this
-          .setThisTimeMethodName(MethodName)
-          .setThisTimeUrl(url)
-          .sets.push([MethodName, url, middleware]);
-
-      } else {
-        throw new Error("must specifically give middleware in arguments at second position if first params type is string");
-      }
-    } else {
-      this
-        .setThisTimeMethodName(MethodName)
-        .setThisTimeUrl(this.GlobalUrl)
-        .sets.push([MethodName, this.GlobalUrl, url]);
-    }
-
-    return this;
-  }
-
-  public put(url: string | Middlewares, middleware?: Middlewares) {
-    const MethodName = 'put';
-
-    if (typeof url === 'string') {
-      if (middleware) {
-
-        this
-          .setThisTimeMethodName(MethodName)
-          .setThisTimeUrl(url)
-          .sets.push([MethodName, url, middleware]);
-
-      } else {
-        throw new Error("must specifically give middleware in arguments at second position if first params type is string");
-      }
-    } else {
-      this
-        .setThisTimeMethodName(MethodName)
-        .setThisTimeUrl(this.GlobalUrl)
-        .sets.push([MethodName, this.GlobalUrl, url]);
-    }
-
-    return this;
-  }
+  /**
+  * 向指定的URL地址挂载中间件,这些挂载的中间件是为get请求准备的
+  *
+  * 可以只传入中间件,这个时候URL使用构造函数中传入的内容作为URL
+  * @param url URL地址
+  * @param middleware URL对应的中间件
+  */
+  public put = CraeteMethodsForControllerGenerator('put');
 
   public [Symbol.iterator]() {
 
