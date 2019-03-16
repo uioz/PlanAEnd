@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const bodyParser = require("body-parser");
 const code_1 = require("../code");
+const collectionRead_1 = require("../model/collectionRead");
 /**
  * 含有类型验证的JSON响应
  * **PS**:主要是懒得修改定义了
@@ -95,16 +96,20 @@ exports.logger500 = (logger, data, message = code_1.SystemErrorCode['错误:数�
         logger.error(error);
     }
 };
-// TODO 设计一个类要求继承迭代接口,用于快速生成路由模型
-class ControllerGenerator {
-    GET() {
+/**
+ * 自动读取指定的集合自动记录错误只会返回获取到的结果
+ * @param collection 集合对象
+ * @param response 响应对象
+ * @param logger 记录对象
+ * @param data 用户传入的对象
+ */
+async function autoReadOne(collection, response, logger, data) {
+    try {
+        return await collectionRead_1.readOne(collection);
     }
-    POST() {
-    }
-    DELETE() {
-    }
-    PUT() {
-    }
-    [Symbol.iterator]() {
+    catch (error) {
+        exports.code500(response);
+        exports.logger500(logger, data, undefined, error);
     }
 }
+exports.autoReadOne = autoReadOne;

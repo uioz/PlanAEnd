@@ -35,3 +35,15 @@ const MongoStoreConfig = {
 exports.GetMongoStore = (db, options) => {
     return new MongoStoreFactory(Object.assign({ db: db }, MongoStoreConfig, options));
 };
+/**
+ * 获取session中间件
+ * @param db mongodb Database对象
+ * @param secret 用于签名cookie的字符串
+ * @param options 创建mongoStore时候的选项
+ */
+exports.GetSessionMiddleware = (db, secret, options) => {
+    return exports.GetExpressSession({
+        store: exports.GetMongoStore(db, options),
+        secret
+    });
+};

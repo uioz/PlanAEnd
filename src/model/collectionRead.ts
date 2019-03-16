@@ -1,6 +1,6 @@
 import { Db, Collection, } from "mongodb";
 import { Logger } from "log4js";
-import { getRemoveIdProjection } from "./utils";
+import { hidden_id } from "./utils";
 
 function autoLog<T extends Error>(error: T, logger: Logger) {
     if (logger) {
@@ -10,15 +10,15 @@ function autoLog<T extends Error>(error: T, logger: Logger) {
     }
 }
 
+
+
 /**
  * 从指定的集合中读取所有的内容以Buffer的形式返回
  * @param collection 集合对象
  */
 export const collectionReadAll = (collection: Collection): Promise<Array<any>> => new Promise((resolve, reject) => {
     const
-        cursor = collection.find({}, {
-            projection: getRemoveIdProjection()
-        }),
+        cursor = collection.find({}, hidden_id),
         buffers = [];
 
     cursor.on('data', (chunk) => buffers.push(chunk));
@@ -73,9 +73,7 @@ export async function collectionReadAllIfHave(collection: Collection) {
 export async function readOfRange(collection: Collection, start: number = 0, end: number = 0, gteNumber?: any, sortKey?: string, ): Promise<Array<any>> {
 
     if (start === 0 && end === 0) {
-        return await collection.find({}, {
-            projection: getRemoveIdProjection()
-        }).toArray();
+        return await collection.find({}, hidden_id).toArray();
     }
 
     if (end > start) {
@@ -85,16 +83,12 @@ export async function readOfRange(collection: Collection, start: number = 0, end
                 [sortKey]: {
                     $gte: gteNumber
                 }
-            }, {
-                    projection: getRemoveIdProjection()
-                }).sort({
-                    [sortKey]: 1
-                }).limit(start - end).toArray();
+            }, hidden_id).sort({
+                [sortKey]: 1
+            }).limit(start - end).toArray();
         }
 
-        return await collection.find({}, {
-            projection: getRemoveIdProjection()
-        }).skip(start).limit(start - end).toArray();
+        return await collection.find({}, hidden_id).skip(start).limit(start - end).toArray();
 
     } else {
         throw new Error("End number must be greater start number!")
@@ -125,18 +119,26 @@ export async function readOfRangeEasy(collection: Collection, start: number, end
  */
 export async function readUserList(collection: Collection) {
     return await collection.find({
-        level:{
-            $ne:0
+        level: {
+            $ne: 0
         }
-    }, { projection: getRemoveIdProjection() }).toArray();
+    }, hidden_id).toArray();
 }
 
 /**
  * 获取超级用户的账户名称
  * @param collection 集合对象
  */
-export async function getSuperUserAccount(collection:Collection) {
+export async function getSuperUserAccount(collection: Collection) {
     return await collection.findOne({
-        level:0
-    }, { projection: getRemoveIdProjection() });
+        level: 0
+    }, hidden_id);
+}
+
+/**
+ * collection.findOne的过滤id版本
+ * @param collection 集合对象
+ */
+export async function readOne(collection: Collection) {
+    return await collection.findOne({}, hidden_id);
 }

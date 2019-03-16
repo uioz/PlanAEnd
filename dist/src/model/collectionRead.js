@@ -14,9 +14,7 @@ function autoLog(error, logger) {
  * @param collection 集合对象
  */
 exports.collectionReadAll = (collection) => new Promise((resolve, reject) => {
-    const cursor = collection.find({}, {
-        projection: utils_1.getRemoveIdProjection()
-    }), buffers = [];
+    const cursor = collection.find({}, utils_1.hidden_id), buffers = [];
     cursor.on('data', (chunk) => buffers.push(chunk));
     cursor.on('end', () => {
         cursor.close().catch((error) => {
@@ -61,9 +59,7 @@ exports.collectionReadAllIfHave = collectionReadAllIfHave;
  */
 async function readOfRange(collection, start = 0, end = 0, gteNumber, sortKey) {
     if (start === 0 && end === 0) {
-        return await collection.find({}, {
-            projection: utils_1.getRemoveIdProjection()
-        }).toArray();
+        return await collection.find({}, utils_1.hidden_id).toArray();
     }
     if (end > start) {
         if (sortKey) {
@@ -71,15 +67,11 @@ async function readOfRange(collection, start = 0, end = 0, gteNumber, sortKey) {
                 [sortKey]: {
                     $gte: gteNumber
                 }
-            }, {
-                projection: utils_1.getRemoveIdProjection()
-            }).sort({
+            }, utils_1.hidden_id).sort({
                 [sortKey]: 1
             }).limit(start - end).toArray();
         }
-        return await collection.find({}, {
-            projection: utils_1.getRemoveIdProjection()
-        }).skip(start).limit(start - end).toArray();
+        return await collection.find({}, utils_1.hidden_id).skip(start).limit(start - end).toArray();
     }
     else {
         throw new Error("End number must be greater start number!");
@@ -113,7 +105,7 @@ async function readUserList(collection) {
         level: {
             $ne: 0
         }
-    }, { projection: utils_1.getRemoveIdProjection() }).toArray();
+    }, utils_1.hidden_id).toArray();
 }
 exports.readUserList = readUserList;
 /**
@@ -123,6 +115,14 @@ exports.readUserList = readUserList;
 async function getSuperUserAccount(collection) {
     return await collection.findOne({
         level: 0
-    }, { projection: utils_1.getRemoveIdProjection() });
+    }, utils_1.hidden_id);
 }
 exports.getSuperUserAccount = getSuperUserAccount;
+/**
+ * collection.findOne的过滤id版本
+ * @param collection 集合对象
+ */
+async function readOne(collection) {
+    return await collection.findOne({}, utils_1.hidden_id);
+}
+exports.readOne = readOne;

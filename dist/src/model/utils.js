@@ -60,3 +60,9 @@ exports.getRemoveIdProjection = () => {
         _id: false
     };
 };
+/**
+ * 获取屏蔽id输出的过滤器
+ */
+exports.hidden_id = {
+    projection: exports.getRemoveIdProjection()
+};

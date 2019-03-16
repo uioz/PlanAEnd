@@ -70,3 +70,10 @@ export const getRemoveIdProjection = ()=>{
         _id: false
     }
 }
+
+/**
+ * 获取屏蔽id输出的过滤器
+ */
+export const hidden_id = {
+    projection: getRemoveIdProjection()
+};
