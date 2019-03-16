@@ -55,3 +55,16 @@ export const GetMongoStore = (db: Db, options?: MongoStoreOptions) => {
         ...options
     });
 }
+
+/**
+ * 获取session中间件
+ * @param db mongodb Database对象
+ * @param secret 用于签名cookie的字符串
+ * @param options 创建mongoStore时候的选项
+ */
+export const GetSessionMiddleware = (db: Db, secret: string, options?: MongoStoreOptions) =>{
+    return GetExpressSession({
+        store:GetMongoStore(db,options),
+        secret
+    });
+}
