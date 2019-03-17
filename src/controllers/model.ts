@@ -2,9 +2,11 @@ import { LevelCode, responseMessage, ResponseErrorCode, SystemErrorCode } from "
 import { Middleware, ErrorMiddleware } from "../types";
 import { globalDataInstance } from "../globalData";
 import { collectionReadAllIfHave } from "../model/collectionRead";
+import { updateOfAssets } from "../model/collectionUpdate";
 import { writeOfModel } from "../model/collectionWrite";
 import { responseAndTypeAuth } from "./public";
 import { JSONParser } from "./public";
+import { CollectionName as AssetsCollectionName } from "./assets";
 
 /**
  * 简介:
@@ -81,19 +83,28 @@ const patternOfData = new RegExp(`^[\u2E80-\u2EFF\u2F00-\u2FDF\u3000-\u303F\u31C
  */
 const checkBody = (data: any) => {
   if (Array.isArray(data)) {
-    for (const item of data) {
-      if (!patternOfData.test(item)) {
-        throw new Error(`The ${item} of element of Array unable to pass verify.`);
+    // 检查数组中是否有重名的
+    if (new Set(data).size === data.length){
+      for (const item of data) {
+        // 检测所有的值是否通过了验证
+        if (!patternOfData.test(item)) {
+          throw new Error(`The ${item} of element of Array unable to pass verify.`);
+        }
       }
+      return;
+    }else{
+      throw new Error("The element of array can't be repeat.")
     }
-    return;
+
   }
 
   for (const key of Object.keys(data)) {
+    // 键名要通过测试
     if (patternOfData.test(key)) {
       if (typeof data[key] === 'object') {
         checkBody(data[key]);
       } else {
+        // 只能是Array和Object
         throw new Error(`The Object-value ${data[key]} type is not object or array`);
       }
 
@@ -122,11 +133,16 @@ export const MiddlewaresOfPost: Array<Middleware | ErrorMiddleware> = [
 
     try {
 
-      const SourceData = request.body;
+      const 
+        SourceData = request.body,
+        Database = globalDataInstance.getMongoDatabase();
 
       checkBody(SourceData);
 
-      writeOfModel(globalDataInstance.getMongoDatabase().collection(CollectionName), SourceData)
+      // TODO 利用新的模型同步更新通知模型
+      updateOfAssets(Database.collection(AssetsCollectionName),SourceData);
+
+      writeOfModel(Database.collection(CollectionName), SourceData)
         .then(result => {
           if(!result.ok){
             request.logger.warn(`${SystemErrorCode['错误:数据库回调异常']} ${result}`);

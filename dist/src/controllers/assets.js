@@ -15,6 +15,9 @@ const code_1 = require("../code");
  * 本模块导出的是模块化路由.
  * 该模块下有多个路径
  */
+const padding = (pad) => (target, data) => Object.assign(target, pad, data);
+const combine = (specialityModel, notice) => {
+};
 /**
  * 本模块使用的集合名称
  */
@@ -44,5 +47,12 @@ exports.addRoute = ({ LogMiddleware, SessionMiddleware, verifyMiddleware }, glob
             }
         });
     });
+    router.post('/assets/speciality', SessionMiddleware, LogMiddleware, public_1.JSONParser, (request, response) => {
+        const { route, data } = request.body;
+        /**
+         *
+         */
+    });
+    router.post('/assets/:type/:key');
     return router;
 };

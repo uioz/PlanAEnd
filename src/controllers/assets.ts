@@ -1,5 +1,5 @@
 import { Express, Router } from "express";
-import { logger400, logger500, code400, code500, responseAndTypeAuth, autoReadOne } from "./public";
+import { logger400, logger500, code400, code500, responseAndTypeAuth, autoReadOne, JSONParser } from "./public";
 import { RequestHaveLogger, AddRoute } from "../types";
 import { getRemoveIdProjection } from "../model/utils";
 import { SystemErrorCode } from "../code";
@@ -17,6 +17,13 @@ import { SystemErrorCode } from "../code";
  * 该模块下有多个路径
  */
 
+const 
+  padding = (pad: any) => (target,data) => Object.assign(target,pad,data);
+
+
+const combine = (specialityModel:Array<any>,notice:Array<any>) => {
+
+}
 
 /**
  * 本模块使用的集合名称
@@ -60,6 +67,19 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMid
     });
 
   });
+
+  router.post('/assets/speciality',SessionMiddleware,LogMiddleware,JSONParser, (request: RequestHaveLogger, response) => {
+
+    const { route, data } = request.body;
+
+    /**
+     * 
+     */
+
+
+  });
+
+  router.post('/assets/:type/:key')
 
 
   return router;

@@ -3,9 +3,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const code_1 = require("../code");
 const globalData_1 = require("../globalData");
 const collectionRead_1 = require("../model/collectionRead");
+const collectionUpdate_1 = require("../model/collectionUpdate");
 const collectionWrite_1 = require("../model/collectionWrite");
 const public_1 = require("./public");
 const public_2 = require("./public");
+const assets_1 = require("./assets");
 /**
  * 简介:
  * 本模块用于管理专业模型的获取和修改
@@ -65,19 +67,28 @@ const patternOfData = new RegExp(`^[\u2E80-\u2EFF\u2F00-\u2FDF\u3000-\u303F\u31C
  */
 const checkBody = (data) => {
     if (Array.isArray(data)) {
-        for (const item of data) {
-            if (!patternOfData.test(item)) {
-                throw new Error(`The ${item} of element of Array unable to pass verify.`);
+        // 检查数组中是否有重名的
+        if (new Set(data).size === data.length) {
+            for (const item of data) {
+                // 检测所有的值是否通过了验证
+                if (!patternOfData.test(item)) {
+                    throw new Error(`The ${item} of element of Array unable to pass verify.`);
+                }
             }
+            return;
         }
-        return;
+        else {
+            throw new Error("The element of array can't be repeat.");
+        }
     }
     for (const key of Object.keys(data)) {
+        // 键名要通过测试
         if (patternOfData.test(key)) {
             if (typeof data[key] === 'object') {
                 checkBody(data[key]);
             }
             else {
+                // 只能是Array和Object
                 throw new Error(`The Object-value ${data[key]} type is not object or array`);
             }
         }
@@ -101,9 +112,11 @@ exports.MiddlewaresOfPost = [
         });
     }, (request, response, next) => {
         try {
-            const SourceData = request.body;
+            const SourceData = request.body, Database = globalData_1.globalDataInstance.getMongoDatabase();
             checkBody(SourceData);
-            collectionWrite_1.writeOfModel(globalData_1.globalDataInstance.getMongoDatabase().collection(exports.CollectionName), SourceData)
+            // TODO 利用新的模型同步更新通知模型
+            collectionUpdate_1.updateOfAssets(Database.collection(assets_1.CollectionName), SourceData);
+            collectionWrite_1.writeOfModel(Database.collection(exports.CollectionName), SourceData)
                 .then(result => {
                 if (!result.ok) {
                     request.logger.warn(`${code_1.SystemErrorCode['错误:数据库回调异常']} ${result}`);

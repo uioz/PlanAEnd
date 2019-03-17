@@ -115,13 +115,13 @@ export const logger500 = (logger: Logger, data?: object, message: SystemErrorCod
  * @param logger 记录对象
  * @param data 用户传入的对象
  */
-export async function autoReadOne(collection:Collection,response:Response,logger:Logger,data?:any) {
+export async function autoReadOne(collection: Collection, response: Response, logger: Logger, data?: any) {
 
   try {
     return await readOne(collection);
   } catch (error) {
     code500(response);
-    logger500(logger,data,undefined,error);
+    logger500(logger, data, undefined, error);
   }
 
 }
