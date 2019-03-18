@@ -12,7 +12,7 @@ const initDatabase_1 = require("./init/initDatabase");
  * @param Cwd 启动项目路径
  */
 async function default_1(Cwd) {
-    console.log('System is Runing,Please wait for moment!');
+    console.log('System starting,Please wait for moment!');
     console.log(`The Directory of Root is ${Cwd}`);
     const ConfigDir = path_1.resolve(Cwd, './config'), LogConfig = require(path_1.resolve(ConfigDir, './logconfig.json')), SystemConfig = require(path_1.resolve(ConfigDir, './systemConfig.json')), MongoURl = SystemConfig.system.mongodbUrl, DatabaseName = SystemConfig.system.mongodbDataBase;
     globalData_1.globalDataInstance.setConfig('logType', LogConfig);

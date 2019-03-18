@@ -9,19 +9,15 @@
 </head>
 
 <body>
-  <button id="send">发送JSON</button>
+  <button id="send">发送默认专业模型</button>
+  <button id="send2">发送与默认有差异的专业模型</button>
+  <button id="send3">和前两个完全不同的专业模型</button>
   <script>
-    document.getElementById('send').addEventListener('click', () => {
 
+    const sendAndLog = (model)=>{
       fetch('/model', {
         method: 'POST',
-        body: JSON.stringify({
-          "信息工程系": {
-            "计算机技术": ["计算机应用技术", "移动应用开发"],
-            "环境艺术设计": ["室内设计"]
-          },
-          "艺术系": ["动漫制作"]
-        }),
+        body: JSON.stringify(model),
         headers: new Headers({
           'Content-Type': 'application/json'
         })
@@ -32,8 +28,45 @@
       }).catch((error) => {
         console.log(error);
       });
+    }
+
+    document.getElementById('send').addEventListener('click', () => {
+
+      sendAndLog({
+        "信息工程系": {
+          "计算机技术": ["计算机应用技术", "移动应用开发"],
+          "环境艺术设计": ["室内设计"],
+        },
+        "艺术系": ["动漫制作"]
+      });
 
     });
+
+
+    document.getElementById('send2').addEventListener('click',()=>{
+
+      sendAndLog({
+        "信息工程系": {
+          "计算机技术": ["计算机应用技术", "移动应用开发"],
+          "环境艺术设计": ["室内设计"],
+          "动漫制作": ["数字雕刻技术"]
+        },
+      });
+
+    });
+
+    document.getElementById('send3').addEventListener('click',()=>{
+
+      sendAndLog({
+        "hello": {
+          "world": ["厉害了", "word哥"],
+          "完全": ["不同"],
+        },
+        "的": ["全新体验"]
+      });
+
+    })
+
   </script>
 </body>
 

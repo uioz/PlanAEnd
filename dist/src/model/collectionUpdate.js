@@ -17,41 +17,92 @@ async function updateOfUser(collection, data) {
     });
 }
 exports.updateOfUser = updateOfUser;
-async function updateOfAssets(collection, specialityModel) {
-    const noticeModel = await collectionRead_1.readOne(collection), padding = name => {
+/**
+ * 专业模型结构同步到通知模型结构函数
+ * **注意**:这个函数要先于removeRedundancyOnNotcieModel函数执行
+ * @param specialityModel 专业模型
+ * @param noticeModel 通知模型
+ */
+exports.noticelSyncSpeciality = (specialityModel, noticeModel) => {
+    const padding = name => {
         return {
             name,
             title: '',
             notice: '',
             lists: []
         };
-    }, notKeyInNotice = (title, noticeModel) => noticeModel.findIndex(value => value.title === title) === -1;
-    /**
-     * 返回一个新的对象(TODO 深克隆),
-     * 这个函数的流程是以左边的专业模型为基准来判断右边的通知模型是否存在对应的键.
-     * 然后执行相应的逻辑.
-     * @param specialityModel 专业模型
-     * @param noticeModel 通知模型
-     * @param result 挂载数据的新对象
-     */
-    function pickle(specialityModel, noticeModel) {
+    }, notKeyInNotice = (name, noticeModel) => noticeModel.findIndex(value => value.name === name);
+    const core = (specialityModel, noticeModel) => {
         // 遇到了结果集合,这里的名称都是最后用户可以被选择的专业名字
         if (Array.isArray(specialityModel)) {
             for (const FinalSpecialityName of specialityModel) {
-                noticeModel.push(padding(FinalSpecialityName));
+                // 只有当数组中不存在名称相同的时候才会插入这个内容
+                if (notKeyInNotice(FinalSpecialityName, noticeModel) === -1) {
+                    noticeModel.push(padding(FinalSpecialityName));
+                }
             }
             return;
         }
-        for (const SpecialityModelName of specialityModel) {
+        for (const SpecialityModelName of Object.keys(specialityModel)) {
+            const index = notKeyInNotice(SpecialityModelName, noticeModel);
             // 如果通知模型上不存在对于的键,则创建它
-            if (notKeyInNotice(SpecialityModelName, noticeModel)) {
+            if (index === -1) {
                 const pad = padding(SpecialityModelName);
-                noticeModel.push(padding(SpecialityModelName));
+                noticeModel.push(pad);
                 // 递归调用
-                pickle(specialityModel[SpecialityModelName], pad.lists);
+                core(specialityModel[SpecialityModelName], pad.lists);
+            }
+            else {
+                core(specialityModel[SpecialityModelName], noticeModel[index].lists);
             }
         }
         return noticeModel;
-    }
+    };
+    return core(specialityModel, noticeModel);
+};
+/**
+ * 以专业模型为基准去除通知模型上多余的内容
+ * @param noticeModel 通知模型
+ * @param specialityModel 专业模型
+ */
+const removeRedundancyOnNotcieModel = (noticeModel, specialityModel) => {
+    const pullAt = (array, index) => array.splice(index, 1), isFinalResult = data => !data.lists.length;
+    const core = (noticeModel, specialityModel) => {
+        let len = noticeModel.length;
+        while (len--) {
+            const noticeModelNode = noticeModel[len], nodeNameFromNoticeModel = noticeModelNode.name;
+            // 如果是是结果节点
+            if (isFinalResult(noticeModelNode)) {
+                // 如果该通知节点不在专业模型结果集合中存在
+                if (specialityModel.findIndex(result => result === nodeNameFromNoticeModel) === -1) {
+                    // 移除它
+                    pullAt(noticeModel, len);
+                }
+            }
+            else if (noticeModelNode.name in specialityModel) { // 如果存在则递归进入
+                core(noticeModelNode.lists, specialityModel[nodeNameFromNoticeModel]);
+            }
+            else {
+                // 如果是父节点不存在则删除这个通知节点
+                pullAt(noticeModel, len);
+            }
+        }
+    };
+    core(noticeModel, specialityModel);
+    return noticeModel;
+};
+/**
+ * 利用给定的专业模型来更新通知模型
+ * @param collection collection对象
+ * @param specialityModel 专业模型对象
+ */
+async function updateOfAssetsForNoticeModel(collection, specialityModel) {
+    const { speciality: noticeModel } = await collectionRead_1.readOne(collection);
+    const syncedNoticeModel = exports.noticelSyncSpeciality(specialityModel, noticeModel), correctNoticeModel = removeRedundancyOnNotcieModel(syncedNoticeModel, specialityModel);
+    return await collection.updateOne({}, {
+        $set: {
+            'speciality': correctNoticeModel
+        }
+    }, { upsert: true });
 }
-exports.updateOfAssets = updateOfAssets;
+exports.updateOfAssetsForNoticeModel = updateOfAssetsForNoticeModel;

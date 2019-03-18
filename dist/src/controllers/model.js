@@ -114,21 +114,24 @@ exports.MiddlewaresOfPost = [
         try {
             const SourceData = request.body, Database = globalData_1.globalDataInstance.getMongoDatabase();
             checkBody(SourceData);
-            // TODO 利用新的模型同步更新通知模型
-            collectionUpdate_1.updateOfAssets(Database.collection(assets_1.CollectionName), SourceData);
-            collectionWrite_1.writeOfModel(Database.collection(exports.CollectionName), SourceData)
-                .then(result => {
-                if (!result.ok) {
-                    request.logger.warn(`${code_1.SystemErrorCode['错误:数据库回调异常']} ${result}`);
+            collectionUpdate_1.updateOfAssetsForNoticeModel(Database.collection(assets_1.CollectionName), SourceData).then(({ result }) => {
+                if (result.ok) {
+                    return collectionWrite_1.writeOfModel(Database.collection(exports.CollectionName), SourceData);
+                }
+                public_1.logger500(request.logger, SourceData, code_1.SystemErrorCode['错误:数据库回调异常']);
+                public_1.code500(response);
+            }).then((writeResult) => {
+                if (writeResult.ok) {
+                    public_1.code200(response);
+                }
+                else {
+                    public_1.logger500(request.logger, SourceData, code_1.SystemErrorCode['错误:数据库回调异常']);
+                    public_1.code500(response);
                 }
             })
-                .catch(error => {
-                request.logger.error(error);
-                request.logger.error(code_1.SystemErrorCode['错误:数据库写入失败']);
-            });
-            return public_1.responseAndTypeAuth(response, {
-                stateCode: 200,
-                message: code_1.responseMessage['数据上传成功']
+                .catch((error) => {
+                public_1.logger500(request.logger, SourceData, code_1.SystemErrorCode['错误:数据库回调异常'], error);
+                public_1.code500(response);
             });
         }
         catch (error) {

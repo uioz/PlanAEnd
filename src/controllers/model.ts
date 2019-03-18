@@ -2,9 +2,9 @@ import { LevelCode, responseMessage, ResponseErrorCode, SystemErrorCode } from "
 import { Middleware, ErrorMiddleware } from "../types";
 import { globalDataInstance } from "../globalData";
 import { collectionReadAllIfHave } from "../model/collectionRead";
-import { updateOfAssets } from "../model/collectionUpdate";
+import { updateOfAssetsForNoticeModel } from "../model/collectionUpdate";
 import { writeOfModel } from "../model/collectionWrite";
-import { responseAndTypeAuth } from "./public";
+import { responseAndTypeAuth, code400, code500, logger500, code200 } from "./public";
 import { JSONParser } from "./public";
 import { CollectionName as AssetsCollectionName } from "./assets";
 
@@ -139,23 +139,28 @@ export const MiddlewaresOfPost: Array<Middleware | ErrorMiddleware> = [
 
       checkBody(SourceData);
 
-      // TODO 利用新的模型同步更新通知模型
-      updateOfAssets(Database.collection(AssetsCollectionName),SourceData);
+      updateOfAssetsForNoticeModel(Database.collection(AssetsCollectionName),SourceData).then(({result})=>{
 
-      writeOfModel(Database.collection(CollectionName), SourceData)
-        .then(result => {
-          if(!result.ok){
-            request.logger.warn(`${SystemErrorCode['错误:数据库回调异常']} ${result}`);
-          }
-        })
-        .catch(error => {
-          request.logger.error(error);
-          request.logger.error(SystemErrorCode['错误:数据库写入失败']);
-        });
+        if(result.ok){
+          return writeOfModel(Database.collection(CollectionName), SourceData);
+        }
 
-      return responseAndTypeAuth(response, {
-        stateCode: 200,
-        message: responseMessage['数据上传成功']
+        logger500(request.logger,SourceData,SystemErrorCode['错误:数据库回调异常']);
+        code500(response);
+
+      }).then((writeResult)=>{
+
+        if(writeResult.ok){
+          code200(response);
+        }else{
+          logger500(request.logger, SourceData, SystemErrorCode['错误:数据库回调异常']);
+          code500(response);
+        }
+        
+      })
+      .catch((error)=>{
+        logger500(request.logger,SourceData,SystemErrorCode['错误:数据库回调异常'],error);
+        code500(response);
       });
 
     } catch (error) {
