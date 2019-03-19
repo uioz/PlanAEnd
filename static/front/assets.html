@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>test</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+
+<body>
+  <button id="reset">重置专业模型</button>
+  <button id="send">更新成和专业模型有结果集差异的模型(通知)</button>
+  <button id="change">更新成和专业模型有结果集差异的模型(结构)</button>
+  <script>
+    document.getElementById('reset').addEventListener('click', () => {
+      fetch('/model', {
+        method: 'POST',
+        body: JSON.stringify({
+          "信息工程系": {
+            "计算机技术": ["计算机应用技术", "移动应用开发"],
+            "环境艺术设计": ["室内设计"],
+            "动漫制作": ["数字雕刻技术"]
+          },
+        }),
+        headers: new Headers({
+          'Content-Type': 'application/json'
+        })
+      })
+    });
+
+    const sendAndLog = (model) => {
+      fetch('/assets/speciality', {
+        method: 'POST',
+        body: JSON.stringify(model),
+        headers: new Headers({
+          'Content-Type': 'application/json'
+        })
+      }).then(response => {
+        if (response.ok) {
+          console.log(response.text());
+        }
+      }).catch((error) => {
+        console.log(error);
+      });
+    }
+
+    document.getElementById('send').addEventListener('click',()=>{
+      sendAndLog([
+        {
+          "name": "信息工程系",
+          "title": "你好",
+          "notice": "",
+          "lists": [
+            {
+              "name": "计算机技术",
+              "title": "吗",
+              "notice": "",
+              "lists": [
+                {
+                  "name": "计算机应用技术",
+                  "title": "我",
+                  "notice": "",
+                  "lists": [
+
+                  ]
+                },
+                {
+                  "name": "移动应用开发",
+                  "title": "知道",
+                  "notice": "",
+                  "lists": [
+
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "环境艺术设计",
+              "title": "你",
+              "notice": "",
+              "lists": [
+                {
+                  "name": "室内设计",
+                  "title": "在那里",
+                  "notice": "",
+                  "lists": [
+
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "动漫制作",
+              "title": "",
+              "notice": "",
+              "lists": [
+                {
+                  "name": "数字雕刻技术",
+                  "title": "",
+                  "notice": "",
+                  "lists": [
+
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ])
+    })
+    document.getElementById('change').addEventListener('click',()=>{
+      sendAndLog([
+        {
+          "name": "信息工程系",
+          "title": "",
+          "notice": "",
+          "lists": [
+            {
+              "name": "计算机技术",
+              "title": "",
+              "notice": "",
+              "lists": [
+                {
+                  "name": "计算机应用技术",
+                  "title": "",
+                  "notice": "",
+                  "lists": [
+
+                  ]
+                },
+                {
+                  "name": "移动应用开发",
+                  "title": "",
+                  "notice": "",
+                  "lists": [
+
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "环境艺术设计",
+              "title": "",
+              "notice": "",
+              "lists": [
+                {
+                  "name": "室内设计",
+                  "title": "",
+                  "notice": "",
+                  "lists": [
+
+                  ]
+                },
+                {
+                  "name": "智能化家具",
+                  "title": "",
+                  "notice": "",
+                  "lists": [
+
+                  ]
+                },
+              ]
+            },
+            {
+              "name": "动漫制作",
+              "title": "",
+              "notice": "",
+              "lists": [
+                {
+                  "name": "3d建模与动画渲染",
+                  "title": "",
+                  "notice": "",
+                  "lists": [
+
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ])
+    })
+
+
+
+  </script>
+</body>
+
+</html>

@@ -114,7 +114,7 @@ exports.MiddlewaresOfPost = [
         try {
             const SourceData = request.body, Database = globalData_1.globalDataInstance.getMongoDatabase();
             checkBody(SourceData);
-            collectionUpdate_1.updateOfAssetsForNoticeModel(Database.collection(assets_1.CollectionName), SourceData).then(({ result }) => {
+            collectionUpdate_1.updateOfNoticeModelInModel(Database.collection(assets_1.CollectionName), SourceData).then(({ result }) => {
                 if (result.ok) {
                     return collectionWrite_1.writeOfModel(Database.collection(exports.CollectionName), SourceData);
                 }

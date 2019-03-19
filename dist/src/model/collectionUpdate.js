@@ -92,11 +92,29 @@ const removeRedundancyOnNotcieModel = (noticeModel, specialityModel) => {
     return noticeModel;
 };
 /**
+ * 利用专业模型将给定的集合对象修整为符合专业模型约束的通知模型
+ * @param noticeCollection 通知模型集合对象
+ * @param specialityCollection 专业模型集合对象
+ * @param noticeModelNode 通知模型对象
+ */
+async function updateOfNoticeModelInAssets(noticeCollection, specialityCollection, noticeModelNode) {
+    const specialityModel = await collectionRead_1.readOne(specialityCollection);
+    const syncedNoticeModel = exports.noticelSyncSpeciality(specialityModel, noticeModelNode), correctNoticeModel = removeRedundancyOnNotcieModel(syncedNoticeModel, specialityModel);
+    return await noticeCollection.updateOne({}, {
+        $set: {
+            speciality: correctNoticeModel
+        }
+    }, {
+        upsert: true
+    });
+}
+exports.updateOfNoticeModelInAssets = updateOfNoticeModelInAssets;
+/**
  * 利用给定的专业模型来更新通知模型
  * @param collection collection对象
  * @param specialityModel 专业模型对象
  */
-async function updateOfAssetsForNoticeModel(collection, specialityModel) {
+async function updateOfNoticeModelInModel(collection, specialityModel) {
     const { speciality: noticeModel } = await collectionRead_1.readOne(collection);
     const syncedNoticeModel = exports.noticelSyncSpeciality(specialityModel, noticeModel), correctNoticeModel = removeRedundancyOnNotcieModel(syncedNoticeModel, specialityModel);
     return await collection.updateOne({}, {
@@ -105,4 +123,4 @@ async function updateOfAssetsForNoticeModel(collection, specialityModel) {
         }
     }, { upsert: true });
 }
-exports.updateOfAssetsForNoticeModel = updateOfAssetsForNoticeModel;
+exports.updateOfNoticeModelInModel = updateOfNoticeModelInModel;

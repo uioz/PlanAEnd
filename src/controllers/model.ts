@@ -2,7 +2,7 @@ import { LevelCode, responseMessage, ResponseErrorCode, SystemErrorCode } from "
 import { Middleware, ErrorMiddleware } from "../types";
 import { globalDataInstance } from "../globalData";
 import { collectionReadAllIfHave } from "../model/collectionRead";
-import { updateOfAssetsForNoticeModel } from "../model/collectionUpdate";
+import { updateOfNoticeModelInModel } from "../model/collectionUpdate";
 import { writeOfModel } from "../model/collectionWrite";
 import { responseAndTypeAuth, code400, code500, logger500, code200 } from "./public";
 import { JSONParser } from "./public";
@@ -139,7 +139,7 @@ export const MiddlewaresOfPost: Array<Middleware | ErrorMiddleware> = [
 
       checkBody(SourceData);
 
-      updateOfAssetsForNoticeModel(Database.collection(AssetsCollectionName),SourceData).then(({result})=>{
+      updateOfNoticeModelInModel(Database.collection(AssetsCollectionName),SourceData).then(({result})=>{
 
         if(result.ok){
           return writeOfModel(Database.collection(CollectionName), SourceData);

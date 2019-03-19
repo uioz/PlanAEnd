@@ -1,8 +1,10 @@
 import { Express, Router } from "express";
-import { logger400, logger500, code400, code500, responseAndTypeAuth, autoReadOne, JSONParser } from "./public";
+import { logger400, logger500, code400, code500, responseAndTypeAuth, autoReadOne, JSONParser, code200 } from "./public";
 import { RequestHaveLogger, AddRoute } from "../types";
 import { getRemoveIdProjection } from "../model/utils";
 import { SystemErrorCode } from "../code";
+import { updateOfNoticeModelInAssets } from "../model/collectionUpdate";
+import * as Model from "./model";
 
 /**
  * 简介:
@@ -17,11 +19,11 @@ import { SystemErrorCode } from "../code";
  * 该模块下有多个路径
  */
 
-const 
-  padding = (pad: any) => (target,data) => Object.assign(target,pad,data);
+const
+  padding = (pad: any) => (target, data) => Object.assign(target, pad, data);
 
 
-const combine = (specialityModel:Array<any>,notice:Array<any>) => {
+const combine = (specialityModel: Array<any>, notice: Array<any>) => {
 
 }
 
@@ -68,14 +70,22 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMid
 
   });
 
-  router.post('/assets/speciality',SessionMiddleware,LogMiddleware,JSONParser, (request: RequestHaveLogger, response) => {
+  router.post('/assets/speciality', SessionMiddleware, LogMiddleware, JSONParser, (request: RequestHaveLogger, response) => {
 
-    const { route, data } = request.body;
+    const
+      OriginalNoticeModel = request.body,
+      specialityCollection = globalDataInstance.getMongoDatabase().collection(Model.CollectionName);
 
-    /**
-     * 
-     */
-
+    updateOfNoticeModelInAssets(collection, specialityCollection, OriginalNoticeModel).then((updateResult) => {
+      if (updateResult.result.ok) {
+        code200(response);
+      }
+    })
+      .catch((error) => {
+        debugger;
+        logger500(request.logger, OriginalNoticeModel, SystemErrorCode['错误:数据库回调异常'], error);
+        code500(response);
+      });
 
   });
 

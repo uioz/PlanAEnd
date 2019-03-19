@@ -3,6 +3,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const public_1 = require("./public");
 const code_1 = require("../code");
+const collectionUpdate_1 = require("../model/collectionUpdate");
+const Model = require("./model");
 /**
  * 简介:
  * 该模块负责静态资源的管理
@@ -48,10 +50,17 @@ exports.addRoute = ({ LogMiddleware, SessionMiddleware, verifyMiddleware }, glob
         });
     });
     router.post('/assets/speciality', SessionMiddleware, LogMiddleware, public_1.JSONParser, (request, response) => {
-        const { route, data } = request.body;
-        /**
-         *
-         */
+        const OriginalNoticeModel = request.body, specialityCollection = globalDataInstance.getMongoDatabase().collection(Model.CollectionName);
+        collectionUpdate_1.updateOfNoticeModelInAssets(collection, specialityCollection, OriginalNoticeModel).then((updateResult) => {
+            if (updateResult.result.ok) {
+                public_1.code200(response);
+            }
+        })
+            .catch((error) => {
+            debugger;
+            public_1.logger500(request.logger, OriginalNoticeModel, code_1.SystemErrorCode['错误:数据库回调异常'], error);
+            public_1.code500(response);
+        });
     });
     router.post('/assets/:type/:key');
     return router;
