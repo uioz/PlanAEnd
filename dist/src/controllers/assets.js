@@ -70,7 +70,8 @@ exports.addRoute = ({ LogMiddleware, SessionMiddleware, verifyMiddleware }, glob
         const { type, key } = request.params, { operation, data } = request.body;
         public_1.autoReadOne(collection, response, request.logger).then(result => {
             try {
-                return collection.updateOne({}, public_1.deepUpdate(operation, result, data, type, key), {
+                const UpdateOperation = public_1.deepUpdate(operation, result, data, type, key);
+                return collection.updateOne({}, UpdateOperation, {
                     upsert: true
                 });
             }
@@ -80,7 +81,7 @@ exports.addRoute = ({ LogMiddleware, SessionMiddleware, verifyMiddleware }, glob
             }
         }).then((updateResult) => {
             if (updateResult.result.ok) {
-                // TODO testing and editing
+                public_1.code200(response);
             }
         })
             .catch((error) => {

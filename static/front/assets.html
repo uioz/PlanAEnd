@@ -12,6 +12,12 @@
   <button id="reset">重置专业模型</button>
   <button id="send">更新成和专业模型有结果集差异的模型(通知)</button>
   <button id="change">更新成和专业模型有结果集差异的模型(结构)</button>
+  <button id="iamgelistpush">imagelist中添加内容</button>
+  <button id="imagelistclear">清空imagelist中的内容</button>
+  <button id="changeAppnameServer">修改appname.server</button>
+  <button id="changeImageBrand">修改image.brand</button>
+  <button id="errorConstructor">错误的地址以及数据结构</button>
+
   <script>
     document.getElementById('reset').addEventListener('click', () => {
       fetch('/model', {
@@ -29,8 +35,8 @@
       })
     });
 
-    const sendAndLog = (model) => {
-      fetch('/assets/speciality', {
+    const sendAndLog = (model, url = '/assets/speciality') => {
+      fetch(url, {
         method: 'POST',
         body: JSON.stringify(model),
         headers: new Headers({
@@ -45,7 +51,7 @@
       });
     }
 
-    document.getElementById('send').addEventListener('click',()=>{
+    document.getElementById('send').addEventListener('click', () => {
       sendAndLog([
         {
           "name": "信息工程系",
@@ -109,7 +115,7 @@
         }
       ])
     })
-    document.getElementById('change').addEventListener('click',()=>{
+    document.getElementById('change').addEventListener('click', () => {
       sendAndLog([
         {
           "name": "信息工程系",
@@ -182,7 +188,40 @@
       ])
     })
 
+    document.getElementById('iamgelistpush').addEventListener('click', () => {
+      sendAndLog({
+        operation: 'push',
+        data: ['logo.png'],
+      }, '/assets/image/imagelist');
+    });
 
+    document.getElementById('imagelistclear').addEventListener('click', () => {
+      sendAndLog({
+        operation: 'alter',
+        data: [],
+      }, '/assets/image/imagelist');
+    });
+
+    document.getElementById('changeAppnameServer').addEventListener('click', () => {
+      sendAndLog({
+        operation: 'alter',
+        data: 'hello',
+      }, '/assets/appname/server');
+    });
+
+    document.getElementById('changeImageBrand').addEventListener('click', () => {
+      sendAndLog({
+        operation: 'alter',
+        data: 'world',
+      }, '/assets/image/brand');
+    });
+    document.getElementById('errorConstructor').addEventListener('click', () => {
+      sendAndLog({
+        operation: 'fxxk',
+        data: [1,2,3,undefined],
+        error:undefined,
+      }, '/assets/hello/world');
+    });
 
   </script>
 </body>

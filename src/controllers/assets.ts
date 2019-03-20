@@ -1,5 +1,5 @@
 import { Express, Router } from "express";
-import { logger400, logger500, code400, code500, responseAndTypeAuth, autoReadOne, JSONParser, code200,deepUpdate } from "./public";
+import { logger400, logger500, code400, code500, responseAndTypeAuth, autoReadOne, JSONParser, code200, deepUpdate } from "./public";
 import { RequestHaveLogger, AddRoute } from "../types";
 import { getRemoveIdProjection } from "../model/utils";
 import { SystemErrorCode } from "../code";
@@ -95,17 +95,18 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMid
   // 修改其他资源
   router.post('/assets/:type/:key', SessionMiddleware, LogMiddleware, JSONParser, (request: RequestHaveLogger, response, next) => {
 
-    const 
-      { type,key } = request.params,
-      { operation,data } = request.body;
-    
+    const
+      { type, key } = request.params,
+      { operation, data } = request.body;
+
 
     autoReadOne(collection, response, request.logger).then(result => {
 
       try {
 
-        return collection.updateOne({}, deepUpdate(operation, result, data, type, key),{
-          upsert:true
+        const UpdateOperation = deepUpdate(operation, result, data, type, key);
+        return collection.updateOne({}, UpdateOperation, {
+          upsert: true
         });
 
       } catch (error) {
@@ -113,22 +114,19 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMid
         logger500(request.logger, request.params, SystemErrorCode['错误:匹配数据库数据失败']);
       }
 
-    }).then((updateResult)=>{
-    
+    }).then((updateResult) => {
 
-      if(updateResult.result.ok){
-        // TODO testing and editing
+      if (updateResult.result.ok) {
+        code200(response);
       }
 
     })
-    .catch((error)=>{
-      code500(response);
-      logger500(request.logger, request.params, SystemErrorCode['错误:数据库写入失败'],error);
-    });
-
+      .catch((error) => {
+        code500(response);
+        logger500(request.logger, request.params, SystemErrorCode['错误:数据库写入失败'], error);
+      });
 
   });
-
-
+  
   return router;
 }

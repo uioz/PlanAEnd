@@ -138,8 +138,17 @@ exports.deepUpdate = (operation, OriginalData, value, ...keys) => {
                 }
             };
         case 'push':
+            if (Array.isArray(value)) {
+                return {
+                    $addToSet: {
+                        [keys.join('.')]: {
+                            $each: value
+                        }
+                    }
+                };
+            }
             return {
-                $push: {
+                $addToSet: {
                     [keys.join('.')]: value
                 }
             };
