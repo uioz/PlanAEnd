@@ -26,6 +26,7 @@ const combine = (specialityModel, notice) => {
 exports.CollectionName = 'model_assets';
 exports.addRoute = ({ LogMiddleware, SessionMiddleware, verifyMiddleware }, globalDataInstance) => {
     const router = express_1.Router(), collection = globalDataInstance.getMongoDatabase().collection(exports.CollectionName);
+    // 获取
     router.get('/assets/speciality', LogMiddleware, SessionMiddleware, (request, response, next) => {
         public_1.autoReadOne(collection, response, request.logger).then(({ speciality }) => {
             public_1.responseAndTypeAuth(response, {
@@ -34,6 +35,7 @@ exports.addRoute = ({ LogMiddleware, SessionMiddleware, verifyMiddleware }, glob
             });
         });
     });
+    // 获取其他其他资源
     router.get('/assets/:type/:key', LogMiddleware, SessionMiddleware, (request, response, next) => {
         const { type, key } = request.params;
         public_1.autoReadOne(collection, response, request.logger).then(result => {
@@ -49,6 +51,7 @@ exports.addRoute = ({ LogMiddleware, SessionMiddleware, verifyMiddleware }, glob
             }
         });
     });
+    // 修改通知模型
     router.post('/assets/speciality', SessionMiddleware, LogMiddleware, public_1.JSONParser, (request, response) => {
         const OriginalNoticeModel = request.body, specialityCollection = globalDataInstance.getMongoDatabase().collection(Model.CollectionName);
         collectionUpdate_1.updateOfNoticeModelInAssets(collection, specialityCollection, OriginalNoticeModel).then((updateResult) => {
@@ -62,6 +65,28 @@ exports.addRoute = ({ LogMiddleware, SessionMiddleware, verifyMiddleware }, glob
             public_1.code500(response);
         });
     });
-    router.post('/assets/:type/:key');
+    // 修改其他资源
+    router.post('/assets/:type/:key', SessionMiddleware, LogMiddleware, public_1.JSONParser, (request, response, next) => {
+        const { type, key } = request.params, { operation, data } = request.body;
+        public_1.autoReadOne(collection, response, request.logger).then(result => {
+            try {
+                return collection.updateOne({}, public_1.deepUpdate(operation, result, data, type, key), {
+                    upsert: true
+                });
+            }
+            catch (error) {
+                public_1.code500(response);
+                public_1.logger500(request.logger, request.params, code_1.SystemErrorCode['错误:匹配数据库数据失败']);
+            }
+        }).then((updateResult) => {
+            if (updateResult.result.ok) {
+                // TODO testing and editing
+            }
+        })
+            .catch((error) => {
+            public_1.code500(response);
+            public_1.logger500(request.logger, request.params, code_1.SystemErrorCode['错误:数据库写入失败'], error);
+        });
+    });
     return router;
 };

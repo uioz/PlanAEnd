@@ -1,5 +1,5 @@
 import { Express, Router } from "express";
-import { logger400, logger500, code400, code500, responseAndTypeAuth, autoReadOne, JSONParser, code200 } from "./public";
+import { logger400, logger500, code400, code500, responseAndTypeAuth, autoReadOne, JSONParser, code200,deepUpdate } from "./public";
 import { RequestHaveLogger, AddRoute } from "../types";
 import { getRemoveIdProjection } from "../model/utils";
 import { SystemErrorCode } from "../code";
@@ -39,6 +39,7 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMid
     router = Router(),
     collection = globalDataInstance.getMongoDatabase().collection(CollectionName);
 
+  // 获取
   router.get('/assets/speciality', LogMiddleware, SessionMiddleware, (request: RequestHaveLogger, response, next) => {
 
     autoReadOne(collection, response, request.logger).then(({ speciality }) => {
@@ -50,6 +51,7 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMid
 
   });
 
+  // 获取其他其他资源
   router.get('/assets/:type/:key', LogMiddleware, SessionMiddleware, (request: RequestHaveLogger, response, next) => {
 
     const { type, key } = request.params;
@@ -70,6 +72,7 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMid
 
   });
 
+  // 修改通知模型
   router.post('/assets/speciality', SessionMiddleware, LogMiddleware, JSONParser, (request: RequestHaveLogger, response) => {
 
     const
@@ -89,7 +92,42 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMid
 
   });
 
-  router.post('/assets/:type/:key')
+  // 修改其他资源
+  router.post('/assets/:type/:key', SessionMiddleware, LogMiddleware, JSONParser, (request: RequestHaveLogger, response, next) => {
+
+    const 
+      { type,key } = request.params,
+      { operation,data } = request.body;
+    
+
+    autoReadOne(collection, response, request.logger).then(result => {
+
+      try {
+
+        return collection.updateOne({}, deepUpdate(operation, result, data, type, key),{
+          upsert:true
+        });
+
+      } catch (error) {
+        code500(response);
+        logger500(request.logger, request.params, SystemErrorCode['错误:匹配数据库数据失败']);
+      }
+
+    }).then((updateResult)=>{
+    
+
+      if(updateResult.result.ok){
+        // TODO testing and editing
+      }
+
+    })
+    .catch((error)=>{
+      code500(response);
+      logger500(request.logger, request.params, SystemErrorCode['错误:数据库写入失败'],error);
+    });
+
+
+  });
 
 
   return router;

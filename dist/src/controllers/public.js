@@ -113,3 +113,43 @@ async function autoReadOne(collection, response, logger, data) {
     }
 }
 exports.autoReadOne = autoReadOne;
+/**
+ * 1. 根据给定的数据和给定的键来获取内容然后判断数据是否存在
+ * 2. 利用给定的操作符号来返回不同的更新条件语句
+ *
+ * 抛出的错误:
+ * - 给定的源数据上不存在指定的键
+ * - 非法的操作类型
+ * @param operation 更新操作的类型
+ * @param OriginalData 数据库中原来的数据
+ * @param value 操作对应的数据
+ * @param keys 由键组成的数组
+ */
+exports.deepUpdate = (operation, OriginalData, value, ...keys) => {
+    let node = OriginalData;
+    for (const key of keys) {
+        node = node[key];
+    }
+    switch (operation) {
+        case 'alter':
+            return {
+                $set: {
+                    [keys.join('.')]: value
+                }
+            };
+        case 'push':
+            return {
+                $push: {
+                    [keys.join('.')]: value
+                }
+            };
+        case 'pull':
+            return {
+                $pullAll: {
+                    [keys.join('.')]: value
+                }
+            };
+        default:
+            throw new Error(`No such operation as ${operation}`);
+    }
+};
