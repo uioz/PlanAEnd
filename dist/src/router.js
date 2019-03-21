@@ -10,6 +10,7 @@ const sourceJson = require("./controllers/source.json");
 const model = require("./controllers/model");
 const user = require("./controllers/user");
 const assets = require("./controllers/assets");
+const open = require("./controllers/open");
 exports.default = (app, globalData) => {
     const CookieSecurt = 'hello world', Database = globalData.getMongoDatabase(), SessionMiddleware = initMiddleware_1.GetSessionMiddleware(Database, CookieSecurt), logger = globalData.getLogger(), isDEV = process.env.NODE_ENV = types_1.NODE_ENV.dev;
     const middlewareTree = {
@@ -26,4 +27,5 @@ exports.default = (app, globalData) => {
     app.post(user.URL, SessionMiddleware, logger_1.LogMiddleware, filter_1.verifyMiddleware(user.LevelIndexOfPost), user.MiddlewareOfPost);
     app.delete(user.URL, SessionMiddleware, logger_1.LogMiddleware, filter_1.verifyMiddleware(user.LevelIndexOfDelete), user.MiddlewareOfDelete);
     app.use(assets.addRoute(middlewareTree, globalData_1.globalDataInstance));
+    app.use(open.addRoute(middlewareTree, globalData_1.globalDataInstance));
 };

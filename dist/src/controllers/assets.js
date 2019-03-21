@@ -15,18 +15,19 @@ const Model = require("./model");
  * - 全局公告
  * 顶级URL为/assets
  * 本模块导出的是模块化路由.
- * 该模块下有多个路径
+ * 该路由下有多个子路径
  */
-const padding = (pad) => (target, data) => Object.assign(target, pad, data);
-const combine = (specialityModel, notice) => {
-};
 /**
  * 本模块使用的集合名称
  */
 exports.CollectionName = 'model_assets';
+/**
+ * POST对应的权限下标
+ */
+exports.LevelIndexOfPost = code_1.LevelCode.StaticMessageIndex.toString();
 exports.addRoute = ({ LogMiddleware, SessionMiddleware, verifyMiddleware }, globalDataInstance) => {
-    const router = express_1.Router(), collection = globalDataInstance.getMongoDatabase().collection(exports.CollectionName);
-    // 获取
+    const router = express_1.Router(), collection = globalDataInstance.getMongoDatabase().collection(exports.CollectionName), verify = verifyMiddleware(exports.LevelIndexOfPost);
+    // 获取专业字段内容
     router.get('/assets/speciality', LogMiddleware, SessionMiddleware, (request, response, next) => {
         public_1.autoReadOne(collection, response, request.logger).then(({ speciality }) => {
             public_1.responseAndTypeAuth(response, {
@@ -35,7 +36,7 @@ exports.addRoute = ({ LogMiddleware, SessionMiddleware, verifyMiddleware }, glob
             });
         });
     });
-    // 获取其他其他资源
+    // 获取其他资源
     router.get('/assets/:type/:key', LogMiddleware, SessionMiddleware, (request, response, next) => {
         const { type, key } = request.params;
         public_1.autoReadOne(collection, response, request.logger).then(result => {
@@ -52,7 +53,7 @@ exports.addRoute = ({ LogMiddleware, SessionMiddleware, verifyMiddleware }, glob
         });
     });
     // 修改通知模型
-    router.post('/assets/speciality', SessionMiddleware, LogMiddleware, public_1.JSONParser, (request, response) => {
+    router.post('/assets/speciality', SessionMiddleware, LogMiddleware, verify, public_1.JSONParser, (request, response) => {
         const OriginalNoticeModel = request.body, specialityCollection = globalDataInstance.getMongoDatabase().collection(Model.CollectionName);
         collectionUpdate_1.updateOfNoticeModelInAssets(collection, specialityCollection, OriginalNoticeModel).then((updateResult) => {
             if (updateResult.result.ok) {
@@ -66,7 +67,7 @@ exports.addRoute = ({ LogMiddleware, SessionMiddleware, verifyMiddleware }, glob
         });
     });
     // 修改其他资源
-    router.post('/assets/:type/:key', SessionMiddleware, LogMiddleware, public_1.JSONParser, (request, response, next) => {
+    router.post('/assets/:type/:key', SessionMiddleware, LogMiddleware, verify, public_1.JSONParser, (request, response, next) => {
         const { type, key } = request.params, { operation, data } = request.body;
         public_1.autoReadOne(collection, response, request.logger).then(result => {
             try {

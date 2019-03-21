@@ -5,7 +5,7 @@
         "runningTime": 1000,
         "mongodbUrl":"mongodb://localhost:27017",
         "mongodbDataBase":"testing",
-        "mongodbCollectionList":["source_","result_","model_speciality","model_users","model_notice","configuration_static"]
+        "mongodbCollectionList":["source_","result_","model_speciality","model_users","model_assets","configuration_static"]
     },
     "server": {
         "port": 8888,
@@ -14,8 +14,8 @@
     "client": {
         "open": true,
         "openTimeRange": {
-            "startTime": "Thu, 30 Jul 1998 00:00:00 GMT",
-            "endTime": "Thu, 24 Dec 2020 00:00:00 GMT"
+            "startTime": "1998-07-30T00:00:00.000Z",
+            "endTime": "2020-12-24T00:00:00.000Z"
         },
         "clientStaticPath": "./static/front",
         "clientUrlPrefix":"/",
