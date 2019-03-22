@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>test</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+
+<body>
+  <button id="open">修改服务器开放时间</button>
+  <button id="open1">给定错误格式</button>
+  <button id="open2">闭合时间小于开启时间</button>
+  <script>
+
+    const sendAndLog = (model, url = '/open/range') => {
+      fetch(url, {
+        method: 'POST',
+        body: JSON.stringify(model),
+        headers: new Headers({
+          'Content-Type': 'application/json'
+        })
+      }).then(response => {
+        if (response.ok) {
+          console.log(response.text());
+        }
+      }).catch((error) => {
+        console.log(error);
+      });
+    }
+
+
+    document.getElementById('open').addEventListener('click',()=>{
+      sendAndLog({
+        startTime:new Date('1998-01-01').toISOString(),
+        endTime:new Date('2022-01-01').toISOString()
+      })
+    });
+
+    document.getElementById('open1').addEventListener('click',()=>{
+      sendAndLog({
+        startTime:new Date('1998-01-01'),
+        endTime:new Date('2022-01-01'),
+        message:'hello world'
+      });
+    });
+
+    document.getElementById('open2').addEventListener('click',()=>{
+      sendAndLog({
+        endTime:new Date('1998-01-01'),
+        startTime:new Date('2022-01-01'),
+      });
+    });
+
+  
+
+  </script>
+</body>
+
+</html>

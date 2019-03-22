@@ -26,3 +26,15 @@ async function writeOfModel(collection, data) {
     });
 }
 exports.writeOfModel = writeOfModel;
+/**
+ * 向指定集合写入服务器开放时间
+ */
+async function writeOfOpen(collection, startTime, endTime) {
+    return await collection.updateOne({}, {
+        $set: {
+            'client.openTimeRange.startTime': startTime,
+            'client.openTimeRange.endTime': endTime
+        }
+    });
+}
+exports.writeOfOpen = writeOfOpen;

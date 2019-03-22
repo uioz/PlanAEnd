@@ -1,8 +1,9 @@
 import { AddRoute, RequestHaveLogger } from "../types";
-import { LevelCode } from "../code";
+import { LevelCode, SystemErrorCode } from "../code";
 import { Router } from "express";
 import { autoReadOne, responseAndTypeAuth, logger500, code500, JSONParser, code400, logger400 } from "./public";
 import * as apiCheck from "api-check";
+import { writeOfOpen } from "../model/collectionWrite";
 
 /**
  * 简介:
@@ -44,6 +45,7 @@ const postShape = apiCheck.shape({
   endTime: apiCheck.string,
 }).strict;
 
+
 export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMiddleware }, globalDataInstance) => {
 
   const
@@ -74,8 +76,8 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMid
       requestBody: PostShape = request.body,
       checkResult = postShape(requestBody);
 
-    if(checkResult instanceof Error){
-      logger400(request.logger,requestBody,undefined,checkResult);
+    if (checkResult instanceof Error) {
+      logger400(request.logger, requestBody, undefined, checkResult);
       return code400(response);
     }
 
@@ -88,11 +90,32 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMid
     // 这里时间存在的意义是进行大小比对,所以不在意
     // 具体时区,这样一来计算时间的时候不用考虑服务器
     // 所运行环境中的时区偏移
-    // 调用  Date.parse()
-    // 使用Number.isNaN()判断时间是否合法
+    // Date.parse解析时间正确返回日期对象错误返回NaN
+    // 但是javascript中NaN!==NaN所以需要借助于ES6的Number.isNaN方法
 
-    
+    const 
+      { startTime, endTime } = requestBody,
+      startDate = Date.parse(startTime),
+      endDate = Date.parse(endTime);
+  
+    // 时间错误或者给定的起始时间大于等于结束时间则错误
+    if (Number.isNaN(startDate) || Number.isNaN(endDate) || startDate >= endDate ){
+      logger400(request.logger,requestBody,undefined,undefined);
+      return code400(response);
+    }
 
+    writeOfOpen(collection,startTime,endTime).then((updateResult)=>{
+      if(updateResult.result.ok){
+
+      }else{
+        logger500(request.logger,requestBody,SystemErrorCode['错误:数据库回调异常'],updateResult);
+        code500(response);
+      }
+    })
+    .catch((error)=>{
+      logger500(request.logger,requestBody,undefined,error);
+      code500(response);
+    });
 
   });
 
