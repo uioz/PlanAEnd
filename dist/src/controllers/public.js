@@ -114,6 +114,24 @@ async function autoReadOne(collection, response, logger, data) {
 }
 exports.autoReadOne = autoReadOne;
 /**
+ * public.autoReadOne的允许find版本
+ * @param collection 集合对象
+ * @param filter 查询器
+ * @param response 响应对象
+ * @param logger log4js实例
+ * @param data 用户上传的数据
+ */
+async function autoFindOne(collection, filter, response, logger, data) {
+    try {
+        return await collectionRead_1.readOne(collection, filter);
+    }
+    catch (error) {
+        exports.code500(response);
+        exports.logger500(logger, data, undefined, error);
+    }
+}
+exports.autoFindOne = autoFindOne;
+/**
  * 1. 根据给定的数据和给定的键来获取内容然后判断数据是否存在
  * 2. 利用给定的操作符号来返回不同的更新条件语句
  *

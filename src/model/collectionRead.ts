@@ -1,4 +1,4 @@
-import { Db, Collection, } from "mongodb";
+import { Db, Collection, FilterQuery, } from "mongodb";
 import { Logger } from "log4js";
 import { hidden_id } from "./utils";
 
@@ -139,6 +139,6 @@ export async function getSuperUserAccount(collection: Collection) {
  * collection.findOne的过滤id版本
  * @param collection 集合对象
  */
-export async function readOne(collection: Collection) {
-    return await collection.findOne({}, hidden_id);
+export async function readOne(collection: Collection,filter:FilterQuery<never> = {}) {
+    return await collection.findOne(filter, hidden_id);
 }

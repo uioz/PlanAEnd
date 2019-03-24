@@ -10,7 +10,7 @@ const collectionWrite_1 = require("../model/collectionWrite");
  * 该模块负责服务器开闭管理
  * 顶级URL为/open
  * 本模块导出的是模块化路由
- * 该路由下有多个子路径
+ * 该路由下有多个路径
  */
 /**
  * 本模块使用的集合名称
@@ -21,11 +21,17 @@ exports.CollectionName = 'configuration_static';
  */
 exports.LevelIndexOfPost = code_1.LevelCode.SuperUserIndex.toString();
 /**
- * 请求请求格式验证模板
+ * range请求格式验证模板
  */
-const postShape = apiCheck.shape({
+const postRangeShape = apiCheck.shape({
     startTime: apiCheck.string,
     endTime: apiCheck.string,
+}).strict;
+/**
+ * force请求格式验证模板
+ */
+const postForceShape = apiCheck.shape({
+    force: apiCheck.bool
 }).strict;
 exports.addRoute = ({ LogMiddleware, SessionMiddleware, verifyMiddleware }, globalDataInstance) => {
     const router = express_1.Router(), collection = globalDataInstance.getMongoDatabase().collection(exports.CollectionName), verify = verifyMiddleware(exports.LevelIndexOfPost);
@@ -41,8 +47,19 @@ exports.addRoute = ({ LogMiddleware, SessionMiddleware, verifyMiddleware }, glob
             public_1.code500(response);
         });
     });
+    router.get('/open/force', SessionMiddleware, LogMiddleware, (request, response, next) => {
+        public_1.autoReadOne(collection, response, request.logger).then(({ client }) => {
+            public_1.responseAndTypeAuth(response, {
+                stateCode: 200,
+                message: client.force
+            });
+        }).catch((error) => {
+            public_1.logger500(request.logger, undefined, undefined, error);
+            public_1.code500(response);
+        });
+    });
     router.post('/open/range', SessionMiddleware, verify, LogMiddleware, public_1.JSONParser, (request, response, next) => {
-        const requestBody = request.body, checkResult = postShape(requestBody);
+        const requestBody = request.body, checkResult = postRangeShape(requestBody);
         if (checkResult instanceof Error) {
             public_1.logger400(request.logger, requestBody, undefined, checkResult);
             return public_1.code400(response);
@@ -66,6 +83,7 @@ exports.addRoute = ({ LogMiddleware, SessionMiddleware, verifyMiddleware }, glob
         }
         collectionWrite_1.writeOfOpen(collection, startTime, endTime).then((updateResult) => {
             if (updateResult.result.ok) {
+                public_1.code200(response);
             }
             else {
                 public_1.logger500(request.logger, requestBody, code_1.SystemErrorCode['错误:数据库回调异常'], updateResult);
@@ -74,6 +92,30 @@ exports.addRoute = ({ LogMiddleware, SessionMiddleware, verifyMiddleware }, glob
         })
             .catch((error) => {
             public_1.logger500(request.logger, requestBody, undefined, error);
+            public_1.code500(response);
+        });
+    });
+    router.post('/open/force', SessionMiddleware, verify, LogMiddleware, public_1.JSONParser, (request, response, next) => {
+        const requestBody = request.body, checkResult = postForceShape(requestBody);
+        if (checkResult instanceof Error) {
+            public_1.logger400(request.logger, requestBody, undefined, checkResult);
+            return public_1.code400(response);
+        }
+        collection.updateOne({}, {
+            $set: {
+                'client.force': requestBody.force
+            }
+        }).then((updateResult) => {
+            if (updateResult.result.ok) {
+                public_1.code200(response);
+            }
+            else {
+                public_1.logger500(request.logger, requestBody, code_1.SystemErrorCode['错误:数据库回调异常']);
+                public_1.code500(response);
+            }
+        })
+            .catch((error) => {
+            public_1.logger500(request.logger, requestBody, code_1.SystemErrorCode['错误:数据库写入失败'], error);
             public_1.code500(response);
         });
     });

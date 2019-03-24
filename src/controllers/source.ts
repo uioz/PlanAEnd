@@ -1,13 +1,14 @@
 import { LevelCode, ResponseErrorCode, responseMessage, SystemErrorCode } from "../code";
 import { Middleware, ErrorMiddleware, restrictResponse } from "../types";
 import * as multer from "multer";
-import { checkSourceData, ParseOptions, getDefaultSheets, WriteOptions } from "planaend-source";
+import { checkSourceData, ParseOptions, getDefaultSheets, WriteOptions,transformLevelToArray,getLevelIndexs } from "planaend-source";
 import { Logger } from "log4js";
 import { read as XlsxRead, utils as XlsxUtils, write as XlsxWrite } from "xlsx";
 import { writeOfSource } from "../model/collectionWrite";
 import { globalDataInstance } from "../globalData";
 import { collectionReadAllIfHave } from "../model/collectionRead";
 import { InsertWriteOpResult } from "mongodb";
+import { code500,logger500, responseAndTypeAuth } from "./public";
 
 
 /**
@@ -142,20 +143,30 @@ export const MiddlewaresOfPost: Array<Middleware | ErrorMiddleware> = [Multer.si
 
     if (workSheet && checkSourceData(workSheet)) {
 
-        writeOfSource(globalDataInstance.getMongoDatabase().collection(DatabasePrefixName+year), XlsxUtils.sheet_to_json(workSheet)).then((results: Array<InsertWriteOpResult>) => {
+        const jsonizeSourceData = transformLevelToArray(XlsxUtils.sheet_to_json(workSheet), getLevelIndexs(workSheet));
+
+        writeOfSource(globalDataInstance.getMongoDatabase().collection(DatabasePrefixName + year), jsonizeSourceData).then((results: Array<InsertWriteOpResult>) => {
 
             for (const insertResult of results) {
-                if (insertResult.result.ok !== 1) {
+                if (insertResult.result.ok === 1) {
+
+                    responseAndTypeAuth(response,{
+                        stateCode:200,
+                        message:responseMessage['数据上传成功']
+                    });
+
                     request.logger.error(`${SystemErrorCode['错误:数据库写入失败']} DIR:${__dirname} CollectionName:${DatabasePrefixName + year} userID:${request.session.userId}`);
+                }else{
+                    logger500(request.logger,workSheet,SystemErrorCode['错误:数据库回调异常']);
+                    code500(response,responseMessage['错误:表单上传错误']);
                 }
             }
 
-        }).catch(next);
+        }).catch((error)=>{
+            logger500(request.logger,workSheet,SystemErrorCode['错误:数据库写入失败'],error);
+            code500(response,responseMessage['错误:服务器错误']);
+        });
 
-        return response.json({
-            message: responseMessage['数据上传成功'],
-            stateCode: 200
-        } as restrictResponse)
     }
 
     // TODO 记录用户行为

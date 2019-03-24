@@ -122,7 +122,7 @@ exports.getSuperUserAccount = getSuperUserAccount;
  * collection.findOne的过滤id版本
  * @param collection 集合对象
  */
-async function readOne(collection) {
-    return await collection.findOne({}, utils_1.hidden_id);
+async function readOne(collection, filter = {}) {
+    return await collection.findOne(filter, utils_1.hidden_id);
 }
 exports.readOne = readOne;

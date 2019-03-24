@@ -13,6 +13,7 @@
     },
     "client": {
         "open": true,
+        "force" :false,
         "openTimeRange": {
             "startTime": "1998-07-30T00:00:00.000Z",
             "endTime": "2020-12-24T00:00:00.000Z"

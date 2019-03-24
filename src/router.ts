@@ -10,6 +10,7 @@ import * as model from "./controllers/model";
 import * as user from "./controllers/user";
 import * as assets from "./controllers/assets";
 import * as open from "./controllers/open";
+import * as login from "./controllers/login";
 
 export default (app: Express, globalData: GlobalData) => {
 
@@ -37,6 +38,7 @@ export default (app: Express, globalData: GlobalData) => {
     app.delete(user.URL,SessionMiddleware,LogMiddleware,verifyMiddleware(user.LevelIndexOfDelete),user.MiddlewareOfDelete);
     app.use(assets.addRoute(middlewareTree,globalDataInstance));
     app.use(open.addRoute(middlewareTree, globalDataInstance));
+    app.use(login.addRoute(middlewareTree,globalDataInstance));
     
 
 }

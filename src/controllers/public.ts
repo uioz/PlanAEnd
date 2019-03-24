@@ -3,7 +3,7 @@ import { restrictResponse } from "../types";
 import * as bodyParser from "body-parser";
 import { responseMessage, SystemErrorCode } from "../code";
 import { Logger } from "log4js";
-import { Collection } from "mongodb";
+import { Collection, FilterQuery } from "mongodb";
 import { readOne } from "../model/collectionRead";
 
 /**
@@ -124,6 +124,23 @@ export async function autoReadOne(collection: Collection, response: Response, lo
     logger500(logger, data, undefined, error);
   }
 
+}
+
+/**
+ * public.autoReadOne的允许find版本
+ * @param collection 集合对象
+ * @param filter 查询器
+ * @param response 响应对象
+ * @param logger log4js实例
+ * @param data 用户上传的数据
+ */
+export async function autoFindOne(collection: Collection, filter: FilterQuery<never>, response: Response, logger: Logger, data?: any) {
+  try {
+    return await readOne(collection, filter)
+  } catch (error) {
+    code500(response);
+    logger500(logger, data, undefined, error);
+  }
 }
 
 /**

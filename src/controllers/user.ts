@@ -143,6 +143,8 @@ export const MiddlewareOfPost: Array<Middleware> = [JSONParser, (request, respon
   updateOfUser(collection, dataOfRequest).then(writeReaponse => {
 
     if (writeReaponse.result.ok) {
+      // TODO 修改account
+      
       // TODO 如果更新的账户是自己则清空session后跳转到登陆页
       if(dataOfRequest.account === request.session.account){
         request.session.destroy(error=>{

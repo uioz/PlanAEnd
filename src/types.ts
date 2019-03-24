@@ -31,7 +31,7 @@ export interface ParsedSession{
     /**
      * 账户名称
      */
-    account: string;
+    userid: string;
     /**
      * 权限数值
      */
@@ -93,8 +93,18 @@ export type stateCode = 200 | 400 | 403 | 404 | 500;
  * 服务器基本响应类型
  */
 export interface restrictResponse {
+    /**
+     * 服务器含有文字内容的响应
+     */
     message: any;
+    /**
+     * 服务器响应状态码
+     */
     stateCode: stateCode;
+    /**
+     * 服务器响应的数据
+     */
+    data?:any;
 }
 
 /**

@@ -7,6 +7,7 @@ const xlsx_1 = require("xlsx");
 const collectionWrite_1 = require("../model/collectionWrite");
 const globalData_1 = require("../globalData");
 const collectionRead_1 = require("../model/collectionRead");
+const public_1 = require("./public");
 /**
  * 说明:
  * /source/:year
@@ -106,16 +107,24 @@ exports.MiddlewaresOfPost = [Multer.single('data'), (error, request, response, n
             type: 'buffer'
         })), workSheet = planaend_source_1.getDefaultSheets(workBook);
         if (workSheet && planaend_source_1.checkSourceData(workSheet)) {
-            collectionWrite_1.writeOfSource(globalData_1.globalDataInstance.getMongoDatabase().collection(exports.DatabasePrefixName + year), xlsx_1.utils.sheet_to_json(workSheet)).then((results) => {
+            const jsonizeSourceData = planaend_source_1.transformLevelToArray(xlsx_1.utils.sheet_to_json(workSheet), planaend_source_1.getLevelIndexs(workSheet));
+            collectionWrite_1.writeOfSource(globalData_1.globalDataInstance.getMongoDatabase().collection(exports.DatabasePrefixName + year), jsonizeSourceData).then((results) => {
                 for (const insertResult of results) {
-                    if (insertResult.result.ok !== 1) {
+                    if (insertResult.result.ok === 1) {
+                        public_1.responseAndTypeAuth(response, {
+                            stateCode: 200,
+                            message: code_1.responseMessage['数据上传成功']
+                        });
                         request.logger.error(`${code_1.SystemErrorCode['错误:数据库写入失败']} DIR:${__dirname} CollectionName:${exports.DatabasePrefixName + year} userID:${request.session.userId}`);
                     }
+                    else {
+                        public_1.logger500(request.logger, workSheet, code_1.SystemErrorCode['错误:数据库回调异常']);
+                        public_1.code500(response, code_1.responseMessage['错误:表单上传错误']);
+                    }
                 }
-            }).catch(next);
-            return response.json({
-                message: code_1.responseMessage['数据上传成功'],
-                stateCode: 200
+            }).catch((error) => {
+                public_1.logger500(request.logger, workSheet, code_1.SystemErrorCode['错误:数据库写入失败'], error);
+                public_1.code500(response, code_1.responseMessage['错误:服务器错误']);
             });
         }
         // TODO 记录用户行为
