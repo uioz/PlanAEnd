@@ -6,7 +6,8 @@ import * as apiCheck from "api-check";
 const AuthShape = apiCheck.shape({
     account:apiCheck.string,
     level:apiCheck.number,
-    levelCodeRaw:apiCheck.number
+    levelCodeRaw:apiCheck.number,
+    userid:apiCheck.object
 } as ParsedSession);
 
 /**
@@ -31,7 +32,7 @@ export const verifyMiddleware = (level: string) => (request: RequestHaveSession,
 
     const AuthResult = AuthShape(session);
 
-    if (AuthResult){
+    if (AuthResult instanceof Error){
         return next(AuthResult);
     }
 

@@ -1,13 +1,13 @@
 import { AddRoute, RequestHaveLogger } from "../types";
 import { Router } from "express";
 import * as apiCheck from "api-check";
-import { logger400, code400, logger500, responseAndTypeAuth, code500,JSONParser } from "./public";
+import { logger400, code400, logger500, responseAndTypeAuth, code500, JSONParser } from "./public";
 import { responseMessage, SystemErrorCode } from "../code";
 
 
 /**
  * 简介:
- * 该模块服务器管理员登陆
+ * 该模块用于服务器管理员登陆
  * 顶级URL为/login
  * 本模块导出的是模块化路由
  * 该路由下有多个路径
@@ -44,11 +44,13 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMid
 
   const
     router = Router(),
-    collection = globalDataInstance.getMongoDatabase().collection(CollectionName);
+    Database = globalDataInstance.getMongoDatabase(),
+    collection = Database.collection(CollectionName);
 
   router.post('/login', JSONParser, SessionMiddleware, LogMiddleware,
     (request: RequestHaveLogger, response, next) => {
-      // 拦截已经登陆的用户
+      // 登录不能使用认证中间件,所以这里
+      // 需要手动拦截已经登陆的用户
       if (
         request.session.userid ||
         request.session.level ||
@@ -81,15 +83,27 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMid
         }
 
         const session = request.session;
-        session.userid = result.account;
+        session.account = result.account;
+        session.userid = result._id;
         session.level = result.level;
         session.levelCodeRaw = result.levelcoderaw;
+
+        // 写入最后登录时间
+        collection.updateOne({
+          account: result.account
+        }, {
+            $set: {
+              lastlogintime: new Date
+            }
+          }).catch((error) => {
+            logger500(request.logger, requestBody, SystemErrorCode['错误:数据库回调异常'], error);
+          });
 
         return responseAndTypeAuth(response, {
           stateCode: 200,
           message: responseMessage['登陆成功'],
           data: {
-            nickName: result.nickName,
+            nickName: result.nickname,
             level: result.level,
             levelCodeRaw: result.levelcoderaw,
             controlArea: result.controlarea

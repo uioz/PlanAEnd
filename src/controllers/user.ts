@@ -3,7 +3,7 @@ import { Middleware, ErrorMiddleware, restrictResponse } from "../types";
 import { readUserList } from "../model/collectionRead";
 import { globalDataInstance } from "../globalData";
 import * as apiCheck from "api-check";
-import { responseAndTypeAuth, JSONParser, code500, code400, code200, logger400, logger500 } from "./public";
+import { responseAndTypeAuth, JSONParser, code500, code400, code200, logger400, logger500, autoReadOne, autoFindOne } from "./public";
 import { updateOfUser } from "../model/collectionUpdate";
 import { deleteOfUser } from "../model/collectionDelete";
 
@@ -143,9 +143,8 @@ export const MiddlewareOfPost: Array<Middleware> = [JSONParser, (request, respon
   updateOfUser(collection, dataOfRequest).then(writeReaponse => {
 
     if (writeReaponse.result.ok) {
-      // TODO 修改account
       
-      // TODO 如果更新的账户是自己则清空session后跳转到登陆页
+      // 如果更新的账户是自己则清空session后跳转到登陆页
       if(dataOfRequest.account === request.session.account){
         request.session.destroy(error=>{
           if(error){
@@ -196,7 +195,7 @@ export const MiddlewareOfDelete: Array<Middleware> = [(request, response, next) 
   deleteOfUser(Collection,DataOfRequest.account).then(result=>{
     if(result.deletedCount){
       
-      // TODO 如果删除的是自己则清空session并且重定向到登陆页
+      // 如果删除的是自己则清空session并且重定向到登陆页
       if(DataOfRequest.account === request.session.account){
         request.session.destroy(error => {
           if (error) {

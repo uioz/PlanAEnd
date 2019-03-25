@@ -88,8 +88,7 @@ exports.MiddlewareOfPost = [public_1.JSONParser, (request, response, next) => {
         const collection = globalData_1.globalDataInstance.getMongoDatabase().collection(exports.CollectionName);
         collectionUpdate_1.updateOfUser(collection, dataOfRequest).then(writeReaponse => {
             if (writeReaponse.result.ok) {
-                // TODO 修改account
-                // TODO 如果更新的账户是自己则清空session后跳转到登陆页
+                // 如果更新的账户是自己则清空session后跳转到登陆页
                 if (dataOfRequest.account === request.session.account) {
                     request.session.destroy(error => {
                         if (error) {
@@ -129,7 +128,7 @@ exports.MiddlewareOfDelete = [(request, response, next) => {
         }
         collectionDelete_1.deleteOfUser(Collection, DataOfRequest.account).then(result => {
             if (result.deletedCount) {
-                // TODO 如果删除的是自己则清空session并且重定向到登陆页
+                // 如果删除的是自己则清空session并且重定向到登陆页
                 if (DataOfRequest.account === request.session.account) {
                     request.session.destroy(error => {
                         if (error) {

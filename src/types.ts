@@ -40,6 +40,10 @@ export interface ParsedSession{
      * 权限字符型
      */
     levelCodeRaw: string;
+    /**
+     * 账户名称
+     */
+    account:string;
 }
 
 /**

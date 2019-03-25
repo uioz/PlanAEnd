@@ -11,6 +11,7 @@ import * as user from "./controllers/user";
 import * as assets from "./controllers/assets";
 import * as open from "./controllers/open";
 import * as login from "./controllers/login";
+import * as logout from "./controllers/logout";
 
 export default (app: Express, globalData: GlobalData) => {
 
@@ -39,6 +40,7 @@ export default (app: Express, globalData: GlobalData) => {
     app.use(assets.addRoute(middlewareTree,globalDataInstance));
     app.use(open.addRoute(middlewareTree, globalDataInstance));
     app.use(login.addRoute(middlewareTree,globalDataInstance));
+    app.use(logout.addRoute(middlewareTree,globalDataInstance));
     
 
 }
