@@ -126,3 +126,15 @@ async function readOne(collection, filter = {}) {
     return await collection.findOne(filter, utils_1.hidden_id);
 }
 exports.readOne = readOne;
+async function readOfApiState(collectionOfConfig, CollectionOfUsers, account) {
+    const config = await readOne(collectionOfConfig);
+    const user = await CollectionOfUsers.findOne({ account }, utils_1.hidden_id);
+    return {
+        nickname: user['nickname'],
+        lastLoginTime: user['lastlogintime'],
+        startTime: config['open']['openTimeRange']['startTime'],
+        endTime: config['open']['openTimeRange']['endTime'],
+        runingTime: Date.now() - config['server']['runingTime'],
+    };
+}
+exports.readOfApiState = readOfApiState;

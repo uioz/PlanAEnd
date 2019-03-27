@@ -63,8 +63,16 @@ export async function fillDatabase(collectionNames: Array<string>, database: Db,
   const pros = [];
 
   for (const name of collectionNames) {
+
+    const JSONCONFIG = require(resolve(filePath, `${ConfigNameMap[name]}.json`));
+
+    // 添加服务器启动时间戳
+    if(name === ConfigNameMap['systemConfig']){
+      JSONCONFIG['server']['lastTime'] = Date.now();
+    }
+
     pros.push(createCollection(name, database, {
-      insertData: require(resolve(filePath, `${ConfigNameMap[name]}.json`)),
+      insertData: JSONCONFIG,
       force: true
     }));
 
@@ -76,6 +84,7 @@ export async function fillDatabase(collectionNames: Array<string>, database: Db,
 
       const collection: Collection = await item;
 
+      // 给用户账户添加唯一主键
       if (collection.collectionName === ConfigNameMap['userConfig']) {
         await collection.createIndex('account', {
           unique: true

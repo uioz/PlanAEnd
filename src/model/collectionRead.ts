@@ -139,6 +139,47 @@ export async function getSuperUserAccount(collection: Collection) {
  * collection.findOne的过滤id版本
  * @param collection 集合对象
  */
-export async function readOne(collection: Collection,filter:FilterQuery<never> = {}) {
+export async function readOne(collection: Collection, filter: FilterQuery<never> = {}) {
     return await collection.findOne(filter, hidden_id);
+}
+
+/**
+ * 该接口描述了响应的结构
+ */
+interface ApiStateShape {
+    /**
+     * 管理员昵称
+     */
+    nickname: string;
+    /**
+     * 上次登录时间
+     */
+    lastLoginTime: string;
+    /**
+     * 客户端开放时间
+     */
+    startTime: string;
+    /**
+     * 客户端结束时间
+     */
+    endTime: string;
+    /**
+     * 服务器已经运行毫秒数
+     */
+    runingTime: number;
+}
+
+export async function readOfApiState(collectionOfConfig: Collection, CollectionOfUsers: Collection, account: string): Promise<ApiStateShape> {
+
+    const config = await readOne(collectionOfConfig);
+    const user = await CollectionOfUsers.findOne({ account }, hidden_id);
+
+    return {
+        nickname:user['nickname'],
+        lastLoginTime:user['lastlogintime'],
+        startTime:config['open']['openTimeRange']['startTime'],
+        endTime:config['open']['openTimeRange']['endTime'],
+        runingTime:Date.now() - config['server']['runingTime'],
+    }
+
 }
