@@ -126,15 +126,51 @@ async function readOne(collection, filter = {}) {
     return await collection.findOne(filter, utils_1.hidden_id);
 }
 exports.readOne = readOne;
+/**
+ * 用于api/state路由的数据获取
+ * @param collectionOfConfig 保存静态配置的集合对象
+ * @param CollectionOfUsers 保存用户的集合对象
+ * @param account 用户账户
+ */
 async function readOfApiState(collectionOfConfig, CollectionOfUsers, account) {
     const config = await readOne(collectionOfConfig);
     const user = await CollectionOfUsers.findOne({ account }, utils_1.hidden_id);
     return {
         nickname: user['nickname'],
         lastLoginTime: user['lastlogintime'],
-        startTime: config['open']['openTimeRange']['startTime'],
-        endTime: config['open']['openTimeRange']['endTime'],
-        runingTime: Date.now() - config['server']['runingTime'],
+        startTime: config['client']['openTimeRange']['startTime'],
+        endTime: config['client']['openTimeRange']['endTime'],
+        runingTime: Date.now() - config['server']['lastTime'],
     };
 }
 exports.readOfApiState = readOfApiState;
+/**
+ * 用于api/server/base的数据获取
+ * @param collection 集合对象
+ */
+async function readOfApiServerBase(collection) {
+    const assets = await readOne(collection);
+    return {
+        appname: assets['appname']['server'],
+        notice: assets['globalnotcie']['server'],
+        brand: assets['image']['brand'],
+        logo: assets['image']['logo'],
+        bg: assets['image']['clientBackGround']
+    };
+}
+exports.readOfApiServerBase = readOfApiServerBase;
+/**
+ * 用于api/client/base的数据获取
+ * @param collection 集合对象
+ */
+async function readOfApiClientBase(collection) {
+    const assets = await readOne(collection);
+    return {
+        appname: assets['appname']['client'],
+        notice: assets['globalnotcie']['client'],
+        brand: assets['image']['brand'],
+        logo: assets['image']['logo'],
+        bg: assets['image']['clientBackGround']
+    };
+}
+exports.readOfApiClientBase = readOfApiClientBase;

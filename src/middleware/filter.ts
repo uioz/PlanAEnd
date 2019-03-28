@@ -2,6 +2,7 @@ import { Response, NextFunction } from "express";
 import { ResponseErrorCode } from "../code";
 import { LeveCodeRawType, NODE_ENV,RequestHaveSession,ParsedSession } from "../types";
 import * as apiCheck from "api-check";
+import { globalDataInstance } from "../globalData";
 
 const AuthShape = apiCheck.shape({
     account:apiCheck.string,
@@ -27,6 +28,7 @@ export const verifyMiddleware = (level: string) => (request: RequestHaveSession,
 
     // TODO 添加测试分支
     if(process.env.NODE_ENV === NODE_ENV.dev){
+        request.session.account = globalDataInstance.getSuperUserAccount();
         return next();
     }
 

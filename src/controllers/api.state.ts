@@ -2,7 +2,7 @@ import { AddRoute, RequestHaveLogger } from "../types";
 import { Router } from "express";
 import { readOfApiState } from "../model/collectionRead";
 import { responseAndTypeAuth, code500, logger500 } from "./public";
-import { responseMessage, SystemErrorCode } from "../code";
+import { SystemErrorCode } from "../code";
 
 /**
  * 简介:
@@ -20,8 +20,6 @@ export const CollectionNames = ['configuration_static','model_users'];
  * GET对应的权限下标(不需要权限)
  */
 export const LevelIndexOfGet = '';
-
-
 
 export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMiddleware }, globalDataInstance)=>{
 

@@ -12,6 +12,9 @@ import * as assets from "./controllers/assets";
 import * as open from "./controllers/open";
 import * as login from "./controllers/login";
 import * as logout from "./controllers/logout";
+import * as apiState from "./controllers/api.state";
+import * as apiServerBase from "./controllers/api.server.base";
+import * as apiClientBase from "./controllers/api.client.base";
 
 export default (app: Express, globalData: GlobalData) => {
 
@@ -41,6 +44,8 @@ export default (app: Express, globalData: GlobalData) => {
     app.use(open.addRoute(middlewareTree, globalDataInstance));
     app.use(login.addRoute(middlewareTree,globalDataInstance));
     app.use(logout.addRoute(middlewareTree,globalDataInstance));
-    
+    app.use(apiState.addRoute(middlewareTree,globalDataInstance));
+    app.use(apiServerBase.addRoute(middlewareTree,globalDataInstance));
+    app.use(apiClientBase.addRoute(middlewareTree,globalDataInstance));
 
 }

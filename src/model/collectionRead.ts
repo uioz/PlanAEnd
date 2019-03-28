@@ -143,9 +143,7 @@ export async function readOne(collection: Collection, filter: FilterQuery<never>
     return await collection.findOne(filter, hidden_id);
 }
 
-/**
- * 该接口描述了响应的结构
- */
+
 interface ApiStateShape {
     /**
      * 管理员昵称
@@ -169,6 +167,12 @@ interface ApiStateShape {
     runingTime: number;
 }
 
+/**
+ * 用于api/state路由的数据获取
+ * @param collectionOfConfig 保存静态配置的集合对象
+ * @param CollectionOfUsers 保存用户的集合对象
+ * @param account 用户账户
+ */
 export async function readOfApiState(collectionOfConfig: Collection, CollectionOfUsers: Collection, account: string): Promise<ApiStateShape> {
 
     const config = await readOne(collectionOfConfig);
@@ -177,9 +181,63 @@ export async function readOfApiState(collectionOfConfig: Collection, CollectionO
     return {
         nickname:user['nickname'],
         lastLoginTime:user['lastlogintime'],
-        startTime:config['open']['openTimeRange']['startTime'],
-        endTime:config['open']['openTimeRange']['endTime'],
-        runingTime:Date.now() - config['server']['runingTime'],
+        startTime:config['client']['openTimeRange']['startTime'],
+        endTime:config['client']['openTimeRange']['endTime'],
+        runingTime:Date.now() - config['server']['lastTime'],
     }
 
+}
+
+
+interface ApiServerBaseShape {
+    /**
+     * 全局通知
+     */
+    notice:string;
+    /**
+     * 应用程序名称
+     */
+    appname:string;
+    /**
+     * 名牌标志
+     */
+    brand:string;
+    /**
+     * logo
+     */
+    logo:string;
+    /**
+     * 背景图片
+     */
+    bg:string;
+}
+
+/**
+ * 用于api/server/base的数据获取
+ * @param collection 集合对象
+ */
+export async function readOfApiServerBase(collection:Collection):Promise<ApiServerBaseShape> {
+    const assets = await readOne(collection);
+    return {
+        appname: assets['appname']['server'],
+        notice: assets['globalnotcie']['server'],
+        brand:assets['image']['brand'],
+        logo:assets['image']['logo'],
+        bg: assets['image']['clientBackGround']
+    }
+}
+
+/**
+ * 用于api/client/base的数据获取
+ * @param collection 集合对象
+ */
+export async function readOfApiClientBase(collection: Collection): Promise<ApiServerBaseShape> {
+    const assets = await readOne(collection);
+    return {
+        appname: assets['appname']['client'],
+        notice: assets['globalnotcie']['client'],
+        brand: assets['image']['brand'],
+        logo: assets['image']['logo'],
+        bg: assets['image']['clientBackGround']
+    }
 }

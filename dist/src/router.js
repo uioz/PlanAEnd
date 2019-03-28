@@ -13,6 +13,9 @@ const assets = require("./controllers/assets");
 const open = require("./controllers/open");
 const login = require("./controllers/login");
 const logout = require("./controllers/logout");
+const apiState = require("./controllers/api.state");
+const apiServerBase = require("./controllers/api.server.base");
+const apiClientBase = require("./controllers/api.client.base");
 exports.default = (app, globalData) => {
     const CookieSecurt = 'hello world', Database = globalData.getMongoDatabase(), SessionMiddleware = initMiddleware_1.GetSessionMiddleware(Database, CookieSecurt), logger = globalData.getLogger(), isDEV = process.env.NODE_ENV = types_1.NODE_ENV.dev;
     const middlewareTree = {
@@ -32,4 +35,7 @@ exports.default = (app, globalData) => {
     app.use(open.addRoute(middlewareTree, globalData_1.globalDataInstance));
     app.use(login.addRoute(middlewareTree, globalData_1.globalDataInstance));
     app.use(logout.addRoute(middlewareTree, globalData_1.globalDataInstance));
+    app.use(apiState.addRoute(middlewareTree, globalData_1.globalDataInstance));
+    app.use(apiServerBase.addRoute(middlewareTree, globalData_1.globalDataInstance));
+    app.use(apiClientBase.addRoute(middlewareTree, globalData_1.globalDataInstance));
 };
