@@ -30,7 +30,7 @@ exports.addRoute = ({ LogMiddleware, SessionMiddleware, verifyMiddleware }, glob
         if (request.session.userid ||
             request.session.level ||
             request.session.levelCodeRaw) {
-            return public_1.code500(response);
+            return public_1.code500(response, code_1.responseMessage['错误:重复登录']);
         }
         next();
     }, (request, response) => {

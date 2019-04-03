@@ -55,7 +55,7 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMid
         request.session.userid ||
         request.session.level ||
         request.session.levelCodeRaw) {
-        return code500(response);
+        return code500(response,responseMessage['错误:重复登录']);
       }
       next();
     },

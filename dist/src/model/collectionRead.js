@@ -155,7 +155,8 @@ async function readOfApiServerBase(collection) {
         notice: assets['globalnotcie']['server'],
         brand: assets['image']['brand'],
         logo: assets['image']['logo'],
-        bg: assets['image']['clientBackGround']
+        bg: assets['image']['clientbackground'],
+        publicPath: assets['publicpath']
     };
 }
 exports.readOfApiServerBase = readOfApiServerBase;
@@ -170,7 +171,8 @@ async function readOfApiClientBase(collection) {
         notice: assets['globalnotcie']['client'],
         brand: assets['image']['brand'],
         logo: assets['image']['logo'],
-        bg: assets['image']['clientBackGround']
+        bg: assets['image']['clientbackground'],
+        publicPath: assets['publicpath']
     };
 }
 exports.readOfApiClientBase = readOfApiClientBase;

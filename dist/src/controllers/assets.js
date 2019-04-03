@@ -28,7 +28,7 @@ exports.LevelIndexOfPost = code_1.LevelCode.StaticMessageIndex.toString();
 exports.addRoute = ({ LogMiddleware, SessionMiddleware, verifyMiddleware }, globalDataInstance) => {
     const router = express_1.Router(), collection = globalDataInstance.getMongoDatabase().collection(exports.CollectionName), verify = verifyMiddleware(exports.LevelIndexOfPost);
     // 获取专业字段内容
-    router.get('/assets/speciality', LogMiddleware, SessionMiddleware, (request, response, next) => {
+    router.get('/assets/speciality', LogMiddleware, verify, SessionMiddleware, (request, response, next) => {
         public_1.autoReadOne(collection, response, request.logger).then(({ speciality }) => {
             public_1.responseAndTypeAuth(response, {
                 stateCode: 200,
@@ -37,7 +37,7 @@ exports.addRoute = ({ LogMiddleware, SessionMiddleware, verifyMiddleware }, glob
         });
     });
     // 获取其他资源
-    router.get('/assets/:type/:key', LogMiddleware, SessionMiddleware, (request, response, next) => {
+    router.get('/assets/:type/:key', LogMiddleware, verify, SessionMiddleware, (request, response, next) => {
         const { type, key } = request.params;
         public_1.autoReadOne(collection, response, request.logger).then(result => {
             try {

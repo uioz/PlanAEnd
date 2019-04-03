@@ -37,7 +37,7 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMid
     verify = verifyMiddleware(LevelIndexOfPost);
 
   // 获取专业字段内容
-  router.get('/assets/speciality', LogMiddleware, SessionMiddleware, (request: RequestHaveLogger, response, next) => {
+  router.get('/assets/speciality', LogMiddleware,verify, SessionMiddleware, (request: RequestHaveLogger, response, next) => {
 
     autoReadOne(collection, response, request.logger).then(({ speciality }) => {
       responseAndTypeAuth(response, {
@@ -49,7 +49,7 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMid
   });
 
   // 获取其他资源
-  router.get('/assets/:type/:key', LogMiddleware, SessionMiddleware, (request: RequestHaveLogger, response, next) => {
+  router.get('/assets/:type/:key', LogMiddleware,verify, SessionMiddleware, (request: RequestHaveLogger, response, next) => {
 
     const { type, key } = request.params;
 

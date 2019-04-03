@@ -1,8 +1,9 @@
 {
+  "publicpath":"/public",
   "image": {
     "brand": "",
     "logo": "",
-    "clientBackGround": "",
+    "clientbackground": "",
     "imagelist": []
   },
   "appname":{
