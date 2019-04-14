@@ -18,7 +18,7 @@ const assets_1 = require("./assets");
  */
 exports.URL = '/model';
 /**
- * GET 对应的权限下标(不需要权限)
+ * GET 对应的权限下标(不需要权限,但是需要登录)
  */
 exports.LevelIndexOfGet = '';
 /**
@@ -37,6 +37,27 @@ exports.MiddlewaresOfGet = [
         // 此时通过的请求都是经过session验证的请求
         // 此时挂载了logger 和 express-session 中间件
         const collection = globalData_1.globalDataInstance.getMongoDatabase().collection(exports.CollectionName);
+        public_1.autoReadOne(collection, response, request.logger).then((findResult) => {
+            if (findResult) {
+                // 如果是超级管理员直接返回获取到的内容
+                if (request.session.level === 0) {
+                    return public_1.responseAndTypeAuth(response, {
+                        message: findResult,
+                        stateCode: 200
+                    });
+                }
+                else {
+                    const result = {};
+                    for (const key of request.session.controlArea) {
+                        result[key] = findResult[key];
+                    }
+                    return public_1.responseAndTypeAuth(response, {
+                        message: result,
+                        stateCode: 200
+                    });
+                }
+            }
+        });
         collectionRead_1.collectionReadAllIfHave(collection)
             .then(result => {
             if (result) {
@@ -45,17 +66,11 @@ exports.MiddlewaresOfGet = [
                     stateCode: 200
                 });
             }
-            return public_1.responseAndTypeAuth(response, {
-                message: code_1.responseMessage['错误:暂无数据'],
-                stateCode: 400
-            });
+            return public_1.code400(response, code_1.responseMessage['错误:暂无数据']);
         })
             .catch(error => {
             request.logger.error(error.stack);
-            return public_1.responseAndTypeAuth(response, {
-                stateCode: 500,
-                message: code_1.responseMessage['错误:服务器错误']
-            });
+            return public_1.code500(response);
         });
     }
 ];

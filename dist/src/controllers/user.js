@@ -88,14 +88,11 @@ exports.MiddlewareOfPost = [public_1.JSONParser, (request, response, next) => {
         const collection = globalData_1.globalDataInstance.getMongoDatabase().collection(exports.CollectionName);
         collectionUpdate_1.updateOfUser(collection, dataOfRequest).then(writeReaponse => {
             if (writeReaponse.result.ok) {
+                const sessionCollection = globalData_1.globalDataInstance.getMongoDatabase().collection('sessionCollectionName');
+                collectionDelete_1.deleteSessionByAccount(sessionCollection, dataOfRequest.account).catch(error => public_1.logger500(request.logger, dataOfRequest, undefined, error));
                 // 如果更新的账户是自己则清空session后跳转到登陆页
                 if (dataOfRequest.account === request.session.account) {
-                    request.session.destroy(error => {
-                        if (error) {
-                            public_1.logger500(request.logger, dataOfRequest, undefined, error);
-                        }
-                        return response.redirect('/login');
-                    });
+                    return response.redirect('/login');
                 }
                 else {
                     return public_1.code200(response);
@@ -115,27 +112,24 @@ exports.MiddlewareOfPost = [public_1.JSONParser, (request, response, next) => {
  * Delete 对应的中间件
  */
 exports.MiddlewareOfDelete = [(request, response, next) => {
-        const SuperUserAccount = globalData_1.globalDataInstance.getSuperUserAccount(), DataOfRequest = request.query, result = deleteShape(DataOfRequest), Collection = globalData_1.globalDataInstance.getMongoDatabase().collection(exports.CollectionName);
+        const SuperUserAccount = globalData_1.globalDataInstance.getSuperUserAccount(), dataOfRequest = request.query, result = deleteShape(dataOfRequest), Collection = globalData_1.globalDataInstance.getMongoDatabase().collection(exports.CollectionName);
         // 是否格式错误
         if (result) {
-            public_1.logger400(request.logger, DataOfRequest, undefined, result);
+            public_1.logger400(request.logger, dataOfRequest, undefined, result);
             return public_1.code400(response);
         }
         // 不可以删除超级管理员
-        if (DataOfRequest.account === SuperUserAccount) {
-            public_1.logger400(request.logger, DataOfRequest, code_1.SystemErrorCode['错误:尝试修改超级管理员']);
+        if (dataOfRequest.account === SuperUserAccount) {
+            public_1.logger400(request.logger, dataOfRequest, code_1.SystemErrorCode['错误:尝试修改超级管理员']);
             return public_1.code400(response);
         }
-        collectionDelete_1.deleteOfUser(Collection, DataOfRequest.account).then(result => {
+        collectionDelete_1.deleteOfUser(Collection, dataOfRequest.account).then(result => {
             if (result.deletedCount) {
+                const sessionCollection = globalData_1.globalDataInstance.getMongoDatabase().collection('sessionCollectionName');
+                collectionDelete_1.deleteSessionByAccount(sessionCollection, dataOfRequest.account).catch(error => public_1.logger500(request.logger, dataOfRequest, undefined, error));
                 // 如果删除的是自己则清空session并且重定向到登陆页
-                if (DataOfRequest.account === request.session.account) {
-                    request.session.destroy(error => {
-                        if (error) {
-                            public_1.logger500(request.logger, DataOfRequest, undefined, error);
-                        }
-                        return response.redirect('/login');
-                    });
+                if (dataOfRequest.account === request.session.account) {
+                    return response.redirect('/login');
                 }
                 else {
                     return public_1.code200(response);
@@ -149,7 +143,7 @@ exports.MiddlewareOfDelete = [(request, response, next) => {
             }
         })
             .catch(error => {
-            public_1.logger500(request.logger, DataOfRequest, undefined, error);
+            public_1.logger500(request.logger, dataOfRequest, undefined, error);
             return public_1.code500(response);
         });
     }];

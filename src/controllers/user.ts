@@ -5,7 +5,8 @@ import { globalDataInstance } from "../globalData";
 import * as apiCheck from "api-check";
 import { responseAndTypeAuth, JSONParser, code500, code400, code200, logger400, logger500, autoReadOne, autoFindOne } from "./public";
 import { updateOfUser } from "../model/collectionUpdate";
-import { deleteOfUser } from "../model/collectionDelete";
+import { deleteOfUser,deleteSessionByAccount } from "../model/collectionDelete";
+import { sessionCollectionName } from "../init/initMiddleware";
 
 
 /**
@@ -143,15 +144,14 @@ export const MiddlewareOfPost: Array<Middleware> = [JSONParser, (request, respon
   updateOfUser(collection, dataOfRequest).then(writeReaponse => {
 
     if (writeReaponse.result.ok) {
-      
+
+      const sessionCollection = globalDataInstance.getMongoDatabase().collection('sessionCollectionName');
+
+      deleteSessionByAccount(sessionCollection, dataOfRequest.account).catch(error => logger500(request.logger, dataOfRequest, undefined, error));
+
       // 如果更新的账户是自己则清空session后跳转到登陆页
       if(dataOfRequest.account === request.session.account){
-        request.session.destroy(error=>{
-          if(error){
-            logger500(request.logger,dataOfRequest,undefined,error);
-          }
-          return response.redirect('/login');
-        });
+        return response.redirect('/login');
       }else{
         return code200(response);
       }
@@ -176,33 +176,32 @@ export const MiddlewareOfDelete: Array<Middleware> = [(request, response, next) 
 
   const
     SuperUserAccount = globalDataInstance.getSuperUserAccount(),
-    DataOfRequest: DeleteShape = request.query,
-    result = deleteShape(DataOfRequest),
+    dataOfRequest: DeleteShape = request.query,
+    result = deleteShape(dataOfRequest),
     Collection = globalDataInstance.getMongoDatabase().collection(CollectionName);
 
   // 是否格式错误
   if (result) {
-    logger400(request.logger, DataOfRequest, undefined, result);
+    logger400(request.logger, dataOfRequest, undefined, result);
     return code400(response);
   }
 
   // 不可以删除超级管理员
-  if (DataOfRequest.account === SuperUserAccount) {
-    logger400(request.logger, DataOfRequest, SystemErrorCode['错误:尝试修改超级管理员']);
+  if (dataOfRequest.account === SuperUserAccount) {
+    logger400(request.logger, dataOfRequest, SystemErrorCode['错误:尝试修改超级管理员']);
     return code400(response);
   }
 
-  deleteOfUser(Collection,DataOfRequest.account).then(result=>{
+  deleteOfUser(Collection,dataOfRequest.account).then(result=>{
     if(result.deletedCount){
+
+      const sessionCollection = globalDataInstance.getMongoDatabase().collection('sessionCollectionName');
+
+      deleteSessionByAccount(sessionCollection, dataOfRequest.account).catch(error => logger500(request.logger, dataOfRequest, undefined, error));
       
       // 如果删除的是自己则清空session并且重定向到登陆页
-      if(DataOfRequest.account === request.session.account){
-        request.session.destroy(error => {
-          if (error) {
-            logger500(request.logger, DataOfRequest, undefined, error);
-          }
-          return response.redirect('/login');
-        });
+      if(dataOfRequest.account === request.session.account){
+        return response.redirect('/login');
       }else{
         return code200(response);
       }
@@ -215,7 +214,7 @@ export const MiddlewareOfDelete: Array<Middleware> = [(request, response, next) 
     }
   })
   .catch(error=>{
-    logger500(request.logger,DataOfRequest,undefined,error);
+    logger500(request.logger,dataOfRequest,undefined,error);
     return code500(response);
   });
 

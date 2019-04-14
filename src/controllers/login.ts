@@ -49,6 +49,8 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMid
 
   router.post('/login', JSONParser, SessionMiddleware, LogMiddleware,
     (request: RequestHaveLogger, response, next) => {
+      // TODO 会存在有session后获取用户信息的情况,所以去掉这个拦截
+
       // 登录不能使用认证中间件,所以这里
       // 需要手动拦截已经登陆的用户
       if (
@@ -87,6 +89,7 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMid
         session.userid = result._id;
         session.level = result.level;
         session.levelCodeRaw = result.levelcoderaw;
+        session.controlArea = result.controlarea;
 
         // 写入最后登录时间
         collection.updateOne({

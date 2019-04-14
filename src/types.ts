@@ -44,6 +44,10 @@ export interface ParsedSession{
      * 账户名称
      */
     account:string;
+    /**
+     * 管理范围
+     */
+    controlArea:Array<string>;
 }
 
 /**

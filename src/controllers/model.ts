@@ -4,7 +4,7 @@ import { globalDataInstance } from "../globalData";
 import { collectionReadAllIfHave } from "../model/collectionRead";
 import { updateOfNoticeModelInModel } from "../model/collectionUpdate";
 import { writeOfModel } from "../model/collectionWrite";
-import { responseAndTypeAuth, code400, code500, logger500, code200 } from "./public";
+import { responseAndTypeAuth, code400, code500, logger500, code200, autoReadOne } from "./public";
 import { JSONParser } from "./public";
 import { CollectionName as AssetsCollectionName } from "./assets";
 
@@ -19,7 +19,7 @@ import { CollectionName as AssetsCollectionName } from "./assets";
  */
 export const URL = '/model';
 /**
- * GET 对应的权限下标(不需要权限)
+ * GET 对应的权限下标(不需要权限,但是需要登录)
  */
 export const LevelIndexOfGet = '';
 
@@ -43,6 +43,31 @@ export const MiddlewaresOfGet: Array<Middleware> = [
 
     const collection = globalDataInstance.getMongoDatabase().collection(CollectionName);
 
+    autoReadOne(collection, response, request.logger).then((findResult)=>{
+
+      if(findResult){
+
+        // 如果是超级管理员直接返回获取到的内容
+        if(request.session.level === 0){
+          return responseAndTypeAuth(response, {
+            message: findResult,
+            stateCode: 200
+          });
+        }else{
+          const result = {};
+          for (const key of request.session.controlArea) {
+            result[key] = findResult[key];
+          }
+          return responseAndTypeAuth(response,{
+            message:result,
+            stateCode:200
+          });
+        }
+
+      }
+
+    });
+
     collectionReadAllIfHave(collection)
       .then(result => {
 
@@ -55,20 +80,13 @@ export const MiddlewaresOfGet: Array<Middleware> = [
 
         }
 
-        return responseAndTypeAuth(response, {
-          message: responseMessage['错误:暂无数据'],
-          stateCode: 400
-        });
-
+        return code400(response,responseMessage['错误:暂无数据']);
       })
       .catch(error => {
 
         (request as any).logger.error(error.stack);
 
-        return responseAndTypeAuth(response, {
-          stateCode: 500,
-          message: responseMessage['错误:服务器错误']
-        });
+        return code500(response);
       });
 
   }

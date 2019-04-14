@@ -12,6 +12,11 @@ import { Db } from "mongodb";
 const MongoStoreFactory = ConnectMongo(ExpressSession);
 
 /**
+ * 保存session的集合名称
+ */
+export const sessionCollectionName = 'sessions';
+
+/**
  * ExpressSession的默认配置
  */
 const ExpressSessionConfig = {
@@ -51,6 +56,7 @@ const MongoStoreConfig = {
 export const GetMongoStore = (db: Db, options?: MongoStoreOptions) => {
     return new MongoStoreFactory({
         db: (db as any),
+        stringify: false, // it provide session stored in collection which can change by mongo-driver otherwise is hard to changed
         ...MongoStoreConfig,
         ...options
     });

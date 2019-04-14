@@ -1,5 +1,6 @@
 import { Log4js, Logger } from "log4js";
 import { MongoClient, Db, Collection } from "mongodb";
+import * as ConnectMongo from "connect-mongo";
 
 /**
  * log4js可选的categories类型,对应config/logconfig.json中的配置
@@ -41,9 +42,6 @@ export class GlobalData {
         return this;
     }
 
-    getLog4js() {
-        return this.log4js;
-    }
 
     /**
      * 设置全局默认的logger名字

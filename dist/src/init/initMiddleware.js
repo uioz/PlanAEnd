@@ -4,6 +4,10 @@ const ConnectMongo = require("connect-mongo");
 const ExpressSession = require("express-session");
 const MongoStoreFactory = ConnectMongo(ExpressSession);
 /**
+ * 保存session的集合名称
+ */
+exports.sessionCollectionName = 'sessions';
+/**
  * ExpressSession的默认配置
  */
 const ExpressSessionConfig = {
@@ -33,7 +37,7 @@ const MongoStoreConfig = {
  * @param options 选项
  */
 exports.GetMongoStore = (db, options) => {
-    return new MongoStoreFactory(Object.assign({ db: db }, MongoStoreConfig, options));
+    return new MongoStoreFactory(Object.assign({ db: db, stringify: false }, MongoStoreConfig, options));
 };
 /**
  * 获取session中间件

@@ -25,6 +25,7 @@ const postLoginShape = apiCheck.shape({
 exports.addRoute = ({ LogMiddleware, SessionMiddleware, verifyMiddleware }, globalDataInstance) => {
     const router = express_1.Router(), Database = globalDataInstance.getMongoDatabase(), collection = Database.collection(exports.CollectionName);
     router.post('/login', public_1.JSONParser, SessionMiddleware, LogMiddleware, (request, response, next) => {
+        // TODO 会存在有session后获取用户信息的情况,所以去掉这个拦截
         // 登录不能使用认证中间件,所以这里
         // 需要手动拦截已经登陆的用户
         if (request.session.userid ||
@@ -53,6 +54,7 @@ exports.addRoute = ({ LogMiddleware, SessionMiddleware, verifyMiddleware }, glob
             session.userid = result._id;
             session.level = result.level;
             session.levelCodeRaw = result.levelcoderaw;
+            session.controlArea = result.controlarea;
             // 写入最后登录时间
             collection.updateOne({
                 account: result.account

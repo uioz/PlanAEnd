@@ -9,9 +9,6 @@ class GlobalData {
         this.log4js = obj;
         return this;
     }
-    getLog4js() {
-        return this.log4js;
-    }
     /**
      * 设置全局默认的logger名字
      */

@@ -10,3 +10,14 @@ export async function deleteOfUser(collection:Collection,account:string) {
     account
   });
 }
+
+/**
+ * 用于删除session对应的账户记录
+ * @param collection 集合对象
+ * @param account 账户名称
+ */
+export async function deleteSessionByAccount(collection:Collection,account:string) {
+  return collection.remove({
+    'session.account':account
+  });
+}
