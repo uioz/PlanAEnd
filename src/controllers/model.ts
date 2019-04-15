@@ -66,28 +66,12 @@ export const MiddlewaresOfGet: Array<Middleware> = [
 
       }
 
-    });
+    }).catch(error => {
 
-    collectionReadAllIfHave(collection)
-      .then(result => {
+      (request as any).logger.error(error.stack);
 
-        if (result) {
-
-          return responseAndTypeAuth(response, {
-            message: result,
-            stateCode: 200
-          });
-
-        }
-
-        return code400(response,responseMessage['错误:暂无数据']);
-      })
-      .catch(error => {
-
-        (request as any).logger.error(error.stack);
-
-        return code500(response);
-      });
+      return code500(response);
+    });      
 
   }
 ]

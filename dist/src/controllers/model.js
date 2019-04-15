@@ -2,7 +2,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const code_1 = require("../code");
 const globalData_1 = require("../globalData");
-const collectionRead_1 = require("../model/collectionRead");
 const collectionUpdate_1 = require("../model/collectionUpdate");
 const collectionWrite_1 = require("../model/collectionWrite");
 const public_1 = require("./public");
@@ -57,18 +56,7 @@ exports.MiddlewaresOfGet = [
                     });
                 }
             }
-        });
-        collectionRead_1.collectionReadAllIfHave(collection)
-            .then(result => {
-            if (result) {
-                return public_1.responseAndTypeAuth(response, {
-                    message: result,
-                    stateCode: 200
-                });
-            }
-            return public_1.code400(response, code_1.responseMessage['错误:暂无数据']);
-        })
-            .catch(error => {
+        }).catch(error => {
             request.logger.error(error.stack);
             return public_1.code500(response);
         });
