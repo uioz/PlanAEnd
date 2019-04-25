@@ -8,7 +8,7 @@ const AuthShape = apiCheck.shape({
     account:apiCheck.string,
     level:apiCheck.number,
     levelCodeRaw:apiCheck.number,
-    userid:apiCheck.object
+    userId:apiCheck.object
 } as ParsedSession);
 
 /**

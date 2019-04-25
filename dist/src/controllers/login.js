@@ -28,7 +28,7 @@ exports.addRoute = ({ LogMiddleware, SessionMiddleware, verifyMiddleware }, glob
         // TODO 会存在有session后获取用户信息的情况,所以去掉这个拦截
         // 登录不能使用认证中间件,所以这里
         // 需要手动拦截已经登陆的用户
-        if (request.session.userid ||
+        if (request.session.userId ||
             request.session.level ||
             request.session.levelCodeRaw) {
             return public_1.code500(response, code_1.responseMessage['错误:重复登录']);
@@ -51,7 +51,7 @@ exports.addRoute = ({ LogMiddleware, SessionMiddleware, verifyMiddleware }, glob
             }
             const session = request.session;
             session.account = result.account;
-            session.userid = result._id;
+            session.userId = result._id;
             session.level = result.level;
             session.levelCodeRaw = result.levelcoderaw;
             session.controlArea = result.controlarea;

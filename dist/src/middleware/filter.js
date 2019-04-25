@@ -8,7 +8,7 @@ const AuthShape = apiCheck.shape({
     account: apiCheck.string,
     level: apiCheck.number,
     levelCodeRaw: apiCheck.number,
-    userid: apiCheck.object
+    userId: apiCheck.object
 });
 /**
  * 认证中间件,主要有两个功能

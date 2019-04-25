@@ -54,7 +54,7 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMid
       // 登录不能使用认证中间件,所以这里
       // 需要手动拦截已经登陆的用户
       if (
-        request.session.userid ||
+        request.session.userId ||
         request.session.level ||
         request.session.levelCodeRaw) {
         return code500(response,responseMessage['错误:重复登录']);
@@ -86,7 +86,7 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMid
 
         const session = request.session;
         session.account = result.account;
-        session.userid = result._id;
+        session.userId = result._id;
         session.level = result.level;
         session.levelCodeRaw = result.levelcoderaw;
         session.controlArea = result.controlarea;

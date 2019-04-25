@@ -29,9 +29,9 @@ export interface Session {
 
 export interface ParsedSession{
     /**
-     * 账户名称
+     * 用户唯一id
      */
-    userid: string;
+    userId: string;
     /**
      * 权限数值
      */

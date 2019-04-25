@@ -1,7 +1,6 @@
 import { AddRoute, RequestHaveSession } from "../types";
 import { Router } from "express";
 import { code500, responseAndTypeAuth } from "./public";
-import { responseMessage } from "../code";
 
 
 /**

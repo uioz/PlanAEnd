@@ -6,7 +6,6 @@ const planaend_source_1 = require("planaend-source");
 const xlsx_1 = require("xlsx");
 const collectionWrite_1 = require("../model/collectionWrite");
 const globalData_1 = require("../globalData");
-const collectionRead_1 = require("../model/collectionRead");
 const public_1 = require("./public");
 /**
  * 说明:
@@ -50,35 +49,37 @@ exports.DatabasePrefixName = 'source_';
 /**
  * GET下的处理中间件
  */
-exports.MiddlewaresOfGet = [(request, response, next) => {
+exports.MiddlewaresOfGet = [(request, response) => {
         // 此时通过的请求都是经过session验证的请求
         // 此时挂载了logger 和 express-session 中间件
-        // TODO 记录用户
-        const year = request.params.year, databaseFullName = exports.DatabasePrefixName + year, collection = globalData_1.globalDataInstance.getMongoDatabase().collection(databaseFullName);
-        collectionRead_1.collectionReadAllIfHave(collection).then((result) => {
-            if (result) {
-                const workBook = xlsx_1.utils.book_new();
-                xlsx_1.utils.book_append_sheet(workBook, xlsx_1.utils.json_to_sheet(result), 'Sheet1');
-                const file = xlsx_1.write(workBook, Object.assign(planaend_source_1.WriteOptions, { type: 'buffer' }));
-                response.set('Content-Type', 'application/octet-stream');
-                response.set('Content-Disposition', 'attachment;filename=' + encodeURI(`${year}.xlsx`));
-                response.send(file);
-                response.end();
+        const year = request.params.year, databaseFullName = exports.DatabasePrefixName + year, collection = globalData_1.globalDataInstance.getMongoDatabase().collection(databaseFullName), isAdmin = request.session.level === 0, controlAll = request.session.controlArea.length === 0;
+        const query = isAdmin && controlAll ? {} : { speciality: { $in: request.session.controlArea } }, resultArray = [];
+        collection.find(query, {
+            projection: {
+                _id: 0
+            }
+        }).forEach(itemObj => resultArray.push(itemObj), () => {
+            if (resultArray.length) {
+                try {
+                    const workBook = xlsx_1.utils.book_new();
+                    xlsx_1.utils.book_append_sheet(workBook, xlsx_1.utils.json_to_sheet(resultArray), 'Sheet1');
+                    const file = xlsx_1.write(workBook, Object.assign(planaend_source_1.WriteOptions, { type: 'buffer' }));
+                    response.set('Content-Type', 'application/octet-stream');
+                    response.set('Content-Disposition', 'attachment;filename=' + encodeURI(`${year}.xlsx`));
+                    response.send(file).end();
+                }
+                catch (error) {
+                    public_1.code500(response);
+                    public_1.logger500(request.logger, request.params, code_1.SystemErrorCode['错误:数据转换失败'], error);
+                    return public_1.code500(response);
+                }
             }
             else {
-                return response.json({
+                return public_1.responseAndTypeAuth(response, {
                     message: code_1.responseMessage['错误:找不到文件'],
                     stateCode: 404
                 });
             }
-        }).catch((error) => {
-            // 此处记录错误而不是使用next,错误中间件会执行destroy,
-            // 但是我们的json数据有可能还没有发送完成
-            request.logger.error(error.stack);
-            return response.json({
-                stateCode: 500,
-                message: code_1.responseMessage['错误:服务器错误']
-            });
         });
     }];
 /**
@@ -93,26 +94,27 @@ exports.MiddlewaresOfPost = [Multer.single('data'), (error, request, response, n
         // 将所有的上传失败视为一种错误
         return next(code_1.ResponseErrorCode['错误:表单上传错误']);
     }, (request, response, next) => {
-        // 过滤地址上的杂物.
-        const year = String(parseInt(request.params.year));
-        // 判断是否处于正常区间
-        if (!exports.checkNumber(parseInt(year))) {
-            return response.json({
-                message: code_1.responseMessage['错误:地址参数错误'],
-                stateCode: 400
-            });
+        const year = parseInt(request.params.year);
+        if (!year || year !== year) {
+            return public_1.code400(response);
         }
-        // TODO 记录用户
         const workBook = xlsx_1.read(request.file.buffer, Object.assign(planaend_source_1.ParseOptions, {
             type: 'buffer'
-        })), workSheet = planaend_source_1.getDefaultSheets(workBook);
+        })), workSheet = planaend_source_1.getDefaultSheets(workBook), isAdmin = request.session.level === 0, controlAll = request.session.controlArea.length === 0;
         if (workSheet && planaend_source_1.checkSourceData(workSheet)) {
-            const jsonizeSourceData = planaend_source_1.transformLevelToArray(xlsx_1.utils.sheet_to_json(workSheet), planaend_source_1.getLevelIndexs(workSheet));
+            // 数组化工作表
+            const arrayizeWorkSheet = planaend_source_1.transformLevelToArray(xlsx_1.utils.sheet_to_json(workSheet), planaend_source_1.getLevelIndexs(workSheet));
+            // 利用控制区域字段来过滤上传的内容
+            const jsonizeSourceData = isAdmin || controlAll ? arrayizeWorkSheet : planaend_source_1.correctSpeciality(arrayizeWorkSheet, request.session.controlArea);
             collectionWrite_1.writeOfSource(globalData_1.globalDataInstance.getMongoDatabase().collection(exports.DatabasePrefixName + year), jsonizeSourceData).then((results) => {
                 for (const insertResult of results) {
                     if (insertResult.result.ok === 1) {
                         public_1.responseAndTypeAuth(response, {
                             stateCode: 200,
+                            data: {
+                                total: arrayizeWorkSheet.length,
+                                real: jsonizeSourceData.length
+                            },
                             message: code_1.responseMessage['数据上传成功']
                         });
                         request.logger.error(`${code_1.SystemErrorCode['错误:数据库写入失败']} DIR:${__dirname} CollectionName:${exports.DatabasePrefixName + year} userID:${request.session.userId}`);
@@ -127,9 +129,5 @@ exports.MiddlewaresOfPost = [Multer.single('data'), (error, request, response, n
                 public_1.code500(response, code_1.responseMessage['错误:服务器错误']);
             });
         }
-        // TODO 记录用户行为
-        return response.json({
-            message: code_1.responseMessage['错误:数据校验错误'],
-            stateCode: 400
-        });
+        return public_1.code400(response);
     }];
