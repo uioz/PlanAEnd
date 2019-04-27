@@ -31,7 +31,7 @@ async function createCollection(name, db, option = {}, createOptinos = {}) {
     }
     const collection = await db.createCollection(name, complete);
     if (option.insertData) {
-        await collection.insertOne(option.insertData);
+        await collection.insert(option.insertData);
     }
     return collection;
 }

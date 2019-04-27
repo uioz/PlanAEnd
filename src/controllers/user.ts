@@ -5,8 +5,7 @@ import { globalDataInstance } from "../globalData";
 import * as apiCheck from "api-check";
 import { responseAndTypeAuth, JSONParser, code500, code400, code200, logger400, logger500, autoReadOne, autoFindOne } from "./public";
 import { updateOfUser } from "../model/collectionUpdate";
-import { deleteOfUser,deleteSessionByAccount } from "../model/collectionDelete";
-import { sessionCollectionName } from "../init/initMiddleware";
+import { deleteOfUser, deleteSessionByAccount } from "../model/collectionDelete";
 
 
 /**
@@ -67,6 +66,11 @@ export interface PostShape {
    * 所管理的顶级字段
    */
   controlarea?: Array<string>;
+  /**
+   * level对应的字符串状态码
+   * **注意**:这个属性不允许用户传入,而是计算出的结果
+   */
+  levelcoderaw?: string;
 }
 
 
@@ -139,6 +143,11 @@ export const MiddlewareOfPost: Array<Middleware> = [JSONParser, (request, respon
     }
   }
 
+  // 如果添加了level字段则向数据库中提供一个对应的levelcoderaw
+  if (dataOfRequest.level) {
+    dataOfRequest.levelcoderaw = (dataOfRequest.level).toString(2);
+  }
+
   const collection = globalDataInstance.getMongoDatabase().collection(CollectionName);
 
   updateOfUser(collection, dataOfRequest).then(writeReaponse => {
@@ -150,9 +159,9 @@ export const MiddlewareOfPost: Array<Middleware> = [JSONParser, (request, respon
       deleteSessionByAccount(sessionCollection, dataOfRequest.account).catch(error => logger500(request.logger, dataOfRequest, undefined, error));
 
       // 如果更新的账户是自己则清空session后跳转到登陆页
-      if(dataOfRequest.account === request.session.account){
+      if (dataOfRequest.account === request.session.account) {
         return response.redirect('/login');
-      }else{
+      } else {
         return code200(response);
       }
 
@@ -192,30 +201,30 @@ export const MiddlewareOfDelete: Array<Middleware> = [(request, response, next) 
     return code400(response);
   }
 
-  deleteOfUser(Collection,dataOfRequest.account).then(result=>{
-    if(result.deletedCount){
+  deleteOfUser(Collection, dataOfRequest.account).then(result => {
+    if (result.deletedCount) {
 
       const sessionCollection = globalDataInstance.getMongoDatabase().collection('sessionCollectionName');
 
       deleteSessionByAccount(sessionCollection, dataOfRequest.account).catch(error => logger500(request.logger, dataOfRequest, undefined, error));
-      
+
       // 如果删除的是自己则清空session并且重定向到登陆页
-      if(dataOfRequest.account === request.session.account){
+      if (dataOfRequest.account === request.session.account) {
         return response.redirect('/login');
-      }else{
+      } else {
         return code200(response);
       }
 
-    }else{
-      return responseAndTypeAuth(response,{
-        stateCode:400,
+    } else {
+      return responseAndTypeAuth(response, {
+        stateCode: 400,
         message: responseMessage['错误:指定的数据不存在']
       });
     }
   })
-  .catch(error=>{
-    logger500(request.logger,dataOfRequest,undefined,error);
-    return code500(response);
-  });
+    .catch(error => {
+      logger500(request.logger, dataOfRequest, undefined, error);
+      return code500(response);
+    });
 
 }];

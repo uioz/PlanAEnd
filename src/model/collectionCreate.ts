@@ -64,7 +64,7 @@ export async function createCollection(name: string, db: Db,option:options = {},
     const collection = await db.createCollection(name,complete);
 
     if(option.insertData){
-        await collection.insertOne(option.insertData);
+        await collection.insert(option.insertData);
     }
 
     return collection;
