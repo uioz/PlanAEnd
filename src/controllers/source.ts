@@ -1,5 +1,5 @@
 import { LevelCode, ResponseErrorCode, responseMessage, SystemErrorCode } from "../code";
-import { Middleware, ErrorMiddleware, restrictResponse, RequestHaveLogger } from "../types";
+import { Middleware, ErrorMiddleware, restrictResponse, RequestHaveLogger, ParsedSession } from "../types";
 import * as multer from "multer";
 import { checkSourceData, ParseOptions, getDefaultSheets, WriteOptions, transformLevelToArray, getLevelIndexs,correctSpeciality } from "planaend-source";
 import { Logger } from "log4js";
@@ -57,6 +57,18 @@ export const LevelIndexOfPost = LevelCode.UploadIndex.toString();
 export const DatabasePrefixName = 'source_';
 
 /**
+ * 利用session中提供的数据获取对应的query对象
+ * @param session session对象
+ */
+export const correctQuery = (session: ParsedSession)=>{
+    const 
+    isAdmin = session.level === 0,
+    controlAll = session.controlArea.length === 0,
+    query = isAdmin || controlAll ? {} : { speciality: { $in: session.controlArea } };
+    return query;
+}
+
+/**
  * GET下的处理中间件
  */
 export const MiddlewaresOfGet: Array<Middleware> = [(request, response) => {
@@ -68,14 +80,8 @@ export const MiddlewaresOfGet: Array<Middleware> = [(request, response) => {
         year: string = request.params.year,
         databaseFullName = DatabasePrefixName + year,
         collection = globalDataInstance.getMongoDatabase().collection(databaseFullName),
-        isAdmin = request.session.level === 0,
-        controlAll = request.session.controlArea.length === 0;
-
-    const 
-        query = isAdmin && controlAll ? {} : { speciality: { $in: request.session.controlArea } },
+        query = correctQuery(request.session),
         resultArray = [];
-
-    
 
     collection.find(query,{
         projection:{

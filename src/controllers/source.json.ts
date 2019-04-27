@@ -1,10 +1,9 @@
-import { read as XlsxRead, utils as XlsxUtils, write as XlsxWrite } from "xlsx";
-import { LevelCode, responseMessage } from "../code";
-import { Middleware, restrictResponse } from "../types";
+import { LevelCode } from "../code";
+import { Middleware } from "../types";
 import { globalDataInstance } from "../globalData";
-import { checkNumber, DatabasePrefixName } from "./source";
-import { readOfRangeEasy } from "../model/collectionRead";
-import { Logger } from "log4js";
+import { checkNumber, DatabasePrefixName,correctQuery } from "./source";
+import { code400 } from "./public";
+import * as JSONStream from "JSONStream";
 
 
 /**
@@ -31,28 +30,31 @@ export const MiddlewaresOfGet: Array<Middleware> = [(request, response) => {
     const
         year = parseInt(request.params.year),
         start = parseInt(request.params.start),
-        end = parseInt(request.params.end);
+        end = parseInt(request.params.end),
+        isAdmin = request.session.level === 0,
+        isSpecialityAll = request.session.controlArea.length === 0,
+        {speciality} = request.query;
 
+    // 不是管理员且
+    // 有专业范围限制
+    // 且传入的字段和用户区域不匹配则返回错误
+    if (!isAdmin && !isSpecialityAll && speciality && request.session.controlArea.indexOf(speciality) === -1){
+        return code400(response);
+    }
+
+    // 时间全部正确
     if (checkNumber(year) && checkNumber(start) && checkNumber(end)) {
 
-        readOfRangeEasy(globalDataInstance.getMongoDatabase().collection(DatabasePrefixName+year), start, end, { number: 1 }).then(result => response.json({
-            stateCode: 200,
-            message: result,
-        } as restrictResponse)).catch(error => {
+        // 如果提供了查询字段,则使用用户传入的内容进行查询
+        // 如果没有则使用所含有的查询范围进行查询
+        const query = speciality ? { speciality } : correctQuery(request.session); 
 
-            ((request as any).logger as Logger).error((error as any).stack);
-
-            return response.json({
-                stateCode: 500,
-                message: responseMessage['错误:服务器错误'],
-            } as restrictResponse);
-        });
+        globalDataInstance.getMongoDatabase().collection(DatabasePrefixName + year).find(query).sort({
+            number:1,
+        }).skip(start).limit(end).stream().pipe(JSONStream.stringify()).pipe(response.type('json'));
 
     } else {
-        return response.json({
-            message: responseMessage['错误:地址参数错误'],
-            stateCode: 400
-        } as restrictResponse);
+        return code400(response);
     }
 
 }];

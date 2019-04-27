@@ -47,13 +47,20 @@ exports.LevelIndexOfPost = code_1.LevelCode.UploadIndex.toString();
  */
 exports.DatabasePrefixName = 'source_';
 /**
+ * 利用session中提供的数据获取对应的query对象
+ * @param session session对象
+ */
+exports.correctQuery = (session) => {
+    const isAdmin = session.level === 0, controlAll = session.controlArea.length === 0, query = isAdmin || controlAll ? {} : { speciality: { $in: session.controlArea } };
+    return query;
+};
+/**
  * GET下的处理中间件
  */
 exports.MiddlewaresOfGet = [(request, response) => {
         // 此时通过的请求都是经过session验证的请求
         // 此时挂载了logger 和 express-session 中间件
-        const year = request.params.year, databaseFullName = exports.DatabasePrefixName + year, collection = globalData_1.globalDataInstance.getMongoDatabase().collection(databaseFullName), isAdmin = request.session.level === 0, controlAll = request.session.controlArea.length === 0;
-        const query = isAdmin && controlAll ? {} : { speciality: { $in: request.session.controlArea } }, resultArray = [];
+        const year = request.params.year, databaseFullName = exports.DatabasePrefixName + year, collection = globalData_1.globalDataInstance.getMongoDatabase().collection(databaseFullName), query = exports.correctQuery(request.session), resultArray = [];
         collection.find(query, {
             projection: {
                 _id: 0
