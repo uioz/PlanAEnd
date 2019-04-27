@@ -29,6 +29,9 @@ export const verifyMiddleware = (level: string) => (request: RequestHaveSession,
     // TODO 添加测试分支
     if(process.env.NODE_ENV === NODE_ENV.dev){
         request.session.account = globalDataInstance.getSuperUserAccount();
+        request.session.controlArea = [];
+        request.session.level = 0;
+        request.session.levelCodeRaw = "0000000";
         return next();
     }
 

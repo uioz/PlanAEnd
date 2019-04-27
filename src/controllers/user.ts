@@ -145,7 +145,7 @@ export const MiddlewareOfPost: Array<Middleware> = [JSONParser, (request, respon
 
   // 如果添加了level字段则向数据库中提供一个对应的levelcoderaw
   if (dataOfRequest.level) {
-    dataOfRequest.levelcoderaw = (dataOfRequest.level).toString(2);
+    dataOfRequest.levelcoderaw = "0"+(dataOfRequest.level).toString(2);
   }
 
   const collection = globalDataInstance.getMongoDatabase().collection(CollectionName);
