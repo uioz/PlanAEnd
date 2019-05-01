@@ -33,9 +33,20 @@ exports.MiddlewaresOfGet = [(request, response) => {
             // 如果提供了查询字段,则使用用户传入的内容进行查询
             // 如果没有则使用所含有的查询范围进行查询
             const query = speciality ? { speciality } : source_1.correctQuery(request.session);
+            const open = `
+                {
+                    stateCode:200,
+                    message:'',
+                    data:[
+                `, spe = `
+                ,
+                `, close = `
+                    ]
+                }
+                `;
             globalData_1.globalDataInstance.getMongoDatabase().collection(source_1.DatabasePrefixName + year).find(query).sort({
                 number: 1,
-            }).skip(start).limit(end).stream().pipe(JSONStream.stringify()).pipe(response.type('json'));
+            }).skip(start).limit(end).stream().pipe(JSONStream.stringify(open, spe, close)).pipe(response.type('json'));
         }
         else {
             return public_1.code400(response);

@@ -1,7 +1,7 @@
-import { LevelCode } from "../code";
+import { LevelCode, responseMessage } from "../code";
 import { Middleware } from "../types";
 import { globalDataInstance } from "../globalData";
-import { checkNumber, DatabasePrefixName,correctQuery } from "./source";
+import { checkNumber, DatabasePrefixName, correctQuery } from "./source";
 import { code400 } from "./public";
 import * as JSONStream from "JSONStream";
 
@@ -33,12 +33,12 @@ export const MiddlewaresOfGet: Array<Middleware> = [(request, response) => {
         end = parseInt(request.params.end),
         isAdmin = request.session.level === 0,
         isSpecialityAll = request.session.controlArea.length === 0,
-        {speciality} = request.query;
+        { speciality } = request.query;
 
     // 不是管理员且
     // 有专业范围限制
     // 且传入的字段和用户区域不匹配则返回错误
-    if (!isAdmin && !isSpecialityAll && speciality && request.session.controlArea.indexOf(speciality) === -1){
+    if (!isAdmin && !isSpecialityAll && speciality && request.session.controlArea.indexOf(speciality) === -1) {
         return code400(response);
     }
 
@@ -47,11 +47,29 @@ export const MiddlewaresOfGet: Array<Middleware> = [(request, response) => {
 
         // 如果提供了查询字段,则使用用户传入的内容进行查询
         // 如果没有则使用所含有的查询范围进行查询
-        const query = speciality ? { speciality } : correctQuery(request.session); 
+        const query = speciality ? { speciality } : correctQuery(request.session);
+
+        const
+            open =
+                `
+                {
+                    stateCode:200,
+                    message:'',
+                    data:[
+                `,
+            spe =
+                `
+                ,
+                `,
+            close =
+                `
+                    ]
+                }
+                `;
 
         globalDataInstance.getMongoDatabase().collection(DatabasePrefixName + year).find(query).sort({
-            number:1,
-        }).skip(start).limit(end).stream().pipe(JSONStream.stringify()).pipe(response.type('json'));
+            number: 1,
+        }).skip(start).limit(end).stream().pipe(JSONStream.stringify(open,spe,close)).pipe(response.type('json'));
 
     } else {
         return code400(response);
