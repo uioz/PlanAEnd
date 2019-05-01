@@ -41,8 +41,9 @@ export const addRoute: AddRoute = ({ verifyMiddleware, SessionMiddleware }, glob
       if (resultSet.size) {
         return responseAndTypeAuth(response, {
           stateCode: 200,
-          message: Array.from(resultSet)
-        })
+          data: Array.from(resultSet),
+          message: ''
+        });
       }
 
     });

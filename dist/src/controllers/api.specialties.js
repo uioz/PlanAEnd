@@ -27,7 +27,8 @@ exports.addRoute = ({ verifyMiddleware, SessionMiddleware }, globalDataInstance)
             if (resultSet.size) {
                 return public_1.responseAndTypeAuth(response, {
                     stateCode: 200,
-                    message: Array.from(resultSet)
+                    data: Array.from(resultSet),
+                    message: ''
                 });
             }
         });
