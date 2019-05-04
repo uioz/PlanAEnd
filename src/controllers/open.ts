@@ -71,7 +71,8 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMid
     autoReadOne(collection, response, request.logger).then(({ client }) => {
       responseAndTypeAuth(response, {
         stateCode: 200,
-        message: {
+        message: '',
+        data:{
           ...client.openTimeRange
         }
       });
@@ -87,7 +88,8 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMid
     autoReadOne(collection, response, request.logger).then(({ client }) => {
       responseAndTypeAuth(response, {
         stateCode: 200,
-        message: client.force
+        message:'',
+        data:client.force
       });
     }).catch((error) => {
       logger500(request.logger, undefined, undefined, error);

@@ -39,7 +39,8 @@ exports.addRoute = ({ LogMiddleware, SessionMiddleware, verifyMiddleware }, glob
         public_1.autoReadOne(collection, response, request.logger).then(({ client }) => {
             public_1.responseAndTypeAuth(response, {
                 stateCode: 200,
-                message: Object.assign({}, client.openTimeRange)
+                message: '',
+                data: Object.assign({}, client.openTimeRange)
             });
         })
             .catch((error) => {
@@ -51,7 +52,8 @@ exports.addRoute = ({ LogMiddleware, SessionMiddleware, verifyMiddleware }, glob
         public_1.autoReadOne(collection, response, request.logger).then(({ client }) => {
             public_1.responseAndTypeAuth(response, {
                 stateCode: 200,
-                message: client.force
+                message: '',
+                data: client.force
             });
         }).catch((error) => {
             public_1.logger500(request.logger, undefined, undefined, error);
