@@ -1,9 +1,10 @@
 import {  Router } from "express";
-import { logger400, logger500, code400, code500, responseAndTypeAuth, autoReadOne, JSONParser, code200, deepUpdate } from "./public";
+import { logger400, logger500, code400, code500, responseAndTypeAuth, autoReadOne, code200, deepUpdate } from "./public";
 import { RequestHaveLogger, AddRoute } from "../types";
 import { SystemErrorCode, LevelCode } from "../code";
 import { updateOfNoticeModelInAssets } from "../model/collectionUpdate";
 import * as Model from "./model";
+import { JSONParser } from "../middleware/jsonparser";
 
 /**
  * 简介:

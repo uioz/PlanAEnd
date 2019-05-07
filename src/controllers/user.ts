@@ -3,9 +3,10 @@ import { Middleware, ErrorMiddleware, restrictResponse } from "../types";
 import { readUserList } from "../model/collectionRead";
 import { globalDataInstance } from "../globalData";
 import * as apiCheck from "api-check";
-import { responseAndTypeAuth, JSONParser, code500, code400, code200, logger400, logger500, autoReadOne, autoFindOne } from "./public";
+import { responseAndTypeAuth, code500, code400, code200, logger400, logger500, autoReadOne, autoFindOne } from "./public";
 import { updateOfUser } from "../model/collectionUpdate";
 import { deleteOfUser, deleteSessionByAccount } from "../model/collectionDelete";
+import { JSONParser } from "../middleware/jsonparser";
 
 
 /**

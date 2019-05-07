@@ -5,7 +5,7 @@ import { collectionReadAllIfHave } from "../model/collectionRead";
 import { updateOfNoticeModelInModel } from "../model/collectionUpdate";
 import { writeOfModel } from "../model/collectionWrite";
 import { responseAndTypeAuth, code400, code500, logger500, code200, autoReadOne } from "./public";
-import { JSONParser } from "./public";
+import { JSONParser } from "../middleware/jsonparser";
 import { CollectionName as AssetsCollectionName } from "./assets";
 
 /**

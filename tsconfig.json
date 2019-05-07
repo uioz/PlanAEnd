@@ -2,7 +2,7 @@
     "compilerOptions": {
         "declaration": false,
         "watch": true,
-        "sourceMap": false,
+        "sourceMap": true,
         "target": "es2017",
         "module": "commonjs",
         "outDir": "./dist",

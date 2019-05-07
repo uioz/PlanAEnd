@@ -1,9 +1,10 @@
 import { AddRoute, RequestHaveLogger } from "../types";
 import { LevelCode, SystemErrorCode, responseMessage } from "../code";
 import { Router } from "express";
-import { autoReadOne, responseAndTypeAuth, logger500, code500, JSONParser, code400, logger400, code200 } from "./public";
+import { autoReadOne, responseAndTypeAuth, logger500, code500, code400, logger400, code200 } from "./public";
 import * as apiCheck from "api-check";
 import { writeOfOpen } from "../model/collectionWrite";
+import { JSONParser } from "../middleware/jsonparser";
 
 /**
  * 简介:
