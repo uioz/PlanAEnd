@@ -1,7 +1,6 @@
 import { Response } from "express";
 import { restrictResponse } from "../types";
 import { responseMessage, SystemErrorCode } from "../code";
-import { JSONParser } from "../middleware/jsonparser";
 import { Logger } from "log4js";
 import { Collection, FilterQuery } from "mongodb";
 import { readOne } from "../model/collectionRead";

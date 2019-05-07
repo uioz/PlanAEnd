@@ -66,10 +66,10 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMid
 
       const
         requestBody: PostForceShape = request.body,
-        checkResult = postLoginShape(requestBody);
+        checkedBody = postLoginShape(requestBody);
 
-      if (checkResult instanceof Error) {
-        logger400(request.logger, requestBody, undefined, checkResult);
+      if (checkedBody instanceof Error) {
+        logger400(request.logger, requestBody, undefined, checkedBody);
         return code400(response);
       }
 
