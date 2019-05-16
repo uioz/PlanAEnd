@@ -1,4 +1,5 @@
-import { LevelCode, responseMessage } from "../code";
+import { responseMessage } from "../code";
+import { LevelCode } from "../code";
 import { Middleware } from "../types";
 import { globalDataInstance } from "../globalData";
 import { checkNumber, DatabasePrefixName, correctQuery } from "./source";
