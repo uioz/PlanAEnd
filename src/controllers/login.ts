@@ -4,6 +4,7 @@ import * as apiCheck from "api-check";
 import { logger400, code400, logger500, responseAndTypeAuth, code500 } from "./public";
 import { responseMessage, SystemErrorCode } from "../code";
 import { JSONParser } from "../middleware/jsonparser";
+import { setInfoToSession } from "../utils/sessionHelper";
 
 
 /**
@@ -85,12 +86,13 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMid
           return code400(response, responseMessage['错误:帐号或者密码错误']);
         }
 
-        const session = request.session;
-        session.account = result.account;
-        session.userId = result._id;
-        session.level = result.level;
-        session.levelCodeRaw = result.levelcoderaw;
-        session.controlArea = result.controlarea;
+        setInfoToSession(request,{
+          account:result.account,
+          userId:result._id,
+          level:result.level,
+          levelCodeRaw:result.levelcoderaw,
+          controlArea:result.controlarea
+        });
 
         // 写入最后登录时间
         collection.updateOne({

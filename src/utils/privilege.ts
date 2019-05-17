@@ -70,13 +70,65 @@ export class Privilege {
 
   }
 
-  // TODO 接收对象格式
-  static rawCodeIfy(codeNumber:number):string{
-    return codeNumber.toString(2);
+  /**
+   * 将传入的数据转为权限代码.  
+   * 可以传入纯数值的权限值也可以传入一个权限对象
+   * @param data 需要转换的数据
+   */
+  static rawCodeIfy(data:number|object):string{
+
+    if(typeof data === 'number'){
+
+      return data.toString(2);
+
+    }else{
+
+      const result = [];
+
+      for (const keyName of Privilege.powerList) {
+        result.push(+data[keyName])
+      }
+
+      return result.join('');
+
+    }
   }
 
+  /**
+   * 将传入的权限代码转为纯数值的权限值
+   * @param rawCode 权限代码
+   */
   static numberIfy(rawCode:string):number{
     return +Privilege.format(rawCode);
+  }
+
+  /**
+   * 判断给定的权限代码rawCode在levelPos指定的位置上,
+   * 是否有指定的权限, 所有的权限检测都通过后返回true,
+   * 反之返回false
+   * **注意**:管理员总是返回true
+   * **注意**:当传入6位长度的短权限的时候则会进行前补1
+   * @param levelPos 权限判断符号
+   * @param rawCode 被判断的权限代码
+   */
+  static auth(levelPos:string,rawCode:string):boolean{
+
+    if(rawCode.length === 6){
+      rawCode = '1'+rawCode;
+    }
+
+    // is admin
+    if (rawCode[0] === '0') {
+      return true;
+    }
+
+    for (const index of levelPos) {
+      if (rawCode[index] === '0') {
+        return false
+      }
+    }
+
+    return true;
   }
 
 }
