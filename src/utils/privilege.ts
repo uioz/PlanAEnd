@@ -18,8 +18,20 @@ export enum LevelCode {
   'downloadIndex' = 2,
   'editIndex' = 3,
   'uploadIndex' = 4,
-  'staticMessageIndex' = 5,
+  'staticIndex' = 5,
   'viewIndex' = 6,
+}
+
+/**
+ * 向字符串前补0,当字符串长度小于阈值的时候开始补足内容
+ * @param limit 阈值
+ * @param target 目标字符串
+ */
+const padLeft = (limit:number,target:string)=>{
+  for (let len = limit - target.length; len > 0; len--) {
+    target = '0' + target;
+  }
+  return target;
 }
 
 export class Privilege {
@@ -28,14 +40,14 @@ export class Privilege {
 
   /**
    * 将传入的字符串进行格式化为标准的权限位置
-   * 要求传入的字符串的长度等于6任何大于6的字符串会被裁剪
+   * 要求传入的字符串的长度等于>=7的部分会被裁剪
    * @param rawCode 权限代码
    */
   static format(rawCode:string){
-    if(rawCode.length >= 6){
-      return rawCode.split('').reverse().splice(1, 6).reverse().join('');
+    if(rawCode.length >= 7){
+      return rawCode.split('').reverse().splice(0, 7).reverse().join('');
     }
-    throw new Error('length of rawCode must greater than and equal 6.');
+    throw new Error('length of rawCode must greater than and equal 7.');
   }
 
   /**
@@ -50,7 +62,7 @@ export class Privilege {
 
     // 123456789
     // ------>
-    // 456789 只保留后6位
+    // 3456789 只保留后7位
     rawCode = Privilege.format(rawCode);
 
     const result = {
@@ -79,7 +91,11 @@ export class Privilege {
 
     if(typeof data === 'number'){
 
-      return data.toString(2);
+      let rawCode = data.toString(2);
+      if (rawCode.length < 7) {
+        rawCode = padLeft(7,rawCode);
+      }
+      return rawCode;
 
     }else{
 
@@ -113,8 +129,8 @@ export class Privilege {
    */
   static auth(levelPos:string,rawCode:string):boolean{
 
-    if(rawCode.length === 6){
-      rawCode = '1'+rawCode;
+    if(rawCode.length < 7){
+      rawCode = padLeft(7,rawCode);
     }
 
     // is admin
