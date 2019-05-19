@@ -75,7 +75,7 @@ export class Privilege {
     }
 
     for (const keyName of Privilege.powerList) {
-      result[keyName] = !!rawCode[LevelCode[keyName + 'Index']];
+      result[keyName] = !!+rawCode[LevelCode[keyName + 'Index']];
     }
     
     return result;
@@ -105,7 +105,7 @@ export class Privilege {
         result.push(+data[keyName])
       }
 
-      return result.join('');
+      return '1'+result.join('');
 
     }
   }
@@ -115,7 +115,7 @@ export class Privilege {
    * @param rawCode 权限代码
    */
   static numberIfy(rawCode:string):number{
-    return +Privilege.format(rawCode);
+    return parseInt(Privilege.format(rawCode),2);
   }
 
   /**
