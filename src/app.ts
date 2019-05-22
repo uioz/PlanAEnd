@@ -20,7 +20,7 @@ export default (Cwd: string, globalData: GlobalData) => {
         SystemConfig = globalData.getConfig('systemConfig'),
         {
             server: {
-                pubicFilePath: serverPublicPath,
+                publicFilePath: serverPublicPath,
                 port: serverPort,
             },
             system: {
