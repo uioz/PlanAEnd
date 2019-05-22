@@ -22,6 +22,7 @@ export default async function (Cwd: string) {
         MongoURl = SystemConfig.system.mongodbUrl,
         DatabaseName = SystemConfig.system.mongodbDataBase;
 
+    globalDataInstance.setCwd(Cwd);
     globalDataInstance.setConfig('logType', LogConfig);
     globalDataInstance.setConfig('systemConfig', SystemConfig);
     globalDataInstance.setLog4js(log4js.configure(LogConfig));

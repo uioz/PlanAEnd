@@ -37,11 +37,20 @@ export class GlobalData {
 
     private superAccount:string;
 
+    private CWD: string;
+
+    setCwd(path:string){
+        this.CWD = path;
+    }
+
+    getCwd(){
+        return this.CWD;
+    }
+
     setLog4js(obj: Log4js) {
         this.log4js = obj;
         return this;
     }
-
 
     /**
      * 设置全局默认的logger名字

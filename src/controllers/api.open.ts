@@ -1,12 +1,10 @@
-import { AddRoute, RequestHaveLogger, Middleware } from "../types";
-import { LevelCode } from "../code";
-import { Router } from "express";
-import { responseAndTypeAuth, logger500, code500, code400, logger400, code200 } from "./public";
 import * as apiCheck from "api-check";
-import { JSONParser } from "../middleware/jsonparser";
-import { Collection } from "mongoose";
 import * as DotProp from "dot-prop";
-
+import { Router } from "express";
+import { LevelCode } from "../code";
+import { JSONParser } from "../middleware/jsonparser";
+import { AddRoute, Middleware, RequestHaveLogger } from "../types";
+import { code200, code400, code500, collectionRead, collectionWrite, logger400, logger500, responseAndTypeAuth } from "./public";
 
 const
   LevelCodeForUrl = LevelCode.SuperUserIndex.toString(),
@@ -32,7 +30,7 @@ const Shape = apiCheck.shape({
   range: apiCheck.shape({
     startTime: apiCheck.number.optional,
     endTime: apiCheck.number.optional
-  }).strict
+  }).strict.optional
 }).strict;
 
 const checkDataMiddlewareForPost: Middleware = (request, response, next) => {
@@ -46,22 +44,6 @@ const checkDataMiddlewareForPost: Middleware = (request, response, next) => {
     next();
   }
 
-}
-
-async function collectionRead(collection: Collection) {
-  return await collection.findOne({}, {
-    projection: {
-      _id: 0
-    }
-  });
-}
-
-async function collectionWrite(collection: Collection, data: object) {
-  return await collection.updateOne({}, {
-    $set: {
-      ...data
-    }
-  });
 }
 
 export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMiddleware }, globalDataInstance) => {

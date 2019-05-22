@@ -8,6 +8,7 @@ import {
     NativeMongoPromiseOptions
 } from "connect-mongo";
 import { Db } from "mongodb";
+import * as Multer from "multer";
 
 const MongoStoreFactory = ConnectMongo(ExpressSession);
 
@@ -72,5 +73,27 @@ export const GetSessionMiddleware = (db: Db, secret: string, options?: MongoStor
     return GetExpressSession({
         store:GetMongoStore(db,options),
         secret
+    });
+}
+
+/**
+ * 获取一个
+ * @param path 路径
+ */
+export const GetFileStoreMiddleware = (path:string)=>{
+    return Multer({
+        storage:Multer.diskStorage({
+            destination(request,file,callback){
+                callback(null,path);
+            },
+            filename(request,file,callback){
+                callback(null, file.fieldname + '-' + Date.now())
+            }
+        }),
+        limits:{
+            fieldNameSize: 15, // 字段名称最大长度
+            files: 1, // 文件最大数量
+            fields:0, // 非文件field的最大数量 - 只接受文件
+        },
     });
 }

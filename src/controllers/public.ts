@@ -183,3 +183,19 @@ export const deepUpdate = (operation: string, OriginalData: any, value: any, ...
       throw new Error(`No such operation as ${operation}`);
   }
 }
+
+export async function collectionRead(collection: Collection) {
+  return await collection.findOne({}, {
+    projection: {
+      _id: 0
+    }
+  });
+}
+
+export async function collectionWrite(collection: Collection, data: object) {
+  return await collection.updateOne({}, {
+    $set: {
+      ...data
+    }
+  });
+}
