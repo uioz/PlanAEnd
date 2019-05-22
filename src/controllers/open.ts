@@ -1,10 +1,12 @@
-import { AddRoute, RequestHaveLogger } from "../types";
+import { AddRoute, RequestHaveLogger, Middleware } from "../types";
 import { LevelCode, SystemErrorCode, responseMessage } from "../code";
 import { Router } from "express";
 import { autoReadOne, responseAndTypeAuth, logger500, code500, code400, logger400, code200 } from "./public";
 import * as apiCheck from "api-check";
 import { writeOfOpen } from "../model/collectionWrite";
 import { JSONParser } from "../middleware/jsonparser";
+import { Collection } from "mongoose";
+import * as DotProp from "dot-prop";
 
 /**
  * 简介:
@@ -20,9 +22,14 @@ import { JSONParser } from "../middleware/jsonparser";
 export const CollectionName = 'configuration_static';
 
 /**
+ * GET 对应的权限下标
+ */
+export const LevelIndexOfGet = LevelCode.SuperUserIndex.toString();
+
+/**
  * POST对应的权限下标
  */
-export const LevelIndexOfPost = LevelCode.SuperUserIndex.toString();
+export const LevelIndexOfPost = LevelIndexOfGet;
 
 /**
  * 该接口描述了POST请求用户传递内容数据的类型
@@ -50,30 +57,111 @@ const postRangeShape = apiCheck.shape({
  * 该接口描述了POST请求用户传递内容数据的类型
  */
 interface PostForceShape {
-  force:boolean;
+  force: boolean;
 }
 
 /**
  * force请求格式验证模板
  */
 const postForceShape = apiCheck.shape({
-  force:apiCheck.bool
+  force: apiCheck.bool
 }).strict;
+
+interface Shape {
+  force?: boolean;
+  open?: boolean;
+  range?: boolean;
+}
+
+const Shape = apiCheck.shape({
+  force: apiCheck.bool.optional,
+  open: apiCheck.bool.optional,
+  range: apiCheck.bool.optional
+}).strict;
+
+async function collectionRead(collection: Collection) {
+  return await collection.findOne({}, {
+    projection: {
+      _id: 0
+    }
+  });
+}
+
+async function collectionWrite(collection: Collection, data: object) {
+  return await collection.updateOne({}, {
+    $set: {
+      ...data
+    }
+  });
+}
+
+
+const typeCheckMiddleware: Middleware = (request, response, next) => {
+
+  const result = Shape(request.params);
+
+  if (result instanceof Error) {
+    code400(response);
+    logger400(request.logger, request.params, undefined, result);
+  } else {
+    next();
+  }
+
+};
+
 
 export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMiddleware }, globalDataInstance) => {
 
   const
     router = Router(),
     collection = globalDataInstance.getMongoDatabase().collection(CollectionName),
-    verify = verifyMiddleware(LevelIndexOfPost);
+    verify = verifyMiddleware(LevelIndexOfPost),
+    willBeUseMiddleware = [SessionMiddleware, verify, LogMiddleware,typeCheckMiddleware];
 
-  router.get('/open/range', SessionMiddleware, LogMiddleware, (request: RequestHaveLogger, response, next) => {
+  router.get('/open',willBeUseMiddleware, (request: RequestHaveLogger, response) => {
+
+    const Maps = {
+      open:'client.open',
+      force:'client.force',
+      range:'openTimeRange'
+    };
+
+
+    (async function (collection, params, Maps) {
+
+      try {
+        responseAndTypeAuth(response, {
+          stateCode: 200,
+          message: '',
+          data: (await collectionRead(collection as any))['client']['open']
+        });
+      } catch (error) {
+        code500(response);
+        logger500(request.logger, undefined, undefined, error);
+      }
+
+    })(collection, request.params,Maps);
+
+  });
+
+  router.post('/open', SessionMiddleware, verify, LogMiddleware, (request: RequestHaveLogger, response) => {
+
+
+    (async function (collection) {
+
+
+
+    })(collection)
+
+  });
+
+  router.get('/open/range', SessionMiddleware, verify, LogMiddleware, (request: RequestHaveLogger, response) => {
 
     autoReadOne(collection, response, request.logger).then(({ client }) => {
       responseAndTypeAuth(response, {
         stateCode: 200,
         message: '',
-        data:{
+        data: {
           ...client.openTimeRange
         }
       });
@@ -85,12 +173,12 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMid
 
   });
 
-  router.get('/open/force', SessionMiddleware, LogMiddleware, (request: RequestHaveLogger, response, next) => {
+  router.get('/open/force', SessionMiddleware, verify, LogMiddleware, (request: RequestHaveLogger, response, next) => {
     autoReadOne(collection, response, request.logger).then(({ client }) => {
       responseAndTypeAuth(response, {
         stateCode: 200,
-        message:'',
-        data:client.force
+        message: '',
+        data: client.force
       });
     }).catch((error) => {
       logger500(request.logger, undefined, undefined, error);
@@ -147,37 +235,37 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMid
 
   });
 
-  router.post('/open/force', SessionMiddleware, verify, LogMiddleware, JSONParser,(request:RequestHaveLogger,response,next)=>{
+  router.post('/open/force', SessionMiddleware, verify, LogMiddleware, JSONParser, (request: RequestHaveLogger, response, next) => {
 
-    const 
+    const
       requestBody = request.body,
       checkResult = postForceShape(requestBody);
 
-    if(checkResult instanceof Error){
+    if (checkResult instanceof Error) {
       logger400(request.logger, requestBody, undefined, checkResult);
       return code400(response);
     }
 
-    collection.updateOne({},{
-      $set:{
-        'client.force':requestBody.force
+    collection.updateOne({}, {
+      $set: {
+        'client.force': requestBody.force
       }
-    }).then((updateResult)=>{
+    }).then((updateResult) => {
 
-      if(updateResult.result.ok){
+      if (updateResult.result.ok) {
         code200(response);
-      }else{
-        logger500(request.logger,requestBody,SystemErrorCode['错误:数据库回调异常']);
+      } else {
+        logger500(request.logger, requestBody, SystemErrorCode['错误:数据库回调异常']);
         code500(response);
       }
 
     })
-    .catch((error)=>{
-      logger500(request.logger,requestBody,SystemErrorCode['错误:数据库写入失败'],error);
-      code500(response);
-    });
+      .catch((error) => {
+        logger500(request.logger, requestBody, SystemErrorCode['错误:数据库写入失败'], error);
+        code500(response);
+      });
 
-    
+
   });
 
   return router;
