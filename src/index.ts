@@ -13,7 +13,7 @@ import { ConfigNameMap,fillDatabase,verifyDatabase } from "./init/initDatabase";
 export default async function (Cwd: string) {
 
     console.log('System starting,Please wait for moment!');
-    console.log(`The Directory of Root is ${Cwd}`);
+    console.log(`The root of directory is ${Cwd}`);
 
     const
         ConfigDir = resolve(Cwd, './config'),

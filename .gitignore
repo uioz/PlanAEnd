@@ -63,3 +63,8 @@ typings/
 # hide dist directory
 
 /dist
+
+# hide assets file
+
+public/*.jpg
+public/*.png

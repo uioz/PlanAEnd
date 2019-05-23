@@ -1,6 +1,6 @@
 import { Log4js, Logger } from "log4js";
-import { MongoClient, Db, Collection } from "mongodb";
-import * as ConnectMongo from "connect-mongo";
+import { MongoClient, Db } from "mongodb";
+import * as DotProp from "dot-prop";
 
 /**
  * log4js可选的categories类型,对应config/logconfig.json中的配置
@@ -123,10 +123,6 @@ export class GlobalData {
         return this;
     }
 
-    getMongoClient() {
-        return this.mongoClient;
-    }
-
     /**
      * 设置全局的数据库对象
      * @param database 数据库对象
@@ -165,6 +161,23 @@ export class GlobalData {
      */
     getSuperUserAccount(){
         return this.superAccount;
+    }
+
+    /**
+     * 将给给定的静态文件名称和内部公开的`publicPath`合并为一个可以请求的文件地址.  
+     * @param staticFileName 静态文件名称
+     */
+    makePublicFileUrl(staticFileName:string){
+
+        const publicUrlPrefix = DotProp.get(this.getConfig('systemConfig'),'assets.publicUrlPrefix');
+
+        // lazy function
+        this.makePublicFileUrl = (staticFileName: string) => {
+            return `${publicUrlPrefix}/${staticFileName}`;
+        }
+
+        return `${publicUrlPrefix}/${staticFileName}`;
+
     }
 
 }

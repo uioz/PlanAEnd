@@ -26,5 +26,8 @@
     },
     "source": {
         "staticFilePath": "./sourceFiles"
+    },
+    "assets":{
+        "publicUrlPrefix":"/public"
     }
 }
