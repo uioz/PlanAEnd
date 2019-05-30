@@ -8,6 +8,7 @@ import { resolve as PathResolve } from "path";
 import { collectionRead, collectionWrite, responseAndTypeAuth, code200, code500, logger500, code400, logger400 } from "./public";
 import { responseMessage } from "../code";
 import { JSONParser } from "../middleware/jsonparser";
+import * as apiCheck from "api-check";
 
 export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMiddleware }, globalDataInstance) => {
 
@@ -98,11 +99,9 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMid
 
     });
 
-
   });
 
   router.delete('/api/assets/static/photos/:id', middlewaresForGet, (request: RequestHaveLogger, response) => {
-
 
     (async function (collection, imageId) {
 
@@ -139,19 +138,61 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMid
 
   }
 
-  const MapsForAppImage = {
-    logo: 'image.logo',
-    serverbackground: 'image.serverbackground',
-    clientbackground: 'image.clientbackground'
+  interface PostAssetsBody {
+    id:string;
+    src:string;
+    fileName:string
   }
 
-  router.post('/api/assets/app/image/:type', middlewaresForGet.concat(checkTypeForAppImage, JSONParser), (request: RequestHaveLogger, response) => {
+  // 配置文件名称放置到配置文件中,
 
-    (async function (collection, maps: object) {
+  const middlewareForAssetsCheck:Middleware = (request,response,next)=>{
 
-      // request.body
+    const shape = apiCheck.shape({
+      id: apiCheck.string,
+      src: apiCheck.string,
+      fileName: apiCheck.string
+    }).strict;
 
-    })(collection, MapsForAppImage).catch(error => {
+    const checkedResult = shape(request.body);
+
+    if(checkedResult instanceof Error){
+      code400(response);
+      logger400(request.logger,request.body,undefined,checkedResult);
+    }else{
+      return next();
+    }
+
+  }
+
+  const middlewaresAssets = middlewaresForGet.concat(checkTypeForAppImage, JSONParser, middlewareForAssetsCheck);
+
+  router.post('/api/assets/app/image/:type', middlewaresAssets, (request: RequestHaveLogger, response) => {
+
+    const MapsForAppImage = {
+      logo: 'image.logo',
+      serverbackground: 'image.serverbackground',
+      clientbackground: 'image.clientbackground'
+    };
+
+    (async function (collection,type, body: PostAssetsBody ) {
+
+      const findResult = await collection.findOne({
+        'image.imagelist.id':body.id
+      });
+
+      // 数组中不存在内容返回null
+      if(!findResult){
+        return code400(response);
+      }
+
+      const result = DotProp.set((await collectionRead(collection)),MapsForAppImage[type],body.id);
+
+      collectionWrite(collection,result);
+
+      code200(response);
+
+    })(collection,request.params.type,request.body).catch(error => {
       code500(response);
       logger500(request.logger, request.params, undefined, error);
     });

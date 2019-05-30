@@ -42,7 +42,7 @@ const postLoginShape = apiCheck.shape({
   password: apiCheck.string
 }).strict;
 
-export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMiddleware }, globalDataInstance) => {
+export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware }, globalDataInstance) => {
 
   const
     router = Router(),
@@ -50,19 +50,6 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMid
     collection = Database.collection(CollectionName);
 
   router.post('/login', JSONParser, SessionMiddleware, LogMiddleware,
-    (request: RequestHaveLogger, response, next) => {
-      // TODO 会存在有session后获取用户信息的情况,所以去掉这个拦截
-
-      // 登录不能使用认证中间件,所以这里
-      // 需要手动拦截已经登陆的用户
-      if (
-        request.session.userId ||
-        request.session.level ||
-        request.session.levelCodeRaw) {
-        return code500(response,responseMessage['错误:重复登录']);
-      }
-      next();
-    },
     (request: RequestHaveLogger, response) => {
 
       const
@@ -120,8 +107,7 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMid
         logger500(request.logger, requestBody, SystemErrorCode['错误:数据库读取错误'], error);
         code400(response);
       });
-
-
+      
     });
 
   return router;
