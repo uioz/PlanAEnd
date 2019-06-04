@@ -1,8 +1,7 @@
 {
     "system": {
-        "timezoneOffset":"-8",
         "recordLog": true,
-        "runningTime": 1000,
+        "runningTime": 0,
         "mongodbUrl":"mongodb://localhost:27017",
         "mongodbDataBase":"testing",
         "mongodbCollectionList":["source_","result_","model_speciality","model_users","model_assets","configuration_static"]

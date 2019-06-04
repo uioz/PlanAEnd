@@ -1,8 +1,10 @@
 import { resolve } from "path";
-import { globalDataInstance, GlobalData } from "./globalData";
-import { connect, MongoClient, Db } from "mongodb";
+import { globalDataInstance } from "./globalData";
+import { connect, MongoClient} from "mongodb";
 import App from "./app";
 import { getAllConfig,initLog4js,toRebuildCollectionUseConfigs,toSetSuperUserAccountOfGlobalData } from "./init/init"
+import { timeRecord } from "./utils/timeRecord";
+
 
 /**
  * 项目运行入口
@@ -68,6 +70,15 @@ export default async function (Cwd: string) {
     // 启动服务器
     App(Cwd, globalDataInstance);
 
-}
+    // 每分钟记录一次已经运行的时间
+    timeRecord((hadRuningDate)=>{
 
-// TODO 获取文件名称中有扩展名抹消这个扩展名称
+        Database.collection('configuration_static').updateOne({},{
+            $set:{
+                'system.runningTime':hadRuningDate
+            }
+        });
+
+    });
+
+}

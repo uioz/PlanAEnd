@@ -13,7 +13,7 @@ Random.extend({
 
 mock('/login', {
   stateCode: 200,
-  message:'',
+  message: '',
   data: {
     nickName: '@csentence(2,10)',
     level: '@integer(1, 68)',
@@ -153,13 +153,13 @@ mock(pathToRegexp('/source/json/:year/:start/to/:end'), 'get', {
   ]
 });
 
-mock('/open/force', {
+mock('/api/open/force', {
   stateCode: 200,
   message: '',
   data: '@boolean'
 })
 
-mock('/open/range', {
+mock('/api/open/range', {
   stateCode: 200,
   message: '',
   data: {
@@ -168,7 +168,7 @@ mock('/open/range', {
   }
 });
 
-mock('/open', {
+mock('/api/open', {
   stateCode: 200,
   message: '',
   data: '@boolean'
@@ -186,7 +186,7 @@ mock('/api/assets', 'get', {
   }
 });
 
-mock('/api/assest', 'post', {
+mock('/api/assets', 'post', {
   stateCode: 200,
   message: '数据上传成功'
 });

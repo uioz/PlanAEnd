@@ -1,10 +1,9 @@
-import { LevelCode, responseMessage, ResponseErrorCode, SystemErrorCode } from "../code";
+import { LevelCode, responseMessage, SystemErrorCode } from "../code";
 import { Middleware, ErrorMiddleware } from "../types";
 import { globalDataInstance } from "../globalData";
-import { collectionReadAllIfHave } from "../model/collectionRead";
 import { updateOfNoticeModelInModel } from "../model/collectionUpdate";
 import { writeOfModel } from "../model/collectionWrite";
-import { responseAndTypeAuth, code400, code500, logger500, code200, autoReadOne } from "./public";
+import { responseAndTypeAuth, code500, logger500, code200, autoReadOne } from "./public";
 import { JSONParser } from "../middleware/jsonparser";
 import { CollectionName as AssetsCollectionName } from "./assets";
 
@@ -131,7 +130,7 @@ export const MiddlewaresOfPost: Array<Middleware | ErrorMiddleware> = [
       message: responseMessage['错误:数据校验错误']
     });
 
-  }, (request, response, next) => {
+  }, (request, response) => {
 
     try {
 

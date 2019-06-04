@@ -66,7 +66,6 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMid
 
   router.post('/api/assets/static/photos', middlewaresForPost, (request: RequestHaveLogger, response) => {
 
-
     (async function (collection) {
 
       const responseAndData = {

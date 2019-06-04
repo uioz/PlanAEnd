@@ -32,7 +32,7 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMid
 
     const account = request.session.account;
 
-    readOfApiState(CollectionOfConfig,CollectionOfUsers,request.session.account).then((responseBody)=>{
+    readOfApiState(CollectionOfConfig,CollectionOfUsers,account).then((responseBody)=>{
       responseAndTypeAuth(response,{
         stateCode:200,
         message:responseBody
@@ -43,7 +43,6 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMid
     });
 
   });
-
 
   return router;
 

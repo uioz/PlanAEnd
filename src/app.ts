@@ -23,9 +23,6 @@ export default (Cwd: string, globalData: GlobalData) => {
                 publicFilePath: serverPublicPath,
                 port: serverPort,
             },
-            system: {
-                timezoneOffset
-            },
             client: {
                 clientStaticPath,
                 clientUrlPrefix,
@@ -40,12 +37,6 @@ export default (Cwd: string, globalData: GlobalData) => {
     Logger.debug('clientUrlPrefix', clientUrlPrefix);
     Logger.debug('managementStaticPath', managementStaticPath);
     Logger.debug('managementUrlPrefix', managementUrlPrefix);
-
-    const runingTimezone = new Date().getTimezoneOffset() / 60;
-
-    if (runingTimezone !== parseInt(timezoneOffset)) {
-        Logger.warn(`Time zone doesn't match! Need ${runingTimezone} but Get ${timezoneOffset}, Please configure your os timezone.`);
-    }
 
     if (clientUrlPrefix === managementUrlPrefix) {
         Logger.error(`The 'clientUrlPrefix' cannot equal to 'managementUrlPrefix'.Please check your config and change them either.`);

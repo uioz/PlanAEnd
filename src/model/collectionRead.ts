@@ -187,7 +187,7 @@ interface ApiServerBaseShape {
     /**
      * 服务器静态文件地址
      */
-    publicPath:string;
+    public:string;
     /**
      * 应用程序名称
      */
@@ -218,7 +218,7 @@ export async function readOfApiServerBase(collection:Collection):Promise<ApiServ
         brand:assets['image']['brand'],
         logo:assets['image']['logo'],
         bg: assets['image']['clientbackground'],
-        publicPath:assets['publicpath']
+        public:assets['publicpath']
     }
 }
 
@@ -234,6 +234,6 @@ export async function readOfApiClientBase(collection: Collection): Promise<ApiSe
         brand: assets['image']['brand'],
         logo: assets['image']['logo'],
         bg: assets['image']['clientbackground'],
-        publicPath:assets['publicpath']
+        public:assets['publicpath']
     }
 }
