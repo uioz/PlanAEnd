@@ -62,13 +62,13 @@ export class GlobalData {
      * getLogger 的异步版本,为了解决 Node 同步解析 require 导致的问题. 
      * **注意**:调用前确保 globalData 中已经设置了 logger 实例
      */
-    getLoggerPro(){
-        return new Promise<Logger>((resolve,reject)=>{
-            process.nextTick(()=>{
-                resolve(this.getLogger());
-            })
-        });
-    }
+    // getLoggerPro(){
+    //     return new Promise<Logger>((resolve,reject)=>{
+    //         process.nextTick(()=>{
+    //             resolve(this.getLogger());
+    //         })
+    //     });
+    // }
 
     setConfigs(originConfigTree: configTree) {
         this.configs = originConfigTree;

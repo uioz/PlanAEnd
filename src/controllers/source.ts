@@ -6,7 +6,6 @@ import { Logger } from "log4js";
 import { read as XlsxRead, utils as XlsxUtils, write as XlsxWrite } from "xlsx";
 import { writeOfSource } from "../model/collectionWrite";
 import { globalDataInstance } from "../globalData";
-import { collectionReadAllIfHave } from "../model/collectionRead";
 import { InsertWriteOpResult } from "mongodb";
 import { code500, logger500, responseAndTypeAuth, code400 } from "./public";
 

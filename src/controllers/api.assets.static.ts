@@ -8,7 +8,16 @@ import { ImageDiskStorageGenerator, normalImageFilter } from "../helper/multer";
 import { JSONParser } from "../middleware/jsonparser";
 import { AddRoute, Middleware, RequestHaveLogger } from "../types";
 import { LevelCode } from "../utils/privilege";
-import { code200, code400, code500, collectionRead, collectionWrite, logger400, logger500, responseAndTypeAuth } from "./public";
+import {
+  code200,
+  code400,
+  code500,
+  collectionRead,
+  collectionWrite,
+  logger400,
+  logger500,
+  responseAndTypeAuth
+} from "./public";
 
 export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMiddleware }, globalDataInstance) => {
 
@@ -16,11 +25,11 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMid
     systemConfig = globalDataInstance.getConfig('configuration_static'),
     imageSavePath = PathResolve(globalDataInstance.getCwd(), DotProp.get(systemConfig, 'server.publicFilePath')),
     multer = Multer({
-      storage:ImageDiskStorageGenerator(imageSavePath),
-      limits:{
-        fields:2, // 非文件field字段的数量
-        fileSize:1024*1024, // 文件大小限制在10MB以下
-        files:1, // 文件数量
+      storage: ImageDiskStorageGenerator(imageSavePath),
+      limits: {
+        fields: 2, // 非文件field字段的数量
+        fileSize: 1024 * 1024, // 文件大小限制在10MB以下
+        files: 1, // 文件数量
       },
       fileFilter: normalImageFilter
     });
@@ -75,12 +84,12 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMid
       } catch (error) {
         code500(response);
         logger500(request.logger, undefined, undefined, error);
-        return ;
+        return;
       }
 
-      responseAndTypeAuth(response,{
-        stateCode:200,
-        message:responseMessage['数据上传成功'],
+      responseAndTypeAuth(response, {
+        stateCode: 200,
+        message: responseMessage['数据上传成功'],
         data: responseAndData
       });
 
@@ -138,12 +147,12 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMid
   }
 
   interface PostAssetsBody {
-    id:string;
-    src:string;
-    fileName:string
+    id: string;
+    src: string;
+    fileName: string
   }
 
-  const middlewareForAssetsCheck:Middleware = (request,response,next)=>{
+  const middlewareForAssetsCheck: Middleware = (request, response, next) => {
 
     const shape = apiCheck.shape({
       id: apiCheck.string,
@@ -153,10 +162,10 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMid
 
     const checkedResult = shape(request.body);
 
-    if(checkedResult instanceof Error){
+    if (checkedResult instanceof Error) {
       code400(response);
-      logger400(request.logger,request.body,undefined,checkedResult);
-    }else{
+      logger400(request.logger, request.body, undefined, checkedResult);
+    } else {
       return next();
     }
 
@@ -172,24 +181,24 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMid
       clientbackground: 'image.clientbackground'
     };
 
-    (async function (collection,type, body: PostAssetsBody ) {
+    (async function (collection, type, body: PostAssetsBody) {
 
       const findResult = await collection.findOne({
-        'image.imagelist.id':body.id
+        'image.imagelist.id': body.id
       });
 
       // 数组中不存在内容返回null
-      if(!findResult){
+      if (!findResult) {
         return code400(response);
       }
 
-      const result = DotProp.set((await collectionRead(collection)),MapsForAppImage[type],body.id);
+      const result = DotProp.set((await collectionRead(collection)), MapsForAppImage[type], body.id);
 
-      collectionWrite(collection,result);
+      collectionWrite(collection, result);
 
       code200(response);
 
-    })(collection,request.params.type,request.body).catch(error => {
+    })(collection, request.params.type, request.body).catch(error => {
       code500(response);
       logger500(request.logger, request.params, undefined, error);
     });

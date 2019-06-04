@@ -1,5 +1,5 @@
 import { GlobalData, globalDataInstance } from "./globalData";
-import * as  Express from "express";
+import * as Express from "express";
 import { ServeStaticOptions } from 'serve-static'
 import { resolve as PathResolve } from "path";
 import { FinalErrorMiddleware,SetLogMiddleware } from "./middleware/error";
@@ -74,9 +74,9 @@ export default (Cwd: string, globalData: GlobalData) => {
     App.use('/public', Express.static(PathResolve(Cwd, serverPublicPath), staticOptions));// 公用
 
     // 非法请求
-    App.use(LogMiddleware,NotFoundMiddleware);
+    App.use(LogMiddleware(Logger),NotFoundMiddleware);
     // 错误兜底
-    App.use(SetLogMiddleware,FinalErrorMiddleware);
+    App.use(SetLogMiddleware(Logger),FinalErrorMiddleware);
 
     App.listen(serverPort, () => Logger.info(`Server is listening port in ${serverPort}!`));
 
