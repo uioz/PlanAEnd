@@ -1,7 +1,7 @@
 import { AddRoute, RequestHaveLogger, Middleware } from "../types";
 import { Router } from "express";
-import { LevelCode } from "../utils/privilege";
-import { responseAndTypeAuth, code500, logger500, logger400, code400 } from "./public"
+import { LevelCode, Privilege } from "../utils/privilege";
+import { responseAndTypeAuth, code500, logger500, logger400, code400, code200 } from "./public"
 import { JSONParser } from "../middleware/jsonparser";
 import * as apiCheck from "api-check";
 import { SystemErrorCode, responseMessage } from "../code";
@@ -52,6 +52,12 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMid
       level: {
         $ne: 0
       }
+    },{
+      projection:{
+        _id:false,
+        password:false,
+        lastlogintime:false
+      }
     })
       .toArray()
       .then(result => {
@@ -86,16 +92,32 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMid
     const body: PostShape = request.body;
 
     const checkedResult = postShape(body);
-    
-    if(checkedResult instanceof Error){
-      logger400(request.logger,body,undefined,checkedResult);
+
+    if (checkedResult instanceof Error) {
+      logger400(request.logger, body, undefined, checkedResult);
       return code400(response);
-    }else if(body.password && body.password.length !== 40){
+    } else if (body.password && body.password.length !== 40) {
       logger400(request.logger, body, SystemErrorCode['错误:密钥验证错误']);
       return code400(response);
-    }else if(body.account && body.account === globalDataInstance.getSuperUserAccount()){
-      logger400(request.logger,body,SystemErrorCode['错误:尝试修改超级管理员'],undefined);
+    } else if (body.account && body.account === globalDataInstance.getSuperUserAccount()) {
+      logger400(request.logger, body, SystemErrorCode['错误:尝试修改超级管理员'], undefined);
       return code400(response);
+    }
+
+    return next();
+
+  }
+
+  const postFormatMiddleware: Middleware = (request, response, next) => {
+
+    // 二次混淆密码
+    if (request.body.password) {
+      request.body.password = sha1(request.body.password);
+    }
+
+    // 将权限值转为对应的字符串形式
+    if (request.body.level) {
+      request.body.levelcoderaw = Privilege.rawCodeIfy(request.body.level)
     }
 
     return next();
@@ -108,15 +130,98 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMid
     LogMiddleware,
     verify,
     postCheckMiddleware,
+    postFormatMiddleware,
     (request: RequestHaveLogger, response) => {
 
-      // TODO 传入密码进行加密
+      const {
+        account,
+        ...rest
+      } = request.body as PostShape;
+
+      collection.updateOne({ account }, {
+        $set: {
+          ...rest
+        }
+      }, {
+          upsert: true,
+        })
+        .then(() => {
+          Object.assign(request.session, rest);
+          return code200(response);
+        })
+        .catch(error => {
+          logger500(request.logger, request.body, undefined, error);
+          return code500(response);
+        });
 
     });
 
-  router.delete('/api/users', SessionMiddleware, LogMiddleware, verify, (request, response) => {
+  const deleteShape = apiCheck.shape({
+    account: apiCheck.string
+  }).strict
 
-  });
+  const deleteCheckMiddleware: Middleware = (request, response, next) => {
+
+    const checkedResult = deleteShape(request.body);
+
+    if (checkedResult instanceof Error) {
+      logger400(request.logger, request.body, undefined, checkedResult);
+      return code400(response);
+    }
+
+    const { account } = request.body;
+
+    // 不可以删除管理员
+    if (account === globalData.getSuperUserAccount()) {
+      logger400(request.logger, request.body, SystemErrorCode['错误:尝试修改超级管理员'], undefined);
+      return code400(response);
+    }
+
+    return next();
+
+  }
+
+  router.delete('/api/users/:account',
+    SessionMiddleware,
+    // LogMiddleware,
+    // verify,
+    deleteCheckMiddleware,
+    (request: RequestHaveLogger, response,next) => {
+
+      const { account } = request.body;
+
+      collection.deleteMany({
+        account
+      }).then(deleteResult => {
+
+        if (deleteResult.deletedCount > 0) {
+          next();
+        }
+
+        return responseAndTypeAuth(response,{
+          stateCode:200,
+          message:responseMessage['错误:暂无数据'],
+        });
+
+      }).catch(error => {
+
+        logger500(request.logger,request.body,SystemErrorCode['错误:数据库回调异常'],error);
+        return code500(response);
+
+      });
+
+    },(request:RequestHaveLogger,response)=>{
+
+      // 如果删除的是自己则销毁 session
+      if(request.session.account === request.body.account){
+
+        request.session.destroy((/** noop */)=>{});
+
+      }
+
+      code200(response,responseMessage['删除成功']);
+
+    });
 
   return router;
 
