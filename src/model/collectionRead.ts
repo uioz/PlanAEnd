@@ -126,16 +126,6 @@ export async function readUserList(collection: Collection) {
 }
 
 /**
- * 获取超级用户的账户名称
- * @param collection 集合对象
- */
-export async function getSuperUserAccount(collection: Collection) {
-    return await collection.findOne({
-        level: 0
-    }, hidden_id);
-}
-
-/**
  * collection.findOne的过滤id版本
  * @param collection 集合对象
  */

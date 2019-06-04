@@ -1,35 +1,29 @@
 import { Log4js, Logger } from "log4js";
 import { MongoClient, Db } from "mongodb";
 import * as DotProp from "dot-prop";
+import { mode,configTree,configTreeKeyType } from "./types";
+
 
 /**
  * log4js可选的categories类型,对应config/logconfig.json中的配置
  */
 type loggerType = 'default' | 'production' | 'developmentAll' | 'developmentOnlySystem';
 
-/**
- * 默认的配置文件,包括系统配置等
- */
-type configType = 'systemConfig' | 'logType' | 'userConfig';
-
-/**
- * 默认的数据的垫片文件,数据库初始化时候需要使用到
- */
-type databaseInitData = '';
 
 export class GlobalData {
 
-    private globalLoggerName: loggerType;
+    public mode: mode = (process.env.NODE_ENV) as mode;
 
     private log4js: Log4js;
 
-    private globalLoggers: {
-        [keyName: string]: Logger
-    } = {};
+    private logger:Logger;
 
-    private configs: {
-        [key in configType]: any
-    } = {} as any;
+    private configs: configTree = {
+        configuration_static:undefined,
+        log_static:undefined,
+        model_assets:undefined,
+        model_users:undefined
+    };
 
     private mongoClient: MongoClient;
 
@@ -52,69 +46,36 @@ export class GlobalData {
         return this;
     }
 
-    /**
-     * 设置全局默认的logger名字
-     */
-    setGlobalLoggerName(name: loggerType) {
-        if (!this.globalLoggerName) {
-            this.globalLoggerName = name;
-        }
-        return this;
+    setLogger(logger:Logger){
+        this.logger = logger;
     }
 
     /**
-     * 获取对应配置的Logger并且在内部进行缓存
-     * 
-     * 如果不指定logger的名字则使用全局初始化时候指定的logger
-     * @param name looger
+     * 获取 logger 实例.  
+     * **注意**:调用前确保 globalData 中已经设置了 logger 实例
      */
-    getLogger(name?: loggerType) {
-
-        if (!name) {
-            name = this.globalLoggerName;
-        }
-
-        const logger = this.globalLoggers[name];
-
-        if (logger) {
-            return logger;
-        }
-
-        return this.globalLoggers[name] = this.log4js.getLogger(name);
-
+    getLogger() {
+        return this.logger;
     }
 
     /**
-     * getLogger的异步版本,为了解决Node同步解析require导致的
-     * 内部获取数据的错误
-     *
-     * 如果不指定logger的名字则使用全局初始化时候指定的logger
-     * @param name looger
+     * getLogger 的异步版本,为了解决 Node 同步解析 require 导致的问题. 
+     * **注意**:调用前确保 globalData 中已经设置了 logger 实例
      */
-    getLoggerPro(name?:loggerType){
+    getLoggerPro(){
         return new Promise<Logger>((resolve,reject)=>{
             process.nextTick(()=>{
-                if (!name) {
-                    name = this.globalLoggerName;
-                }
-
-                const logger = this.globalLoggers[name];
-
-                if (logger) {
-                    resolve(logger);
-                }
-
-                resolve(this.globalLoggers[name] = this.log4js.getLogger(name));
+                resolve(this.getLogger());
             })
         });
     }
 
-    setConfig(name: configType, config: object) {
-        this.configs[name] = config;
+    setConfigs(originConfigTree: configTree) {
+        this.configs = originConfigTree;
         return this;
     }
 
-    getConfig(name: configType) {
+    getConfig(name: configTreeKeyType) {
         return this.configs[name];
     }
 
@@ -169,7 +130,7 @@ export class GlobalData {
      */
     makePublicFileUrl(staticFileName:string){
 
-        const publicUrlPrefix = DotProp.get(this.getConfig('systemConfig'),'assets.publicUrlPrefix');
+        const publicUrlPrefix = DotProp.get(this.getConfig('configuration_static'),'assets.publicUrlPrefix');
 
         // lazy function
         this.makePublicFileUrl = (staticFileName: string) => {

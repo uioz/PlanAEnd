@@ -17,7 +17,7 @@ export default (Cwd: string, globalData: GlobalData) => {
     const
         App = Express(),
         Logger = globalData.getLogger(),
-        SystemConfig = globalData.getConfig('systemConfig'),
+        SystemConfig = globalData.getConfig('configuration_static'),
         {
             server: {
                 publicFilePath: serverPublicPath,

@@ -131,3 +131,17 @@ export interface MiddlewareTree{
 export interface AddRoute {
     (Middlewares:MiddlewareTree,globalInstance:GlobalData):Router;
 }
+
+/**
+ * 该类型描述了当前运行的模式
+ */
+export type mode = 'development' | 'production';
+
+/**
+ * 默认的配置文件,包括系统配置等
+ */
+export type configTreeKeyType = 'configuration_static' | 'log_static' | 'model_assets' | 'model_users';
+
+export type configTree = {
+    [key in configTreeKeyType]:any;
+}

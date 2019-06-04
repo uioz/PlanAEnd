@@ -1,19 +1,19 @@
-import { AddRoute, RequestHaveLogger, Middleware } from "../types";
-import { Router } from "express";
-import * as DotProp from "dot-prop";
-import { LevelCode } from "../utils/privilege";
-import * as Multer from "multer";
-import { ImageDiskStorageGenerator,normalImageFilter } from "../helper/multer";
-import { resolve as PathResolve } from "path";
-import { collectionRead, collectionWrite, responseAndTypeAuth, code200, code500, logger500, code400, logger400 } from "./public";
-import { responseMessage } from "../code";
-import { JSONParser } from "../middleware/jsonparser";
 import * as apiCheck from "api-check";
+import * as DotProp from "dot-prop";
+import { Router } from "express";
+import * as Multer from "multer";
+import { resolve as PathResolve } from "path";
+import { responseMessage } from "../code";
+import { ImageDiskStorageGenerator, normalImageFilter } from "../helper/multer";
+import { JSONParser } from "../middleware/jsonparser";
+import { AddRoute, Middleware, RequestHaveLogger } from "../types";
+import { LevelCode } from "../utils/privilege";
+import { code200, code400, code500, collectionRead, collectionWrite, logger400, logger500, responseAndTypeAuth } from "./public";
 
 export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMiddleware }, globalDataInstance) => {
 
   const
-    systemConfig = globalDataInstance.getConfig('systemConfig'),
+    systemConfig = globalDataInstance.getConfig('configuration_static'),
     imageSavePath = PathResolve(globalDataInstance.getCwd(), DotProp.get(systemConfig, 'server.publicFilePath')),
     multer = Multer({
       storage:ImageDiskStorageGenerator(imageSavePath),
@@ -124,7 +124,6 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMid
 
   });
 
-  // waiting for test
   const checkTypeForAppImage: Middleware = (request, response, next) => {
 
     const passTypeSet = new Set(['logo', 'serverbackground', 'clientbackground']);
@@ -143,8 +142,6 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMid
     src:string;
     fileName:string
   }
-
-  // 配置文件名称放置到配置文件中,
 
   const middlewareForAssetsCheck:Middleware = (request,response,next)=>{
 
