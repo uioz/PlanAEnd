@@ -1,10 +1,10 @@
-import { Db } from "mongodb";
 import * as Fs from "fs";
-import { resolve } from "path";
-import { configTree } from "../types";
-import { GlobalData } from "../globalData";
 import * as log4js from "log4js";
+import { Db } from "mongodb";
+import { resolve } from "path";
+import { GlobalData } from "../globalData";
 import { hidden_id } from "../model/utils";
+import { configTree } from "../types";
 
 /**
  * 获取给定目录的所有内容, 保存未一个树状结构, 该函数被设计用来读取目录下的 JSON 和 JS 文件.  
@@ -14,15 +14,18 @@ import { hidden_id } from "../model/utils";
  * }
  * @param configsDirectory 静态配置文件暂存的目录
  */
-export async function getAllConfig(configsDirectory: string): configTree{
+export async function getAllConfig(configsDirectory: string): Promise<configTree>{
 
   const configTree = {};
 
-  for (const fileName of (await Fs.promises.readdir(configsDirectory))) {
+  for (const completeFileName of (await Fs.promises.readdir(configsDirectory))) {
+
+    let [fileName] = completeFileName.split('.');
+
     configTree[fileName] = require(resolve(configsDirectory, fileName));
   }
 
-  return configTree;
+  return configTree as configTree;
 }
 
 /**
@@ -35,7 +38,7 @@ export async function colletionIsExist(database: Db, collectionName: string) {
 }
 
 /**
- * 利用给定的静态配置文件来重建数据库.  
+ * 利用给定的静态配置文件来重建(删除->插入)数据库.  
  * 配置文件格式如下所示:
  * {
  *  '集合名称':{}, // 对应的静态配置文件
@@ -56,7 +59,7 @@ export async function toRebuildCollectionUseConfigs(globalData:GlobalData,config
 
   // 根据不同模式过滤需要插入到数据库中的集合名称
   if (mode === 'production') {
-    
+    // 待测试分支
     for (const collectionName of configKeys) {
       
       if(!colletionIsExist(database,collectionName)){
@@ -75,7 +78,9 @@ export async function toRebuildCollectionUseConfigs(globalData:GlobalData,config
   // **注意**:无视插入错误
   for (const collectionName of configListForRebuild) {
 
-    if(Array.isArray(configKeys[collectionName])){
+    await database.dropCollection(collectionName);
+
+    if(Array.isArray(configs[collectionName])){
       await database.collection(collectionName).insertMany(configs[collectionName],{
         ordered:false
       });
@@ -125,11 +130,9 @@ export async function toSetSuperUserAccountOfGlobalData(globalData:GlobalData) {
   }, hidden_id);
 
   if(result){
-    
+    return result;
   }
 
   throw new Error(`Can't find account of superUser, please check your static config which named model_users !`);
 
 }
-
-

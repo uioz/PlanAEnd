@@ -18,13 +18,14 @@ export default async function (Cwd: string) {
     const 
         CONFIGS_DIRECTORY = resolve(Cwd,'./config');
 
-    const 
-        configs = await getAllConfig(CONFIGS_DIRECTORY),
-        logger = initLog4js(globalDataInstance);
-        
+    const configs = await getAllConfig(CONFIGS_DIRECTORY);
+
     // 挂载所有的静态配置文件到全局共用对象上.
     globalDataInstance.setConfigs(configs);
 
+    
+    const logger = initLog4js(globalDataInstance);
+    
     // 挂载 logger 到 globalData 上.
     globalDataInstance.setLogger(logger);
 
