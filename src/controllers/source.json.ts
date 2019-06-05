@@ -35,9 +35,9 @@ interface GetQueryShape {
 }
 
 const GetParamsShape = apiCheck.shape({
-  year: apiCheck.number,
-  start: apiCheck.number,
-  end: apiCheck.number
+  year: apiCheck.string,
+  start: apiCheck.string,
+  end: apiCheck.string
 }).strict;
 
 const GetQueryShape = apiCheck.shape({
@@ -76,8 +76,8 @@ const GetCheckMiddleware: Middleware = (request, response, next) => {
 
   // 管理员完成基本格式校验
   // 如果是普通用户且没有指定 query 对应的专业类型, 说明它要获取所有的内容
-  // 这两种情况都进行直接跳转, 放弃校验
-  if (request.session.superUser && request.query.speciality === '') {
+  // 这两种情况都进行直接跳转, 放弃专业范围校验
+  if (request.session.superUser || !request.query.speciality) {
     return next();
   }
 
@@ -116,7 +116,7 @@ export const MiddlewaresOfGet: Array<Middleware> = [GetCheckMiddleware, (request
       { year, start, end } = params,
       { speciality } = query;
 
-    debugger;
+    // debugger;
 
     let filter;
 

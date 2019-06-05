@@ -65,7 +65,7 @@ export const correctQuery = async (request: RequestHaveLogger) => {
   const
     { userid, superUser } = request.session;
 
-  debugger;
+  // debugger;
 
   if (superUser) {
     return {};
