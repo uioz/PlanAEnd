@@ -116,6 +116,8 @@ export const MiddlewaresOfGet: Array<Middleware> = [GetCheckMiddleware, (request
       { year, start, end } = params,
       { speciality } = query;
 
+    debugger;
+
     let filter;
 
     if (speciality) {

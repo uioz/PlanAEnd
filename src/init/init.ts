@@ -4,7 +4,7 @@ import { Db } from "mongodb";
 import { resolve } from "path";
 import { GlobalData } from "../globalData";
 import { configTree } from "../types";
-import { GetUserI } from "../helper/user";
+import { GetUserI, } from "../helper/user";
 
 /**
  * 获取给定目录的所有内容, 保存未一个树状结构, 该函数被设计用来读取目录下的 JSON 和 JS 文件.  
@@ -34,7 +34,12 @@ export async function getAllConfig(configsDirectory: string): Promise<configTree
  * @param collectionName 集合名称
  */
 export async function colletionIsExist(database: Db, collectionName: string) {
-  return (await database.collection(collectionName).stats()).ok === 1;
+  for (const { name } of await database.listCollections({}, { nameOnly: true }).toArray()){
+    if(collectionName === name){
+      return true;
+    }
+  }
+  return false;
 }
 
 /**
@@ -48,6 +53,8 @@ export async function colletionIsExist(database: Db, collectionName: string) {
  * @param config 由多个静态配置组成的配置文件
  */
 export async function toRebuildCollectionUseConfigs(globalData:GlobalData,configs: object) {
+
+  globalData.getLogger().info('init database start.');
 
   const
     database = globalData.getMongoDatabase(),
@@ -78,8 +85,15 @@ export async function toRebuildCollectionUseConfigs(globalData:GlobalData,config
   // **注意**:无视插入错误
   for (const collectionName of configListForRebuild) {
 
-    await database.dropCollection(collectionName);
+    const IsExist = await colletionIsExist(database, collectionName);
+    globalData.getLogger().info(collectionName,'IsExist->', IsExist);
 
+    if (IsExist){
+      await database.dropCollection(collectionName);
+      globalData.getLogger().info('drop->', collectionName);
+    }
+
+    globalData.getLogger().info('rebuild->', collectionName);
     if(Array.isArray(configs[collectionName])){
       await database.collection(collectionName).insertMany(configs[collectionName],{
         ordered:false
@@ -89,6 +103,9 @@ export async function toRebuildCollectionUseConfigs(globalData:GlobalData,config
     }
 
   }
+
+  globalData.getLogger().info('init database done.');
+
 
 }
 
@@ -130,7 +147,7 @@ export async function toSetSuperUserIdOfGlobalData(globalData:GlobalData) {
   });
 
   if(result){
-    globalData.setSuperUserId(result._id);
+    globalData.setSuperUserId(result._id+'');
     return ;
   }
 

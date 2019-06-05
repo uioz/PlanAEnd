@@ -76,10 +76,10 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware }, globalD
 
         // session 写入
         if (result.level !== 0) {
-          setInfoToSession(request, { userid: result._id });
+          setInfoToSession(request, { userid: result._id+'' });
         } else {
           setInfoToSession(request, {
-            userid: result._id,
+            userid: result._id+'',
             superUser: true
           });
         }
@@ -89,7 +89,7 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware }, globalD
           account: result.account
         }, {
             $set: {
-              lastlogintime: new Date
+              lastlogintime: Date.now()
             }
           }).catch((error) => {
             logger500(request.logger, requestBody, SystemErrorCode['错误:数据库回调异常'], error);

@@ -65,11 +65,17 @@ export const correctQuery = async (request: RequestHaveLogger) => {
   const
     { userid, superUser } = request.session;
 
+  debugger;
+
   if (superUser) {
     return {};
   }
 
+  debugger;
+
   const result = await GetUserI().getInfo(userid);
+
+  debugger;
 
   if (result.controlarea.length === 0) {
     return {};
@@ -84,9 +90,6 @@ export const correctQuery = async (request: RequestHaveLogger) => {
  */
 export const MiddlewaresOfGet: Array<Middleware> = [(request: RequestHaveLogger, response) => {
 
-  // 此时通过的请求都是经过session验证的请求
-  // 此时挂载了logger 和 express-session 中间件
-
   (async function () {
 
     const
@@ -96,6 +99,8 @@ export const MiddlewaresOfGet: Array<Middleware> = [(request: RequestHaveLogger,
       query = await correctQuery(request),
       resultArray = [];
 
+    debugger;
+    
     collection.find(query, {
       projection: {
         _id: false
@@ -104,6 +109,8 @@ export const MiddlewaresOfGet: Array<Middleware> = [(request: RequestHaveLogger,
       if (resultArray.length) {
 
         try {
+
+          // TODO 不同用户只能获取自身的范围的数据
 
           const workBook = XlsxUtils.book_new();
 
@@ -183,46 +190,41 @@ export const MiddlewaresOfPost: Array<Middleware | ErrorMiddleware> = [Multer.si
           jsonizeSourceData = arrayizeWorkSheet;
 
         }else{
-
+          // TODO  利用专业字段进行过滤数据 测试
           jsonizeSourceData = correctSpeciality(arrayizeWorkSheet,result.controlarea);
 
         }
 
       }
       
-      // 利用控制区域字段来过滤上传的内容
-      // const jsonizeSourceData = isAdmin || controlAll ? arrayizeWorkSheet : correctSpeciality(arrayizeWorkSheet, request.session.controlarea);
+      const collection = globalDataInstance.getMongoDatabase().collection(DatabasePrefixName + year);
 
-      writeOfSource(globalDataInstance.getMongoDatabase().collection(DatabasePrefixName + year), jsonizeSourceData).then((results: Array<InsertWriteOpResult>) => {
-
-        for (const insertResult of results) {
-          if (insertResult.result.ok === 1) {
-
-            responseAndTypeAuth(response, {
-              stateCode: 200,
-              data: {
-                total: arrayizeWorkSheet.length,
-                real: jsonizeSourceData.length
-              },
-              message: responseMessage['数据上传成功']
-            });
-
-            request.logger.error(`${SystemErrorCode['错误:数据库写入失败']} DIR:${__dirname} CollectionName:${DatabasePrefixName + year} userID:${request.session.userid}`);
-          } else {
-            logger500(request.logger, workSheet, SystemErrorCode['错误:数据库回调异常']);
-            code500(response, responseMessage['错误:表单上传错误']);
-          }
-        }
-
-      }).catch((error) => {
-        logger500(request.logger, workSheet, SystemErrorCode['错误:数据库写入失败'], error);
-        code500(response, responseMessage['错误:服务器错误']);
+      // 建立索引 重复建立没有问题
+      await collection.createIndex({
+        number:1
+      },{
+        unique:true
       });
 
+      await collection.insertMany(jsonizeSourceData,{ordered:false});
+
+      responseAndTypeAuth(response, {
+        stateCode: 200,
+        data: {
+          total: arrayizeWorkSheet.length,
+          real: jsonizeSourceData.length
+        },
+        message: responseMessage['数据上传成功']
+      });
+
+    }else{
+      return code400(response);
     }
 
-    return code400(response);
-
-  })();
+  })()
+  .catch(error=>{
+    logger500(request.logger,undefined,SystemErrorCode['错误:数据库回调异常'],error);
+    return code500(response);
+  });
 
 }];
