@@ -7,6 +7,7 @@ import * as apiCheck from "api-check";
 import { SystemErrorCode, responseMessage } from "../code";
 import { globalDataInstance } from "../globalData";
 import sha1 from "sha1";
+import { setInfoToSession } from "../helper/session";
 
 /**
  * 该接口描述了POST请求用户传递内容数据的类型
@@ -99,10 +100,10 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMid
     } else if (body.password && body.password.length !== 40) {
       logger400(request.logger, body, SystemErrorCode['错误:密钥验证错误']);
       return code400(response);
-    } else if (body.account && body.account === globalDataInstance.getSuperUserAccount()) {
+    }/* else if (body.account && body.account === globalDataInstance.getSuperUserAccount()) {
       logger400(request.logger, body, SystemErrorCode['错误:尝试修改超级管理员'], undefined);
       return code400(response);
-    }
+    }*/
 
     return next();
 
@@ -123,6 +124,8 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMid
     return next();
 
   }
+
+
 
   router.post('/api/users',
     JSONParser,
@@ -146,7 +149,12 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMid
           upsert: true,
         })
         .then(() => {
-          Object.assign(request.session, rest);
+
+          // 如果自己修改自己, 重置自己的session
+          if(request.session.account === account){
+            setInfoToSession(request,rest);
+          }
+          
           return code200(response);
         })
         .catch(error => {
@@ -176,6 +184,8 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMid
       logger400(request.logger, request.body, SystemErrorCode['错误:尝试修改超级管理员'], undefined);
       return code400(response);
     }
+
+    // TODO 测试 post
 
     return next();
 

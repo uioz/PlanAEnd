@@ -4,7 +4,7 @@ import * as apiCheck from "api-check";
 import { logger400, code400, logger500, responseAndTypeAuth, code500 } from "./public";
 import { responseMessage, SystemErrorCode } from "../code";
 import { JSONParser } from "../middleware/jsonparser";
-import { setInfoToSession } from "../utils/sessionHelper";
+import { setInfoToSession } from "../helper/session";
 
 
 /**
@@ -65,6 +65,7 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware }, globalD
         account: requestBody.account
       }).then((result) => {
 
+        // 基本内容检查
         if (!result) {
           return code400(response, responseMessage['错误:用户不存在']);
         }
@@ -73,13 +74,15 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware }, globalD
           return code400(response, responseMessage['错误:帐号或者密码错误']);
         }
 
-        setInfoToSession(request,{
-          account:result.account,
-          userId:result._id,
-          level:result.level,
-          levelCodeRaw:result.levelcoderaw,
-          controlArea:result.controlarea
-        });
+        // session 写入
+        if (result.level !== 0) {
+          setInfoToSession(request, { userid: result._id });
+        } else {
+          setInfoToSession(request, {
+            userid: result._id,
+            superUser: true
+          });
+        }
 
         // 写入最后登录时间
         collection.updateOne({
@@ -107,7 +110,7 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware }, globalD
         logger500(request.logger, requestBody, SystemErrorCode['错误:数据库读取错误'], error);
         code400(response);
       });
-      
+
     });
 
   return router;

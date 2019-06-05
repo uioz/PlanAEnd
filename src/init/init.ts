@@ -3,8 +3,8 @@ import * as log4js from "log4js";
 import { Db } from "mongodb";
 import { resolve } from "path";
 import { GlobalData } from "../globalData";
-import { hidden_id } from "../model/utils";
 import { configTree } from "../types";
+import { GetUserI } from "../helper/user";
 
 /**
  * 获取给定目录的所有内容, 保存未一个树状结构, 该函数被设计用来读取目录下的 JSON 和 JS 文件.  
@@ -121,18 +121,27 @@ export function initLog4js(globalData:GlobalData) {
  * 将超级管理员账户读取到全局变量中保存,为后面鉴权使用
  * @param globalData 全局共用对象
  */
-export async function toSetSuperUserAccountOfGlobalData(globalData:GlobalData) {
+export async function toSetSuperUserIdOfGlobalData(globalData:GlobalData) {
 
   const database = globalData.getMongoDatabase();
 
   const result = await database.collection('model_users').findOne({
     level: 0
-  }, hidden_id);
+  });
 
   if(result){
-    return result;
+    globalData.setSuperUserId(result._id);
+    return ;
   }
 
-  throw new Error(`Can't find account of superUser, please check your static config which named model_users !`);
+  throw new Error(`Can't find _id of superUser, please check your static config which named model_users !`);
 
+}
+
+/**
+ * 初始化全局单例用户帮助类
+ * @param globalData 全局共用对象
+ */
+export function userModelHelper (globalData:GlobalData) {
+  GetUserI().setCollection(globalData.getMongoDatabase().collection('model_users'));
 }

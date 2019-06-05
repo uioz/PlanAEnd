@@ -1,9 +1,10 @@
 import { Response, NextFunction } from "express";
 import { ResponseErrorCode } from "../code";
-import { LeveCodeRawType, NODE_ENV,RequestHaveSession,ParsedSession } from "../types";
+import { NODE_ENV, RequestHaveSession } from "../types";
 import { globalDataInstance } from "../globalData";
 import { Privilege } from "../utils/privilege";
-import { setInfoToSession } from "../utils/sessionHelper";
+import { setInfoToSession } from "../helper/session";
+import { GetUserI } from "../helper/user";
 
 
 /**
@@ -19,38 +20,29 @@ import { setInfoToSession } from "../utils/sessionHelper";
  */
 export const verifyMiddleware = (level: string) => (request: RequestHaveSession, response: Response, next: NextFunction) => {
 
-    const session = request.session
-
-    // TODO 添加测试分支
-    if(process.env.NODE_ENV === NODE_ENV.dev){
-        // 没有挂载userId
-        setInfoToSession(request,{
-            account: globalDataInstance.getSuperUserAccount(),
-            controlArea:[],
-            level:0,
-            levelCodeRaw:'0000000' 
-        } as any);
+    // 当运行模式是开发环境的情况下, 设置为管理员账号
+    if (process.env.NODE_ENV === NODE_ENV.dev) {
+        setInfoToSession(request, {
+            userid: globalDataInstance.getSuperUserId(),
+            superUser: true
+        });
         return next();
     }
 
     // illegal access
-    if(!request.session.userId){
+    if (!request.session.userid) {
         return next(ResponseErrorCode['错误:非法请求']);
     }
 
-    const levelCodeRaw: LeveCodeRawType = session.levelCodeRaw;
+    // 在此之前的初始化中已经提供了 collection
+    GetUserI().getInfo(request.session.userid).then(result => {
 
-    if (Privilege.auth(level, levelCodeRaw)){
-        return next();
-    }else{
-        return next(ResponseErrorCode['错误:权限不足']);
-    }
+        if (Privilege.auth(level, result.levelcoderaw)) {
+            return next();
+        } else {
+            return next(ResponseErrorCode['错误:权限不足']);
+        }
 
-}
-
-/**
- * 过滤客户端时间范围请求
- */
-export const timeRange = () => {
+    }).catch(next);
 
 }

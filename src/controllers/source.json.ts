@@ -33,13 +33,13 @@ export const MiddlewaresOfGet: Array<Middleware> = [(request, response) => {
         start = parseInt(request.params.start),
         end = parseInt(request.params.end),
         isAdmin = request.session.level === 0,
-        isSpecialityAll = request.session.controlArea.length === 0,
+        isSpecialityAll = request.session.controlarea.length === 0,
         { speciality } = request.query;
 
     // 不是管理员且
     // 有专业范围限制
     // 且传入的字段和用户区域不匹配则返回错误
-    if (!isAdmin && !isSpecialityAll && speciality && request.session.controlArea.indexOf(speciality) === -1) {
+    if (!isAdmin && !isSpecialityAll && speciality && request.session.controlarea.indexOf(speciality) === -1) {
         return code400(response);
     }
 

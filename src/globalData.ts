@@ -29,7 +29,7 @@ export class GlobalData {
 
     private mongoDatabase: Db;
 
-    private superAccount:string;
+    private superUserId:string;
 
     private CWD: string;
 
@@ -109,19 +109,19 @@ export class GlobalData {
     }
 
     /**
-     * 设置超级管理员的账户名称
-     * @param account 账户名称
+     * 设置超级管理员的用户id
+     * @param userId 用户id
      */
-    setSuperUserAccount(account:string){
-        this.superAccount = account;
+    setSuperUserId(userId:string){
+        this.superUserId = userId;
         return this;
     }
 
     /**
-     * 获取超级管理员的账户名称
+     * 获取超级管理员的用户id
      */
-    getSuperUserAccount(){
-        return this.superAccount;
+    getSuperUserId(){
+        return this.superUserId;
     }
 
     /**

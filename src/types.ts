@@ -27,34 +27,57 @@ export interface Session {
     }
 }
 
-export interface ParsedSession{
+export interface ParsedSession {
     /**
      * 用户唯一id
      */
-    userId: string;
+    userid?: string;
     /**
      * 权限数值
      */
-    level: number;
+    level?: number;
     /**
      * 权限字符型
      */
-    levelCodeRaw: string;
+    levelcoderaw?: string;
     /**
      * 账户名称
      */
-    account:string;
+    account?: string;
     /**
      * 管理范围
      */
-    controlArea:Array<string>;
+    controlarea?: Array<string>;
+    /**
+     * 密码
+     */
+    password?: string;
+    /**
+     * 昵称
+     */
+    nickname?: string;
+    /**
+     * 最后登录时间
+     */
+    lastlogintime?: number;
+}
+
+export interface ParsedSessionNew {
+    /**
+     * 用户唯一id
+     */
+    userid: string;
+    /**
+     * 超级管理员标志
+     */
+    superUser?: boolean;
 }
 
 /**
  * 该接口描述了含有自定义Session的Request对象
  */
 export interface RequestHaveSession extends Request {
-    session: ParsedSession & Session;
+    session: ParsedSessionNew & Session;
 }
 
 /**
@@ -112,16 +135,16 @@ export interface restrictResponse {
     /**
      * 服务器响应的数据
      */
-    data?:any;
+    data?: any;
 }
 
 /**
  * 将多个中间件挂载到一个对象上,
  * 这个接口描述了这个类型
  */
-export interface MiddlewareTree{
-    LogMiddleware:Middleware;
-    SessionMiddleware:Middleware;
+export interface MiddlewareTree {
+    LogMiddleware: Middleware;
+    SessionMiddleware: Middleware;
     verifyMiddleware: typeof verifyMiddleware;
 }
 
@@ -129,7 +152,7 @@ export interface MiddlewareTree{
  * 该接口描述了一个用于挂载子路由的函数
  */
 export interface AddRoute {
-    (Middlewares:MiddlewareTree,globalInstance:GlobalData):Router;
+    (Middlewares: MiddlewareTree, globalInstance: GlobalData): Router;
 }
 
 /**
@@ -143,5 +166,5 @@ export type mode = 'development' | 'production';
 export type configTreeKeyType = 'configuration_static' | 'log_static' | 'model_assets' | 'model_users';
 
 export type configTree = {
-    [key in configTreeKeyType]:any;
+    [key in configTreeKeyType]: any;
 }

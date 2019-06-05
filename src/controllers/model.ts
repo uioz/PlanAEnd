@@ -54,7 +54,7 @@ export const MiddlewaresOfGet: Array<Middleware> = [
           });
         }else{
           const result = {};
-          for (const key of request.session.controlArea) {
+          for (const key of request.session.controlarea) {
             result[key] = findResult[key];
           }
           return responseAndTypeAuth(response,{
