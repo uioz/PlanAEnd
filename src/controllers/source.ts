@@ -62,18 +62,18 @@ export const DatabasePrefixName = 'source_';
  */
 export const correctQuery = async (request: RequestHaveLogger) => {
 
-  const 
+  const
     { userid, superUser } = request.session;
 
-  if(superUser){
+  if (superUser) {
     return {};
   }
 
   const result = await GetUserI().getInfo(userid);
 
-  if(result.controlarea.length === 0){
+  if (result.controlarea.length === 0) {
     return {};
-  }else{
+  } else {
     return { speciality: { $in: result.controlarea } }
   }
 
@@ -161,17 +161,37 @@ export const MiddlewaresOfPost: Array<Middleware | ErrorMiddleware> = [Multer.si
         type: 'buffer'
       })),
       workSheet = getDefaultSheets(workBook),
-      // TODO 查询用户信息后过滤
-      isAdmin = request.session.level === 0,
-      controlAll = request.session.controlarea.length === 0;
-
+      { userid, superUser } = request.session;
 
     if (workSheet && checkSourceData(workSheet)) {
 
       // 数组化工作表
       const arrayizeWorkSheet = transformLevelToArray(XlsxUtils.sheet_to_json(workSheet), getLevelIndexs(workSheet));
+
+      let jsonizeSourceData;
+
+      if(superUser){
+
+        jsonizeSourceData = arrayizeWorkSheet;
+
+      }else{
+
+        const result = await GetUserI().getInfo(userid);
+
+        if(result.controlarea.length === 0){
+
+          jsonizeSourceData = arrayizeWorkSheet;
+
+        }else{
+
+          jsonizeSourceData = correctSpeciality(arrayizeWorkSheet,result.controlarea);
+
+        }
+
+      }
+      
       // 利用控制区域字段来过滤上传的内容
-      const jsonizeSourceData = isAdmin || controlAll ? arrayizeWorkSheet : correctSpeciality(arrayizeWorkSheet, request.session.controlarea);
+      // const jsonizeSourceData = isAdmin || controlAll ? arrayizeWorkSheet : correctSpeciality(arrayizeWorkSheet, request.session.controlarea);
 
       writeOfSource(globalDataInstance.getMongoDatabase().collection(DatabasePrefixName + year), jsonizeSourceData).then((results: Array<InsertWriteOpResult>) => {
 

@@ -7,7 +7,6 @@ import { MiddlewareTree } from "./types";
 import * as source from "./controllers/source";
 import * as sourceJson from "./controllers/source.json";
 import * as model from "./controllers/model";
-import * as user from "./controllers/user";
 import * as assets from "./controllers/assets";
 import * as open from "./controllers/api.open";
 import * as login from "./controllers/login";
@@ -38,9 +37,6 @@ export default (app: Express, globalData: GlobalData) => {
     app.get(sourceJson.URL,SessionMiddleware,middlewareTree.LogMiddleware,verifyMiddleware(sourceJson.LevelIndexOfGet),sourceJson.MiddlewaresOfGet);
     app.get(model.URL,SessionMiddleware,middlewareTree.LogMiddleware,verifyMiddleware(model.LevelIndexOfGet),model.MiddlewaresOfGet);
     app.post(model.URL,SessionMiddleware,middlewareTree.LogMiddleware,verifyMiddleware(model.LevelIndexOfPost),model.MiddlewaresOfPost);
-    app.get(user.URL,SessionMiddleware,middlewareTree.LogMiddleware,verifyMiddleware(user.LevelIndexOfGet),user.MiddlewareOfGet);
-    app.post(user.URL,SessionMiddleware,middlewareTree.LogMiddleware,verifyMiddleware(user.LevelIndexOfPost),user.MiddlewareOfPost);
-    app.delete(user.URL,SessionMiddleware,middlewareTree.LogMiddleware,verifyMiddleware(user.LevelIndexOfDelete),user.MiddlewareOfDelete);
     app.use(assets.addRoute(middlewareTree,globalDataInstance));
     app.use(open.addRoute(middlewareTree, globalDataInstance));
     app.use(login.addRoute(middlewareTree,globalDataInstance));

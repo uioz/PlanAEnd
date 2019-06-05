@@ -59,7 +59,10 @@ export class GetUser extends BaseUser {
     return userId === this.userId ? true : false;
   }
 
-  public async getInfo(userId?: string) {
+  public async getInfo(userId?: string, projection: object = {
+    password: false,
+    lastlogintime: false
+  }) {
 
     userId = userId ? userId : this.userId;
 
@@ -74,12 +77,10 @@ export class GetUser extends BaseUser {
     const result = await this.collection.findOne({
       _id: userId
     }, {
-        projection: {
-          password: false,
-          lastlogintime: false
-        }
+        projection
       });
 
+    // 将数据库中的 _id 转为 userid
     result.userid = result._id;
     delete result._id;
 
@@ -141,7 +142,7 @@ export async function setUser(collection: Collection, data: ParsedSession) {
       controlarea: [],
       level: 63,
       levelcoderaw: '0111111',
-      lastlogintime: Date.now()
+      lastlogintime: Date.now(),
     },
     { userid: userId, ...rest } = data;
 

@@ -1,15 +1,5 @@
-import { Db, Collection, FilterQuery, } from "mongodb";
-import { Logger } from "log4js";
+import { Collection, FilterQuery, } from "mongodb";
 import { hidden_id } from "./utils";
-
-function autoLog<T extends Error>(error: T, logger: Logger) {
-    if (logger) {
-        return logger.error(error);
-    } else {
-        return console.error(error);
-    }
-}
-
 
 
 /**

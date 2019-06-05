@@ -8,15 +8,20 @@ import { SystemErrorCode, responseMessage } from "../code";
 import { globalDataInstance } from "../globalData";
 import sha1 from "sha1";
 import { setInfoToSession } from "../helper/session";
+import { GetUserI, setUser } from "../helper/user";
 
 /**
  * 该接口描述了POST请求用户传递内容数据的类型
  */
 interface PostShape {
   /**
+   * 用户id
+   */
+  userid: string;
+  /**
    * 账户名称
    */
-  account: string;
+  account?: string;
   /**
    * 用户昵称
    */
@@ -53,13 +58,13 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMid
       level: {
         $ne: 0
       }
-    },{
-      projection:{
-        _id:false,
-        password:false,
-        lastlogintime:false
-      }
-    })
+    }, {
+        projection: {
+          _id: false,
+          password: false,
+          lastlogintime: false
+        }
+      })
       .toArray()
       .then(result => {
         responseAndTypeAuth(response, {
@@ -81,7 +86,8 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMid
    * 定义请求格式验证模板
    */
   const postShape = apiCheck.shape({
-    account: apiCheck.string,
+    userid: apiCheck.string,
+    account: apiCheck.string.optional,
     nickname: apiCheck.string.optional,
     level: apiCheck.range(1, 63).optional,
     password: apiCheck.string.optional,
@@ -100,10 +106,10 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMid
     } else if (body.password && body.password.length !== 40) {
       logger400(request.logger, body, SystemErrorCode['错误:密钥验证错误']);
       return code400(response);
-    }/* else if (body.account && body.account === globalDataInstance.getSuperUserAccount()) {
+    } else if (request.session.superUser) {
       logger400(request.logger, body, SystemErrorCode['错误:尝试修改超级管理员'], undefined);
       return code400(response);
-    }*/
+    }
 
     return next();
 
@@ -125,8 +131,6 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMid
 
   }
 
-
-
   router.post('/api/users',
     JSONParser,
     SessionMiddleware,
@@ -136,100 +140,80 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMid
     postFormatMiddleware,
     (request: RequestHaveLogger, response) => {
 
-      const {
-        account,
-        ...rest
-      } = request.body as PostShape;
 
-      collection.updateOne({ account }, {
-        $set: {
-          ...rest
-        }
-      }, {
-          upsert: true,
-        })
-        .then(() => {
-
-          // 如果自己修改自己, 重置自己的session
-          if(request.session.account === account){
-            setInfoToSession(request,rest);
-          }
-          
-          return code200(response);
-        })
-        .catch(error => {
+      setUser(collection, request.body as PostShape)
+        .then(() => code200(response))
+        .catch((error) => {
           logger500(request.logger, request.body, undefined, error);
           return code500(response);
-        });
+        })
+
 
     });
 
+
   const deleteShape = apiCheck.shape({
-    account: apiCheck.string
+    userid: apiCheck.string
   }).strict
 
   const deleteCheckMiddleware: Middleware = (request, response, next) => {
 
-    const checkedResult = deleteShape(request.body);
+    const checkedResult = deleteShape(request.params);
 
     if (checkedResult instanceof Error) {
       logger400(request.logger, request.body, undefined, checkedResult);
       return code400(response);
     }
 
-    const { account } = request.body;
+    const { userid } = request.params;
 
-    // 不可以删除管理员
-    if (account === globalData.getSuperUserAccount()) {
-      logger400(request.logger, request.body, SystemErrorCode['错误:尝试修改超级管理员'], undefined);
+    if (userid === globalData.getSuperUserId()) {
+      logger400(request.logger, request.params, SystemErrorCode['错误:尝试修改超级管理员'], undefined);
       return code400(response);
     }
-
-    // TODO 测试 post
 
     return next();
 
   }
 
-  router.delete('/api/users/:account',
+  router.delete('/api/users/:userid',
     SessionMiddleware,
-    // LogMiddleware,
-    // verify,
+    LogMiddleware,
+    verify,
     deleteCheckMiddleware,
-    (request: RequestHaveLogger, response,next) => {
+    (request: RequestHaveLogger, response, next) => {
 
-      const { account } = request.body;
+      const { userid } = request.params;
 
       collection.deleteMany({
-        account
+        _id: userid
       }).then(deleteResult => {
 
         if (deleteResult.deletedCount > 0) {
           next();
         }
 
-        return responseAndTypeAuth(response,{
-          stateCode:200,
-          message:responseMessage['错误:暂无数据'],
+        return responseAndTypeAuth(response, {
+          stateCode: 200,
+          message: responseMessage['错误:暂无数据'],
         });
 
       }).catch(error => {
 
-        logger500(request.logger,request.body,SystemErrorCode['错误:数据库回调异常'],error);
+        logger500(request.logger, request.params, SystemErrorCode['错误:数据库回调异常'], error);
         return code500(response);
 
       });
 
-    },(request:RequestHaveLogger,response)=>{
+    }, (request: RequestHaveLogger, response) => {
 
-      // 如果删除的是自己则销毁 session
-      if(request.session.account === request.body.account){
+      const { userid } = request.params;
 
-        request.session.destroy((/** noop */)=>{});
-
+      if (userid === request.session.userid) {
+        request.session.destroy((/** noop */) => { });
       }
 
-      code200(response,responseMessage['删除成功']);
+      code200(response, responseMessage['删除成功']);
 
     });
 

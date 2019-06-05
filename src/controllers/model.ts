@@ -1,11 +1,13 @@
 import { LevelCode, responseMessage, SystemErrorCode } from "../code";
-import { Middleware, ErrorMiddleware } from "../types";
+import { Middleware, ErrorMiddleware, RequestHaveLogger } from "../types";
 import { globalDataInstance } from "../globalData";
 import { updateOfNoticeModelInModel } from "../model/collectionUpdate";
 import { writeOfModel } from "../model/collectionWrite";
-import { responseAndTypeAuth, code500, logger500, code200, autoReadOne } from "./public";
+import { responseAndTypeAuth, code500, logger500, code200, autoReadOne, logger400, code400 } from "./public";
 import { JSONParser } from "../middleware/jsonparser";
 import { CollectionName as AssetsCollectionName } from "./assets";
+import { GetUserI } from "../helper/user";
+import { readUserList } from "../model/collectionRead";
 
 /**
  * 简介:
@@ -35,42 +37,39 @@ export const CollectionName = 'model_speciality';
  * GET 对应的中间件
  */
 export const MiddlewaresOfGet: Array<Middleware> = [
-  (request, response, next) => {
-
-    // 此时通过的请求都是经过session验证的请求
-    // 此时挂载了logger 和 express-session 中间件
+  (request, response) => {
 
     const collection = globalDataInstance.getMongoDatabase().collection(CollectionName);
 
-    autoReadOne(collection, response, request.logger).then((findResult)=>{
+    (async function (collection) {
 
-      if(findResult){
+      const 
+        findResult = await autoReadOne(collection, response, request.logger),
+        completeResult = {};
 
-        // 如果是超级管理员直接返回获取到的内容
-        if(request.session.level === 0){
-          return responseAndTypeAuth(response, {
-            message: findResult,
-            stateCode: 200
-          });
-        }else{
-          const result = {};
-          for (const key of request.session.controlarea) {
-            result[key] = findResult[key];
-          }
-          return responseAndTypeAuth(response,{
-            message:result,
-            stateCode:200
-          });
+      // 如果有专业结构, 而且这名用户被限制了控制范围
+      // 返回控制范围和专业结构的交集
+      if(findResult && !request.session.superUser){
+
+        const { controlarea } = await GetUserI().getInfo(request.session.userid);
+
+        for (const key of controlarea) {
+          completeResult[key] = findResult[key];
         }
 
       }
 
-    }).catch(error => {
+      return responseAndTypeAuth(response, {
+        message: '',
+        stateCode: 200,
+        data:completeResult
+      });
 
-      (request as any).logger.error(error.stack);
-
+    })(collection).catch(error=>{
+      logger500(request.logger,undefined,undefined,error);
       return code500(response);
-    });      
+    });
+   
 
   }
 ]
@@ -120,7 +119,7 @@ const checkBody = (data: any) => {
  */
 export const MiddlewaresOfPost: Array<Middleware | ErrorMiddleware> = [
   JSONParser,
-  (error, request, response, next) => {
+  (error, request, response) => {
 
     // 记录错误栈
     (request as any).logger.warn(`${SystemErrorCode['警告:数据校验错误']} Original data from user ${request.body}`);
@@ -130,7 +129,7 @@ export const MiddlewaresOfPost: Array<Middleware | ErrorMiddleware> = [
       message: responseMessage['错误:数据校验错误']
     });
 
-  }, (request, response) => {
+  }, (request:RequestHaveLogger, response) => {
 
     try {
 
@@ -165,13 +164,8 @@ export const MiddlewaresOfPost: Array<Middleware | ErrorMiddleware> = [
       });
 
     } catch (error) {
-      // TODO 记录用户
-      request.logger.error(error);
-
-      return responseAndTypeAuth(response, {
-        stateCode: 400,
-        message: responseMessage['错误:数据校验错误']
-      });
+      logger400(request.logger,request.body,undefined,error);
+      return code400(response);
     }
 
   }

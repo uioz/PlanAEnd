@@ -1,11 +1,12 @@
-import { responseMessage } from "../code";
-import { LevelCode } from "../code";
+import { LevelCode, SystemErrorCode } from "../code";
 import { Middleware } from "../types";
 import { globalDataInstance } from "../globalData";
 import { checkNumber, DatabasePrefixName, correctQuery } from "./source";
-import { code400 } from "./public";
+import { code400, logger500, code500 } from "./public";
 import * as JSONStream from "JSONStream";
-
+import * as apiCheck from "api-check";
+import { GetUserI } from "../helper/user";
+import * as JsonStreamHelper from "../helper/jsonstream";
 
 /**
  * 说明:
@@ -23,57 +24,119 @@ export const URL = '/source/json/:year/:start/to/:end';
  */
 export const LevelIndexOfGet = LevelCode.View.toString();
 
-export const MiddlewaresOfGet: Array<Middleware> = [(request, response) => {
+interface GetParamsShape {
+  year: number;
+  start: number;
+  end: number;
+}
 
-    // 此时通过的请求都是经过session验证的请求
-    // 此时挂载了logger 和 express-session 中间件
+interface GetQueryShape {
+  speciality?: string;
+}
+
+const GetParamsShape = apiCheck.shape({
+  year: apiCheck.number,
+  start: apiCheck.number,
+  end: apiCheck.number
+}).strict;
+
+const GetQueryShape = apiCheck.shape({
+  speciality: apiCheck.string.optional
+}).strict;
+
+/**
+ * 这个中间件将 传入的 params 
+ * 1. 进行格式校验
+ *  1.1 params 格式校验
+ *  1.2 query 格式校验
+ * 2. 转为数值类型后进行校验
+ * 3. 给定的专业的字段是否存在于该用户的控制范围内的校验
+ */
+const GetCheckMiddleware: Middleware = (request, response, next) => {
+
+  // TODO 测试 params 中是否可以保存存在数值型
+
+  const
+    paramsCheckedResult = GetParamsShape(request.params),
+    queryCheckedResult = GetQueryShape(request.query);
+
+  if (paramsCheckedResult instanceof Error || queryCheckedResult instanceof Error) {
+    return code400(response);
+  }
+
+  // 格式化数据为数值型, 并且替换掉之前掉 request 中的格式化前的内容
+  const
+    year = (request.params.year = parseInt(request.params.year)),
+    start = (request.params.start = parseInt(request.params.start)),
+    end = (request.params.end = parseInt(request.params.end));
+
+  if (!checkNumber(year) || !checkNumber(start) || !checkNumber(end)) {
+    return code400(response);
+  }
+
+  // 管理员完成基本格式校验
+  // 如果是普通用户且没有指定 query 对应的专业类型, 说明它要获取所有的内容
+  // 这两种情况都进行直接跳转, 放弃校验
+  if (request.session.superUser && request.query.speciality === '') {
+    return next();
+  }
+
+  GetUserI()
+    .getInfo(request.session.userid)
+    .then(({ controlarea }) => {
+
+      // 控制区域数组长度 === 0 则表示可以控制所有专业字段
+      if (controlarea.length !== 0) {
+
+        // 检测该用户所控制的区域是否包含了, 它要获取的字段
+        // 如果没有则提示错误
+        if (controlarea.indexOf(request.query.speciality) === -1) {
+          return code400(response);
+        }
+
+      }
+
+      return next();
+
+    })
+    .catch(error => {
+      logger500(request.logger, request.body, SystemErrorCode['错误:数据库回调异常'], error);
+      return code500(response);
+    });
+
+}
+
+// TODO 等待测试
+
+export const MiddlewaresOfGet: Array<Middleware> = [GetCheckMiddleware, (request, response) => {
+
+  (async function (params: GetParamsShape, query: GetQueryShape) {
 
     const
-        year = parseInt(request.params.year),
-        start = parseInt(request.params.start),
-        end = parseInt(request.params.end),
-        isAdmin = request.session.level === 0,
-        isSpecialityAll = request.session.controlarea.length === 0,
-        { speciality } = request.query;
+      { year, start, end } = params,
+      { speciality } = query;
 
-    // 不是管理员且
-    // 有专业范围限制
-    // 且传入的字段和用户区域不匹配则返回错误
-    if (!isAdmin && !isSpecialityAll && speciality && request.session.controlarea.indexOf(speciality) === -1) {
-        return code400(response);
-    }
+    let filter;
 
-    // 时间全部正确
-    if (checkNumber(year) && checkNumber(start) && checkNumber(end)) {
-
-        // 如果提供了查询字段,则使用用户传入的内容进行查询
-        // 如果没有则使用所含有的查询范围进行查询
-        const query = speciality ? { speciality } : correctQuery(request.session);
-
-        const
-            open =
-                `
-                {
-                    stateCode:200,
-                    message:'',
-                    data:[
-                `,
-            spe =
-                `
-                ,
-                `,
-            close =
-                `
-                    ]
-                }
-                `;
-
-        globalDataInstance.getMongoDatabase().collection(DatabasePrefixName + year).find(query).sort({
-            number: 1,
-        }).skip(start).limit(end).stream().pipe(JSONStream.stringify(open,spe,close)).pipe(response.type('json'));
-
+    if (speciality) {
+      filter = { speciality };
     } else {
-        return code400(response);
+      filter = await correctQuery(request);
     }
+
+    globalDataInstance
+      .getMongoDatabase()
+      .collection(DatabasePrefixName + year)
+      .find(filter)
+      .sort({
+        number:1
+      })
+      .skip(start)
+      .limit(end)
+      .stream()
+      .pipe(JSONStream(JsonStreamHelper.open,JsonStreamHelper.spe,JsonStreamHelper.close))
+      .pipe(response.type('json'))
+
+  })(request.params, request.query);
 
 }];

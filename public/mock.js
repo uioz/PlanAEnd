@@ -1,6 +1,8 @@
 import { mock, setup, Random } from "mockjs";
 import pathToRegexp from "path-to-regexp";
 
+// TODO 修复 前端页面请求 model 以及其他的 response 的数据格式为标准格式
+
 setup({
   timeout: '200-600' // see https://github.com/nuysoft/Mock/wiki/Mock.setup()
 });
