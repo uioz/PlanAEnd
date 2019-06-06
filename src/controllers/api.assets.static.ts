@@ -28,7 +28,7 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMid
       storage: ImageDiskStorageGenerator(imageSavePath),
       limits: {
         fields: 2, // 非文件field字段的数量
-        fileSize: 1024 * 1024, // 文件大小限制在10MB以下
+        fileSize: 1024 * 1024 * 10, // 文件大小限制在10MB以下
         files: 1, // 文件数量
       },
       fileFilter: normalImageFilter
@@ -191,7 +191,8 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMid
         return code400(response);
       }
 
-      const result = DotProp.set((await collectionRead(collection)), MapsForAppImage[type], body.id);
+
+      const result = DotProp.set((await collectionRead(collection)), MapsForAppImage[type], globalDataInstance.makePublicFileUrl(body.id));
 
       collectionWrite(collection, result);
 

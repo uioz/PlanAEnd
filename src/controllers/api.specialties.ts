@@ -1,7 +1,7 @@
 import { AddRoute, RequestHaveSession, RequestHaveLogger } from "../types";
 import { Router } from "express";
 import { code500, responseAndTypeAuth, logger500 } from "./public";
-import { SystemErrorCode } from "../code";
+import { SystemErrorCode, responseMessage } from "../code";
 
 
 /**
@@ -55,6 +55,13 @@ export const addRoute: AddRoute = ({ verifyMiddleware, SessionMiddleware, LogMid
             data: Array.from(resultSet),
             message: ''
           });
+        }else{
+
+          return responseAndTypeAuth(response,{
+            stateCode:200,
+            message:responseMessage['错误:指定的数据不存在']
+          });
+
         }
 
       });

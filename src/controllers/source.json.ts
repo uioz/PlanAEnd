@@ -54,8 +54,6 @@ const GetQueryShape = apiCheck.shape({
  */
 const GetCheckMiddleware: Middleware = (request, response, next) => {
 
-  // TODO 测试 params 中是否可以保存存在数值型
-
   const
     paramsCheckedResult = GetParamsShape(request.params),
     queryCheckedResult = GetQueryShape(request.query);
@@ -106,8 +104,6 @@ const GetCheckMiddleware: Middleware = (request, response, next) => {
 
 }
 
-// TODO 等待测试
-
 export const MiddlewaresOfGet: Array<Middleware> = [GetCheckMiddleware, (request, response) => {
 
   (async function (params: GetParamsShape, query: GetQueryShape) {
@@ -115,8 +111,6 @@ export const MiddlewaresOfGet: Array<Middleware> = [GetCheckMiddleware, (request
     const
       { year, start, end } = params,
       { speciality } = query;
-
-    // debugger;
 
     let filter;
 
@@ -136,8 +130,8 @@ export const MiddlewaresOfGet: Array<Middleware> = [GetCheckMiddleware, (request
       .skip(start)
       .limit(end)
       .stream()
-      .pipe(JSONStream(JsonStreamHelper.open,JsonStreamHelper.spe,JsonStreamHelper.close))
-      .pipe(response.type('json'))
+      .pipe(JSONStream.stringify(JsonStreamHelper.open,JsonStreamHelper.spe,JsonStreamHelper.close))
+      .pipe(response.type('json'));
 
   })(request.params, request.query);
 

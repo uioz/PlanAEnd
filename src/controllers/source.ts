@@ -65,17 +65,11 @@ export const correctQuery = async (request: RequestHaveLogger) => {
   const
     { userid, superUser } = request.session;
 
-  // debugger;
-
   if (superUser) {
     return {};
   }
 
-  debugger;
-
   const result = await GetUserI().getInfo(userid);
-
-  debugger;
 
   if (result.controlarea.length === 0) {
     return {};
@@ -99,11 +93,11 @@ export const MiddlewaresOfGet: Array<Middleware> = [(request: RequestHaveLogger,
       query = await correctQuery(request),
       resultArray = [];
 
-    debugger;
     
     collection.find(query, {
       projection: {
-        _id: false
+        _id: false,
+        specialityPath:false
       }
     }).forEach(itemObj => resultArray.push(itemObj), () => {
       if (resultArray.length) {

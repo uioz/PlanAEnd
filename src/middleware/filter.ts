@@ -29,7 +29,7 @@ export const verifyMiddleware = (level: string) => (request: RequestHaveSession,
         // TODO 写入一个普通用户 userid 是运行时数据库生成的id
         // TODO 测试 source.json
         setInfoToSession(request, {
-            userid: "user",
+            userid: "5cf875d53206cb1df4962436",
         });
         return next();
     }

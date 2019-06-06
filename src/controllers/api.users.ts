@@ -6,7 +6,7 @@ import { JSONParser } from "../middleware/jsonparser";
 import * as apiCheck from "api-check";
 import { SystemErrorCode, responseMessage } from "../code";
 import { globalDataInstance } from "../globalData";
-import sha1 from "sha1";
+import * as sha1 from "sha1";
 import { setInfoToSession } from "../helper/session";
 import { GetUserI, setUser } from "../helper/user";
 
@@ -86,7 +86,7 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMid
    * 定义请求格式验证模板
    */
   const postShape = apiCheck.shape({
-    userid: apiCheck.string,
+    userid: apiCheck.string.optional,
     account: apiCheck.string.optional,
     nickname: apiCheck.string.optional,
     level: apiCheck.range(1, 63).optional,

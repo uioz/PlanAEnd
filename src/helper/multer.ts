@@ -24,7 +24,7 @@ export const ImageDiskStorageGenerator = (path: string) => {
  */
 export const normalImageFilter = (request,file,callback)=>{
 
-  const passType = new Set(['jpg','png']);
+  const passType = new Set(['jpg','png','jpeg']);
 
   if (passType.has(getExtension(file.mimetype))){
     callback(null,true);

@@ -102,7 +102,7 @@ export const addRoute:AddRoute = ({LogMiddleware,SessionMiddleware,verifyMiddlew
     }
 
     if(requestBody.systemMessage){
-      data['globalnotice.client'] = requestBody.systemMessage;
+      data['globalnotice.server'] = requestBody.systemMessage;
     }
 
     if(Object.keys(data).length){

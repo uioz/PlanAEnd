@@ -1,4 +1,4 @@
-import { Collection } from "mongodb";
+import { Collection, ObjectID } from "mongodb";
 import { ParsedSession } from "../types";
 
 abstract class BaseUser {
@@ -74,14 +74,17 @@ export class GetUser extends BaseUser {
       return this.userInfo;
     }
 
-    const result = await this.collection.findOne({
-      _id: userId
-    }, {
+    const result = await this.collection.findOne(
+      {
+        _id:new ObjectID(userId)
+      },
+      {
         projection
-      });
+      }
+    );
 
     // 将数据库中的 _id 转为 userid
-    result.userid = result._id;
+    result.userid = result._id+'';
     delete result._id;
 
     this.userInfo = result;
@@ -123,7 +126,7 @@ export function GetUserI(userId?: string, collection?: Collection) {
 
 async function userExist(collection: Collection, userId: string) {
   return !!(await collection.findOne({
-    _id: userId
+    _id: new ObjectID(userId)
   }));
 }
 
@@ -149,8 +152,12 @@ export async function setUser(collection: Collection, data: ParsedSession) {
   if (await userExist(collection, userId)) {
 
     return collection.updateOne({
-      _id: userId
-    }, rest)
+      _id: new ObjectID(userId)
+    }, {
+      $set:{
+        ...rest
+      }
+    })
 
   } else if (rest.account && rest.password && rest.nickname) {
 
