@@ -60,18 +60,26 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMid
       }
     }, {
         projection: {
-          _id: false,
           password: false,
           lastlogintime: false
-        }
+        },
       })
       .toArray()
       .then(result => {
+
+        const formated = result.map(({ _id, ...rest})=>{
+          return {
+            userid:_id,
+            ...rest
+          }
+        });
+
         responseAndTypeAuth(response, {
           stateCode: 200,
-          data: result,
+          data: formated,
           message: ''
         });
+
       })
       .catch(error => {
 
