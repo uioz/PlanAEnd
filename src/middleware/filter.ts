@@ -22,15 +22,13 @@ export const verifyMiddleware = (level: string) => (request: RequestHaveSession,
 
     // 当运行模式是开发环境的情况下, 设置为管理员账号
     if (process.env.NODE_ENV === NODE_ENV.dev) {
-        // setInfoToSession(request, {
-        //     userid: globalDataInstance.getSuperUserId(),
-        //     superUser: true
-        // });
-        // TODO 写入一个普通用户 userid 是运行时数据库生成的id
-        // TODO 测试 source.json
         setInfoToSession(request, {
-            userid: "5cf875d53206cb1df4962436",
+            userid: globalDataInstance.getSuperUserId(),
+            superUser: true
         });
+        // setInfoToSession(request, {
+        //     userid: "5cf875d53206cb1df4962436",
+        // });
         return next();
     }
 

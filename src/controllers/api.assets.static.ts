@@ -155,8 +155,8 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMid
 
     const shape = apiCheck.shape({
       id: apiCheck.string,
-      src: apiCheck.string,
-      fileName: apiCheck.string
+      src: apiCheck.string.optional,
+      fileName: apiCheck.string.optional
     }).strict;
 
     const checkedResult = shape(request.body);

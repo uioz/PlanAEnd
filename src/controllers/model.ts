@@ -43,18 +43,25 @@ export const MiddlewaresOfGet: Array<Middleware> = [
 
     (async function (collection) {
 
-      const 
-        findResult = await autoReadOne(collection, response, request.logger),
-        completeResult = {};
+      const
+        findResult = await autoReadOne(collection, response, request.logger);
+
+      let completeResult = {};
 
       // 如果有专业结构, 而且这名用户被限制了控制范围
       // 返回控制范围和专业结构的交集
-      if(findResult && !request.session.superUser){
+      if (request.session.superUser) {
+        completeResult = findResult;
+      } else {
 
         const { controlarea } = await GetUserI().getInfo(request.session.userid);
-
-        for (const key of controlarea) {
-          completeResult[key] = findResult[key];
+        // 如果控制区域为 0 则表示可以获取所有区域的结构
+        if (controlarea.length > 0) {
+          for (const key of controlarea) {
+            completeResult[key] = findResult[key];
+          }
+        } else {
+          completeResult = findResult;
         }
 
       }
@@ -62,19 +69,20 @@ export const MiddlewaresOfGet: Array<Middleware> = [
       return responseAndTypeAuth(response, {
         message: '',
         stateCode: 200,
-        data:completeResult
+        data: completeResult
       });
 
-    })(collection).catch(error=>{
-      logger500(request.logger,undefined,undefined,error);
+    })(collection).catch(error => {
+      logger500(request.logger, undefined, undefined, error);
       return code500(response);
     });
-   
+
 
   }
 ]
 
-const patternOfData = new RegExp(`^[\u2E80-\u2EFF\u2F00-\u2FDF\u3000-\u303F\u31C0-\u31EF\u3200-\u32FF\u3300-\u33FF\u3400-\u4DBF\u4DC0-\u4DFF\u4E00-\u9FBF\uF900-\uFAFF\uFE30-\uFE4F\uFF00-\uFFEF\\w]{1,10}$`);
+// const patternOfData = new RegExp(`^[\u2E80-\u2EFF\u2F00-\u2FDF\u3000-\u303F\u31C0-\u31EF\u3200-\u32FF\u3300-\u33FF\u3400-\u4DBF\u4DC0-\u4DFF\u4E00-\u9FBF\uF900-\uFAFF\uFE30-\uFE4F\uFF00-\uFFEF\\w]{1,10}$`);
+const patternOfData = new RegExp(/^\S{1,20}$/);
 
 /**
  * 递归数据检测上传的专业模型是否符合规范
@@ -84,7 +92,7 @@ const patternOfData = new RegExp(`^[\u2E80-\u2EFF\u2F00-\u2FDF\u3000-\u303F\u31C
 const checkBody = (data: any) => {
   if (Array.isArray(data)) {
     // 检查数组中是否有重名的
-    if (new Set(data).size === data.length){
+    if (new Set(data).size === data.length) {
       for (const item of data) {
         // 检测所有的值是否通过了验证
         if (!patternOfData.test(item)) {
@@ -92,7 +100,7 @@ const checkBody = (data: any) => {
         }
       }
       return;
-    }else{
+    } else {
       throw new Error("The element of array can't be repeat.")
     }
 
@@ -119,52 +127,43 @@ const checkBody = (data: any) => {
  */
 export const MiddlewaresOfPost: Array<Middleware | ErrorMiddleware> = [
   JSONParser,
-  (error, request, response) => {
-
-    // 记录错误栈
-    (request as any).logger.warn(`${SystemErrorCode['警告:数据校验错误']} Original data from user ${request.body}`);
-    (request as any).logger.error(error);
-    return responseAndTypeAuth(response,{
-      stateCode:400,
-      message: responseMessage['错误:数据校验错误']
-    });
-
-  }, (request:RequestHaveLogger, response) => {
+  (request: RequestHaveLogger, response) => {
 
     try {
 
-      const 
+      const
         SourceData = request.body,
         Database = globalDataInstance.getMongoDatabase();
 
       checkBody(SourceData);
 
-      updateOfNoticeModelInModel(Database.collection(AssetsCollectionName),SourceData).then(({result})=>{
+      // 同步到通知模型上, 同步成功专业模型储存
+      updateOfNoticeModelInModel(Database.collection(AssetsCollectionName), SourceData).then(({ result }) => {
 
-        if(result.ok){
+        if (result.ok) {
           return writeOfModel(Database.collection(CollectionName), SourceData);
         }
 
-        logger500(request.logger,SourceData,SystemErrorCode['错误:数据库回调异常']);
+        logger500(request.logger, SourceData, SystemErrorCode['错误:数据库回调异常']);
         code500(response);
 
-      }).then((writeResult)=>{
+      }).then((writeResult) => {
 
-        if(writeResult.ok){
+        if (writeResult.ok) {
           code200(response);
-        }else{
+        } else {
           logger500(request.logger, SourceData, SystemErrorCode['错误:数据库回调异常']);
           code500(response);
         }
-        
+
       })
-      .catch((error)=>{
-        logger500(request.logger,SourceData,SystemErrorCode['错误:数据库回调异常'],error);
-        code500(response);
-      });
+        .catch((error) => {
+          logger500(request.logger, SourceData, SystemErrorCode['错误:数据库回调异常'], error);
+          code500(response);
+        });
 
     } catch (error) {
-      logger400(request.logger,request.body,undefined,error);
+      logger400(request.logger, request.body, undefined, error);
       return code400(response);
     }
 

@@ -4,6 +4,7 @@ import * as apiCheck from "api-check";
 import { code500, logger500,responseAndTypeAuth, logger400, code400, code200 } from "./public";
 import { SystemErrorCode,LevelCode } from "../code";
 import { JSONParser } from "../middleware/jsonparser";
+import * as DotProp from "dot-prop";
 
 /**
  * 该类型用于描述资源操作中的JSON结构
@@ -27,6 +28,21 @@ interface AssetsShape {
   clientMessage?: string;
 }
 
+interface AssetsShapeForResponse extends Required<AssetsShape> {
+  /**
+   * logo
+   */
+  logo:string;
+  /**
+   * 客户端背景图片
+   */
+  clientBackground:string;
+  /**
+   * 服务端背景图片
+   */
+  systemBackground:string;
+}
+
 /**
  * 定义资源请求/获取 数据结构验证模板
  */
@@ -46,21 +62,25 @@ export const addRoute:AddRoute = ({LogMiddleware,SessionMiddleware,verifyMiddlew
     assetsLevelCode = LevelCode.StaticMessageIndex.toString(),
     verify = verifyMiddleware(assetsLevelCode);
     
-  router.get('/api/assets', SessionMiddleware, LogMiddleware, verify, (request: RequestHaveLogger,response)=>{
+  router.get('/api/assets', LogMiddleware, (request: RequestHaveLogger,response)=>{
 
     colletion.findOne({},{
       projection:{
         _id:0,
         appname:1,
-        globalnotice:1
+        globalnotice:1,
+        image:1
       }
     }).then((result)=>{
 
-      const data:AssetsShape = {
-        systemName:result.appname.server,
-        clientName:result.appname.client,
-        systemMessage: result.globalnotice.server,
-        clientMessage:result.globalnotice.client
+      const data: AssetsShapeForResponse = {
+        systemName: DotProp.get(result, 'appname.server'),
+        clientName: DotProp.get(result, 'appname.client'),
+        systemMessage: DotProp.get(result, 'globalnotice.server'),
+        clientMessage: DotProp.get(result, 'globalnotice.client'),
+        systemBackground: DotProp.get(result, 'image.serverbackground'),
+        clientBackground: DotProp.get(result, 'image.clientbackground'),
+        logo: DotProp.get(result, 'image.logo'),
       };
 
       responseAndTypeAuth(response,{

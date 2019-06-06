@@ -186,6 +186,9 @@ mock('/api/assets', 'get', {
     clientName: '@word',
     systemMessage: '@word',
     clientMessage: '@word',
+    systemBackground:'@word',
+    clientBackground:'@word',
+    logo:'@word'
   }
 });
 

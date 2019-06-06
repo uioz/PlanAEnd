@@ -37,35 +37,15 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMid
     collection = globalDataInstance.getMongoDatabase().collection(CollectionName),
     verify = verifyMiddleware(LevelIndexOfPost);
 
-  // 获取专业字段内容
-  router.get('/assets/speciality', LogMiddleware,verify, SessionMiddleware, (request: RequestHaveLogger, response, next) => {
+  // 获取专业通知模型
+  router.get('/assets/speciality', SessionMiddleware, LogMiddleware,verify, (request: RequestHaveLogger, response, next) => {
 
     autoReadOne(collection, response, request.logger).then(({ speciality }) => {
       responseAndTypeAuth(response, {
         stateCode: 200,
-        message: speciality
+        message: '',
+        data: speciality
       });
-    });
-
-  });
-
-  // 获取其他资源
-  router.get('/assets/:type/:key', LogMiddleware,verify, SessionMiddleware, (request: RequestHaveLogger, response, next) => {
-
-    const { type, key } = request.params;
-
-    autoReadOne(collection, response, request.logger).then(result => {
-
-      try {
-        responseAndTypeAuth(response, {
-          stateCode: 200,
-          message: result[type][key]
-        });
-      } catch (error) {
-        code500(response);
-        logger500(request.logger, request.params, SystemErrorCode['错误:匹配数据库数据失败'])
-      }
-
     });
 
   });
@@ -87,6 +67,27 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMid
         logger500(request.logger, OriginalNoticeModel, SystemErrorCode['错误:数据库回调异常'], error);
         code500(response);
       });
+
+  });
+
+  // 获取其他资源
+  router.get('/assets/:type/:key', LogMiddleware,verify, SessionMiddleware, (request: RequestHaveLogger, response, next) => {
+
+    const { type, key } = request.params;
+
+    autoReadOne(collection, response, request.logger).then(result => {
+
+      try {
+        responseAndTypeAuth(response, {
+          stateCode: 200,
+          message: result[type][key]
+        });
+      } catch (error) {
+        code500(response);
+        logger500(request.logger, request.params, SystemErrorCode['错误:匹配数据库数据失败'])
+      }
+
+    });
 
   });
 
