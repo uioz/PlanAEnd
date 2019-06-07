@@ -38,7 +38,7 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMid
     verify = verifyMiddleware(LevelIndexOfPost);
 
   // 获取专业通知模型
-  router.get('/assets/speciality', SessionMiddleware, LogMiddleware,verify, (request: RequestHaveLogger, response, next) => {
+  router.get('/specialties/broadcast', SessionMiddleware, LogMiddleware,verify, (request: RequestHaveLogger, response, next) => {
 
     autoReadOne(collection, response, request.logger).then(({ speciality }) => {
       responseAndTypeAuth(response, {
@@ -51,7 +51,7 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMid
   });
 
   // 修改通知模型
-  router.post('/assets/speciality', SessionMiddleware, LogMiddleware, verify, JSONParser, (request: RequestHaveLogger, response) => {
+  router.post('/specialties/broadcast', SessionMiddleware, LogMiddleware, verify, JSONParser, (request: RequestHaveLogger, response) => {
 
     const
       OriginalNoticeModel = request.body,

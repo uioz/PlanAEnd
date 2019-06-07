@@ -8,6 +8,7 @@ import { Middleware } from "../types";
  */
 export const NotFoundMiddleware:Middleware = (request,response)=>{
     (request as any).logger.warn(`404 Not Found in ${request.url}`);
+    response.status(404);
     response.end('404 Not Found');
 };
 

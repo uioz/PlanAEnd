@@ -131,7 +131,6 @@ export const MiddlewaresOfGet: Array<Middleware> = [(request: RequestHaveLogger,
 
   })();
 
-
 }];
 
 /**

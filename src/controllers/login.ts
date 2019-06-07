@@ -67,44 +67,53 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware }, globalD
       collection.findOne(requestBody)
         .then((result) => {
 
-          // 基本内容检查
           if (!result) {
-            return code400(response, responseMessage['错误:用户不存在']);
+            return code400(response, responseMessage['错误:帐号或者密码错误']);
           }
 
-          // session 写入
-          if (result.level !== 0) {
-            setInfoToSession(request, { userid: result._id + '' });
-          } else {
-            setInfoToSession(request, {
-              userid: result._id + '',
-              superUser: true
-            });
-          }
+          // 重建 session 后写入新的用户id 
+          request.session.regenerate((error) => {
 
-          // 写入最后登录时间
-          collection.updateOne({
-            account: result.account
-          }, {
-              $set: {
-                lastlogintime: Date.now()
-              }
-            }).catch((error) => {
-              logger500(request.logger, requestBody, SystemErrorCode['错误:数据库回调异常'], error);
-            });
-
-          return responseAndTypeAuth(response, {
-            stateCode: 200,
-            message: responseMessage['登陆成功'],
-            data: {
-              nickName: result.nickname,
-              level: result.level,
-              levelCodeRaw: result.levelcoderaw,
-              controlArea: result.controlarea
+            if (error) {
+              return logger500(request.logger, requestBody, SystemErrorCode['错误:session移出失败'], error);
             }
+
+            // session 写入
+            if (result.level !== 0) {
+              setInfoToSession(request, { userid: result._id + '' });
+            } else {
+              setInfoToSession(request, {
+                userid: result._id + '',
+                superUser: true
+              });
+            }
+
+            responseAndTypeAuth(response, {
+              stateCode: 200,
+              message: responseMessage['登陆成功'],
+              data: {
+                nickName: result.nickname,
+                level: result.level,
+                levelCodeRaw: result.levelcoderaw,
+                controlArea: result.controlarea
+              }
+            });
+
+            // 写入最后登录时间
+            collection.updateOne({
+              account: result.account
+            }, {
+                $set: {
+                  lastlogintime: Date.now()
+                }
+              }).catch((error) => {
+                logger500(request.logger, requestBody, SystemErrorCode['错误:数据库回调异常'], error);
+              });
+
           });
 
-        }).catch((error) => {
+        })
+        .catch((error) => {
           logger500(request.logger, requestBody, SystemErrorCode['错误:数据库读取错误'], error);
           code400(response);
         });
