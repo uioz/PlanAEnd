@@ -5,6 +5,7 @@ import { logger400, code400, logger500, responseAndTypeAuth, code500 } from "./p
 import { responseMessage, SystemErrorCode } from "../code";
 import { JSONParser } from "../middleware/jsonparser";
 import { setInfoToSession } from "../helper/session";
+import * as sha1 from "sha1";
 
 
 /**
@@ -61,55 +62,52 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware }, globalD
         return code400(response);
       }
 
-      collection.findOne({
-        account: requestBody.account
-      }).then((result) => {
+      requestBody.password = sha1(requestBody.password);
 
-        // 基本内容检查
-        if (!result) {
-          return code400(response, responseMessage['错误:用户不存在']);
-        }
+      collection.findOne(requestBody)
+        .then((result) => {
 
-        if (result.password !== requestBody.password) {
-          return code400(response, responseMessage['错误:帐号或者密码错误']);
-        }
-
-        // session 写入
-        if (result.level !== 0) {
-          setInfoToSession(request, { userid: result._id+'' });
-        } else {
-          setInfoToSession(request, {
-            userid: result._id+'',
-            superUser: true
-          });
-        }
-
-        // 写入最后登录时间
-        collection.updateOne({
-          account: result.account
-        }, {
-            $set: {
-              lastlogintime: Date.now()
-            }
-          }).catch((error) => {
-            logger500(request.logger, requestBody, SystemErrorCode['错误:数据库回调异常'], error);
-          });
-
-        return responseAndTypeAuth(response, {
-          stateCode: 200,
-          message: responseMessage['登陆成功'],
-          data: {
-            nickName: result.nickname,
-            level: result.level,
-            levelCodeRaw: result.levelcoderaw,
-            controlArea: result.controlarea
+          // 基本内容检查
+          if (!result) {
+            return code400(response, responseMessage['错误:用户不存在']);
           }
-        });
 
-      }).catch((error) => {
-        logger500(request.logger, requestBody, SystemErrorCode['错误:数据库读取错误'], error);
-        code400(response);
-      });
+          // session 写入
+          if (result.level !== 0) {
+            setInfoToSession(request, { userid: result._id + '' });
+          } else {
+            setInfoToSession(request, {
+              userid: result._id + '',
+              superUser: true
+            });
+          }
+
+          // 写入最后登录时间
+          collection.updateOne({
+            account: result.account
+          }, {
+              $set: {
+                lastlogintime: Date.now()
+              }
+            }).catch((error) => {
+              logger500(request.logger, requestBody, SystemErrorCode['错误:数据库回调异常'], error);
+            });
+
+          return responseAndTypeAuth(response, {
+            stateCode: 200,
+            message: responseMessage['登陆成功'],
+            data: {
+              nickName: result.nickname,
+              level: result.level,
+              levelCodeRaw: result.levelcoderaw,
+              controlArea: result.controlarea
+            }
+          });
+
+        }).catch((error) => {
+          logger500(request.logger, requestBody, SystemErrorCode['错误:数据库读取错误'], error);
+          code400(response);
+        });
 
     });
 

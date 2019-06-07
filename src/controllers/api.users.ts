@@ -114,7 +114,7 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMid
     } else if (body.password && body.password.length !== 40) {
       logger400(request.logger, body, SystemErrorCode['错误:密钥验证错误']);
       return code400(response);
-    } else if (request.session.superUser) {
+    } else if (body.userid && body.userid === globalData.getSuperUserId()) {
       logger400(request.logger, body, SystemErrorCode['错误:尝试修改超级管理员'], undefined);
       return code400(response);
     }
