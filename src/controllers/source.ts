@@ -136,7 +136,7 @@ export const MiddlewaresOfGet: Array<Middleware> = [(request: RequestHaveLogger,
 /**
  * POST下对应的处理中间件
  */
-export const MiddlewaresOfPost: Array<Middleware | ErrorMiddleware> = [Multer.single('data'), (error, request, response, next) => {
+export const MiddlewaresOfPost: Array<Middleware | ErrorMiddleware> = [Multer.single('file'), (error, request, response, next) => {
 
   // 如果是multer的错误则记录错误
   if ((error as any) instanceof (multer as any).MulterError) {

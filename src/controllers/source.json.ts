@@ -123,7 +123,11 @@ export const MiddlewaresOfGet: Array<Middleware> = [GetCheckMiddleware, (request
     globalDataInstance
       .getMongoDatabase()
       .collection(DatabasePrefixName + year)
-      .find(filter)
+      .find(filter,{
+        projection:{
+          _id:false
+        }
+      })
       .sort({
         number:1
       })
