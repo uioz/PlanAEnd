@@ -3,7 +3,7 @@ import { globalDataInstance } from "../globalData";
 import { code200 } from "../controllers/public";
 import { responseMessage } from "../code";
 
-interface ReuqestHaveClientAccess extends RequestHaveLogger{
+export interface ReuqestHaveClientAccess extends RequestHaveLogger{
   clientAccess:{
     open:boolean;
     force:boolean;
