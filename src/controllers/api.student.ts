@@ -6,7 +6,7 @@ import { responseMessage, SystemErrorCode } from "../code";
 import { clientOpenFetchMiddleware, clientAccessControlMiddleware, ReuqestHaveClientAccess } from "../middleware/clientaccess";
 import * as Dotprop from "dot-prop";
 
-const addRoute: AddRoute = ({ LogMiddleware }, globalDataInstance) => {
+export const addRoute: AddRoute = ({ LogMiddleware }, globalDataInstance) => {
 
 
   const router = Router();
@@ -21,13 +21,12 @@ const addRoute: AddRoute = ({ LogMiddleware }, globalDataInstance) => {
   const QueryShape = apiCheck.shape({
     number: apiCheck.string,
     name: apiCheck.string,
-    picked:apiCheck.string // only work on post
   }).strict;
 
   interface QueryShape {
     name: string;
-    number:string;
-    picked:string;
+    number: string;
+    picked: string;
   }
 
   const shapeCheckMiddleware: Middleware = (request, response, next) => {
@@ -55,7 +54,7 @@ const addRoute: AddRoute = ({ LogMiddleware }, globalDataInstance) => {
       /**
        * 用户学号
        */
-      number:string;
+      number: string;
     }
   }
 
@@ -71,7 +70,9 @@ const addRoute: AddRoute = ({ LogMiddleware }, globalDataInstance) => {
        * }
        */
 
-      const result = await studenCollection.findOne(query, {
+      const { name, number } = request.query;
+
+      const result = await studenCollection.findOne({name,number}, {
         projection: {
           _id: false
         }
@@ -84,7 +85,7 @@ const addRoute: AddRoute = ({ LogMiddleware }, globalDataInstance) => {
 
       code200(response, responseMessage['错误:用户不存在']);
 
-    })(request, request.query, studentCollection)
+    })(request, request.query, studentCollection);
 
   }
 
@@ -99,12 +100,12 @@ const addRoute: AddRoute = ({ LogMiddleware }, globalDataInstance) => {
       (async (modelCollection) => {
 
         // 获取该学生对应大类的数据
-        const specialityModel = await modelCollection.findOne({})[request.studentInfo.speciality];
+        const specialityModel = (await modelCollection.findOne({}))[request.studentInfo.speciality];
 
         responseAndTypeAuth(response, {
           stateCode: 200,
           message: '',
-          data: Dotprop.get(specialityModel, request.studentInfo.specialityPath.join('.'))
+          data: Dotprop.get(specialityModel, request.studentInfo.specialityPath.join('.'),specialityModel)
         });
 
       })(modelCollection)
@@ -151,44 +152,65 @@ const addRoute: AddRoute = ({ LogMiddleware }, globalDataInstance) => {
 
       }
 
-      responseAndTypeAuth(response,responseData);
+      responseAndTypeAuth(response, responseData);
 
     });
 
+  const QueryShapeForPost = apiCheck.shape({
+    number: apiCheck.string,
+    name: apiCheck.string,
+    picked: apiCheck.string.optional // only work on post
+  });
+
+  const postShapeCheckMiddleware: Middleware = (request, response, next) => {
+
+    const checkedResult = QueryShapeForPost(request.query);
+
+    if (checkedResult instanceof Error) {
+
+      logger400(request.logger, request.query, undefined, checkedResult);
+      code400(response);
+      return;
+
+    }
+
+    return next();
+
+  }
 
   /**
    * 修改用户所上传的内容
    */
   router.post('/api/student/result',
     LogMiddleware,
-    shapeCheckMiddleware,
+    postShapeCheckMiddleware,
     clientOpenFetchMiddleware,
     clientAccessControlMiddleware,
     studentIsExistMiddleware,
     (request: ReuqestHaveClientAccess & StudentIsExist, response) => {
 
-      const { number,picked } = request.query as QueryShape;
+      const { number, picked } = request.query as QueryShape;
 
       studentCollection.updateOne({
         number
-      },{
-        $set:{
-          picked
-        }
-      })
-      .then(updateResult=>{
+      }, {
+          $set: {
+            picked
+          }
+        })
+        .then(updateResult => {
 
-        responseAndTypeAuth(response, {
-          stateCode: 200,
-          message: '',
-          data: !!updateResult.result.nModified // 如果修改数为 0 返回false 反之返回 true
+          responseAndTypeAuth(response, {
+            stateCode: 200,
+            message: '',
+            data: updateResult.result.nModified // 如果修改数为 0 返回false 反之返回 true
+          });
+
+        })
+        .catch(error => {
+          code500(response);
+          logger500(request.logger, request.query, SystemErrorCode['错误:数据库回调异常'], error);
         });
-
-      })
-      .catch(error=>{
-        code500(response);
-        logger500(request.logger,request.query,SystemErrorCode['错误:数据库回调异常'],error);
-      });
 
     });
 

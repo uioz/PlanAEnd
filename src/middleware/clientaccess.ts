@@ -26,6 +26,8 @@ export const clientOpenFetchMiddleware: Middleware = (request: ReuqestHaveClient
 
     request.clientAccess = (await collection.findOne({}, { projection: { _id: false } }))['client'];
 
+    return next();
+
   })(globalDataInstance.getMongoDatabase().collection('configuration_static'));
 
 }

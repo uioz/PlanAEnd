@@ -18,6 +18,7 @@ import * as apiSpecialties  from "./controllers/api.specialties";
 import * as apiAssets from "./controllers/api.assets";
 import * as apiAssetsStatic from "./controllers/api.assets.static";
 import * as apiUsers from "./controllers/api.users";
+import * as apiStudent from "./controllers/api.student";
 
 export default (app: Express, globalData: GlobalData) => {
 
@@ -48,5 +49,6 @@ export default (app: Express, globalData: GlobalData) => {
     app.use(apiAssets.addRoute(middlewareTree,globalDataInstance));
     app.use(apiAssetsStatic.addRoute(middlewareTree,globalDataInstance));
     app.use(apiUsers.addRoute(middlewareTree, globalDataInstance));
+    app.use(apiStudent.addRoute(middlewareTree, globalDataInstance));
 
 }
