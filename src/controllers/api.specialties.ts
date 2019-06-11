@@ -67,7 +67,7 @@ export const addRoute: AddRoute = ({ verifyMiddleware, SessionMiddleware, LogMid
       });
 
     } else {
-
+      // 没有 year 则从专业结构上来读取第一层的key返回
       globalDataInstance
         .getMongoDatabase()
         .collection(CollectionName)

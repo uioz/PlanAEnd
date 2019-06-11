@@ -1,6 +1,6 @@
 import { Middleware, RequestHaveLogger } from "../types";
 import { globalDataInstance } from "../globalData";
-import { code200 } from "../controllers/public";
+import { code500 } from "../controllers/public";
 import { responseMessage } from "../code";
 
 export interface ReuqestHaveClientAccess extends RequestHaveLogger{
@@ -42,7 +42,7 @@ export const clientOpenFetchMiddleware: Middleware = (request: ReuqestHaveClient
 export const clientAccessControlMiddleware: Middleware = (request: ReuqestHaveClientAccess,response,next)=>{
 
   if(!request.clientAccess.open){
-    code200(response,responseMessage['拒绝访问']);
+    code500(response,responseMessage['拒绝访问']);
     return;
   }
 
@@ -55,7 +55,7 @@ export const clientAccessControlMiddleware: Middleware = (request: ReuqestHaveCl
   if(UnixTime >= request.clientAccess.openTimeRange.startTime && UnixTime <= request.clientAccess.openTimeRange.endTime){
     return next();
   }else{
-    code200(response, responseMessage['拒绝访问']);
+    code500(response, responseMessage['拒绝访问']);
     return;
   }
 

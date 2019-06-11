@@ -203,7 +203,7 @@ export const addRoute: AddRoute = ({ LogMiddleware }, globalDataInstance) => {
           responseAndTypeAuth(response, {
             stateCode: 200,
             message: '',
-            data: updateResult.result.nModified // 如果修改数为 0 返回false 反之返回 true
+            data: updateResult.result.nModified || false // 如果修改数为 0 返回false 反之返回 true
           });
 
         })

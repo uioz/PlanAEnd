@@ -4,9 +4,7 @@ import * as multer from "multer";
 import { checkSourceData, ParseOptions, getDefaultSheets, WriteOptions, transformLevelToArray, getLevelIndexs, correctSpeciality } from "planaend-source";
 import { Logger } from "log4js";
 import { read as XlsxRead, utils as XlsxUtils, write as XlsxWrite } from "xlsx";
-import { writeOfSource } from "../model/collectionWrite";
 import { globalDataInstance } from "../globalData";
-import { InsertWriteOpResult } from "mongodb";
 import { code500, logger500, responseAndTypeAuth, code400 } from "./public";
 import { GetUserI } from "../helper/user";
 
@@ -71,9 +69,11 @@ export const correctQuery = async (request: RequestHaveLogger) => {
 
   const result = await GetUserI().getInfo(userid);
 
+  // 如果管理范围长度为0 表示控制所有区域, 返回空的 query 对象
   if (result.controlarea.length === 0) {
     return {};
   } else {
+    // 反之使用 controlarea 进行过滤
     return { speciality: { $in: result.controlarea } }
   }
 
@@ -93,11 +93,11 @@ export const MiddlewaresOfGet: Array<Middleware> = [(request: RequestHaveLogger,
       query = await correctQuery(request),
       resultArray = [];
 
-    
+
     collection.find(query, {
       projection: {
         _id: false,
-        specialityPath:false
+        specialityPath: false
       }
     }).forEach(itemObj => resultArray.push(itemObj), () => {
       if (resultArray.length) {
@@ -168,56 +168,49 @@ export const MiddlewaresOfPost: Array<Middleware | ErrorMiddleware> = [Multer.si
       // 数组化工作表
       const arrayizeWorkSheet = transformLevelToArray(XlsxUtils.sheet_to_json(workSheet), getLevelIndexs(workSheet));
 
-      let jsonizeSourceData;
+      // 获取专业模型结构上的第一层键
+      let modelKeys = Object.keys(await globalDataInstance.getMongoDatabase().collection('model_speciality').findOne({}, {
+          projection: {
+            _id: false
+          }
+        }));
 
-      if(superUser){
-
-        jsonizeSourceData = arrayizeWorkSheet;
-
-      }else{
-
-        const result = await GetUserI().getInfo(userid);
-
-        if(result.controlarea.length === 0){
-
-          jsonizeSourceData = arrayizeWorkSheet;
-
-        }else{
-          // TODO  利用专业字段进行过滤数据 测试
-          jsonizeSourceData = correctSpeciality(arrayizeWorkSheet,result.controlarea);
-
-        }
-
+      // 如果是超级用户可以忽略 controlarea
+      // 如何可以是可以管理所有专业的管理员 concat 不会拼接任何内容到数组中去
+      if(!superUser){
+        modelKeys = modelKeys.concat((await GetUserI().getInfo(userid))['controlarea']);
       }
-      
+
+      let filteredData = correctSpeciality(arrayizeWorkSheet, modelKeys);
+
       const collection = globalDataInstance.getMongoDatabase().collection(DatabasePrefixName + year);
 
       // 建立索引 重复建立没有问题
       await collection.createIndex({
-        number:1
-      },{
-        unique:true
-      });
+        number: 1
+      }, {
+          unique: true
+        });
 
-      await collection.insertMany(jsonizeSourceData,{ordered:false});
+      await collection.insertMany(filteredData, { ordered: false });
 
       responseAndTypeAuth(response, {
         stateCode: 200,
         data: {
           total: arrayizeWorkSheet.length,
-          real: jsonizeSourceData.length
+          real: filteredData.length
         },
         message: responseMessage['数据上传成功']
       });
 
-    }else{
+    } else {
       return code400(response);
     }
 
   })()
-  .catch(error=>{
-    logger500(request.logger,undefined,SystemErrorCode['错误:数据库回调异常'],error);
-    return code500(response);
-  });
+    .catch(error => {
+      logger500(request.logger, undefined, SystemErrorCode['错误:数据库回调异常'], error);
+      return code500(response);
+    });
 
 }];
