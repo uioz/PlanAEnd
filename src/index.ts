@@ -7,6 +7,7 @@ import {
     initLog4js,
     toRebuildCollectionUseConfigs,
     toSetSuperUserIdOfGlobalData,
+    rebuildIndex,
     userModelHelper
 } from "./init/init"
 import { timeRecord } from "./utils/timeRecord";
@@ -75,6 +76,8 @@ export default async function (Cwd: string) {
     await toRebuildCollectionUseConfigs(globalDataInstance, configs);
 
     await toSetSuperUserIdOfGlobalData(globalDataInstance);
+
+    await rebuildIndex(globalDataInstance);
 
     userModelHelper(globalDataInstance);
 

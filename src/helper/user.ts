@@ -1,6 +1,8 @@
 import { Collection, ObjectID } from "mongodb";
 import { ParsedSession } from "../types";
 
+type UserStructure = Required<ParsedSession>;
+
 abstract class BaseUser {
 
   protected userId: string;
@@ -76,7 +78,7 @@ export class GetUser extends BaseUser {
 
     const result = await this.collection.findOne(
       {
-        _id:new ObjectID(userId)
+        _id: new ObjectID(userId)
       },
       {
         projection
@@ -84,7 +86,7 @@ export class GetUser extends BaseUser {
     );
 
     // 将数据库中的 _id 转为 userid
-    result.userid = result._id+'';
+    result.userid = result._id + '';
     delete result._id;
 
     this.userInfo = result;
@@ -124,10 +126,10 @@ export function GetUserI(userId?: string, collection?: Collection) {
 
 }
 
-async function userExist(collection: Collection, userId: string) {
-  return !!(await collection.findOne({
+function userExist(collection: Collection, userId: string): Promise<UserStructure>{
+  return collection.findOne({
     _id: new ObjectID(userId)
-  }));
+  });
 }
 
 /**
@@ -138,7 +140,7 @@ async function userExist(collection: Collection, userId: string) {
  * @param collection 用户信息所在的集合
  * @param data 要更新的数据
  */
-export async function setUser(collection: Collection, data: ParsedSession) {
+export async function setUser(collection: Collection, data: ParsedSession): Promise<UserStructure|false> {
 
   const
     padding: ParsedSession = {
@@ -149,19 +151,37 @@ export async function setUser(collection: Collection, data: ParsedSession) {
     },
     { userid: userId, ...rest } = data;
 
-  if (await userExist(collection, userId)) {
+  const userInfo = await userExist(collection, userId);
 
-    return collection.updateOne({
+  if (!!userInfo) {
+
+    const updateResult = await collection.updateOne({
       _id: new ObjectID(userId)
     }, {
-      $set:{
-        ...rest
-      }
-    })
+        $set: {
+          ...rest
+        }
+      });
 
-  } else if (rest.account && rest.password && rest.nickname) {
+    
+    if(updateResult.modifiedCount){ // 如果修改了内容返回用户信息
+      return userInfo;
+    }else{
+      return false;
+    }
 
-    return collection.insertOne(Object.assign(padding, rest))
+  } else if (rest.account && rest.password && rest.nickname) { // 没有 userid 则视为创建用户
+
+    const newUserData: UserStructure = Object.assign(padding, rest) as any
+
+    const insertedResult = await collection.insertOne(newUserData);
+
+    if (insertedResult.insertedCount){
+      return newUserData;
+    }else{
+      return false;
+    }
+
 
   } else {
     throw new Error(`Data must have filed of account if it Non-existent in collection`)

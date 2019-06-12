@@ -108,20 +108,21 @@ export const addRoute:AddRoute = ({LogMiddleware,SessionMiddleware,verifyMiddlew
     }
 
     const data = {};
-    
-    if(requestBody.clientName){
+
+    // 避免空串返回false
+    if(typeof requestBody.clientName === 'string'){
       data['appname.client'] = requestBody.clientName;
     }
 
-    if(requestBody.systemName){
+    if(typeof requestBody.systemName === 'string'){
       data['appname.server'] = requestBody.systemName;
     }
 
-    if(requestBody.clientMessage){
+    if(typeof requestBody.clientMessage === 'string'){
       data['globalnotice.client'] = requestBody.clientMessage;
     }
 
-    if(requestBody.systemMessage){
+    if(typeof requestBody.systemMessage === 'string'){
       data['globalnotice.server'] = requestBody.systemMessage;
     }
 

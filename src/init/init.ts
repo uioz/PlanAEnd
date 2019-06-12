@@ -14,7 +14,7 @@ import { GetUserI, } from "../helper/user";
  * }
  * @param configsDirectory 静态配置文件暂存的目录
  */
-export async function getAllConfig(configsDirectory: string): Promise<configTree>{
+export async function getAllConfig(configsDirectory: string): Promise<configTree> {
 
   const configTree = {};
 
@@ -34,8 +34,8 @@ export async function getAllConfig(configsDirectory: string): Promise<configTree
  * @param collectionName 集合名称
  */
 export async function colletionIsExist(database: Db, collectionName: string) {
-  for (const { name } of await database.listCollections({}, { nameOnly: true }).toArray()){
-    if(collectionName === name){
+  for (const { name } of await database.listCollections({}, { nameOnly: true }).toArray()) {
+    if (collectionName === name) {
       return true;
     }
   }
@@ -52,7 +52,7 @@ export async function colletionIsExist(database: Db, collectionName: string) {
  * @param globalData 全局共用的实例
  * @param config 由多个静态配置组成的配置文件
  */
-export async function toRebuildCollectionUseConfigs(globalData:GlobalData,configs: object) {
+export async function toRebuildCollectionUseConfigs(globalData: GlobalData, configs: object) {
 
   globalData.getLogger().info('init database start.');
 
@@ -60,7 +60,7 @@ export async function toRebuildCollectionUseConfigs(globalData:GlobalData,config
     database = globalData.getMongoDatabase(),
     mode = globalData.mode;
 
-  let 
+  let
     configKeys = Object.keys(configs),
     configListForRebuild = [];
 
@@ -68,8 +68,8 @@ export async function toRebuildCollectionUseConfigs(globalData:GlobalData,config
   if (mode === 'production') {
     // 待测试分支
     for (const collectionName of configKeys) {
-      
-      if(!colletionIsExist(database,collectionName)){
+
+      if (!colletionIsExist(database, collectionName)) {
         configListForRebuild.push(collectionName);
       }
 
@@ -86,19 +86,19 @@ export async function toRebuildCollectionUseConfigs(globalData:GlobalData,config
   for (const collectionName of configListForRebuild) {
 
     const IsExist = await colletionIsExist(database, collectionName);
-    globalData.getLogger().info(collectionName,'IsExist->', IsExist);
+    globalData.getLogger().info(collectionName, 'IsExist->', IsExist);
 
-    if (IsExist){
+    if (IsExist) {
       await database.dropCollection(collectionName);
       globalData.getLogger().info('drop->', collectionName);
     }
 
     globalData.getLogger().info('rebuild->', collectionName);
-    if(Array.isArray(configs[collectionName])){
-      await database.collection(collectionName).insertMany(configs[collectionName],{
-        ordered:false
+    if (Array.isArray(configs[collectionName])) {
+      await database.collection(collectionName).insertMany(configs[collectionName], {
+        ordered: false
       });
-    }else{
+    } else {
       await database.collection(collectionName).insertOne(configs[collectionName]);
     }
 
@@ -114,7 +114,7 @@ export async function toRebuildCollectionUseConfigs(globalData:GlobalData,config
  * **注意**:调用本函数之前, globalData 必须已经导入了 log4js 实例. 
  * @param globalData 全局共用对象
  */
-export function initLog4js(globalData:GlobalData) {
+export function initLog4js(globalData: GlobalData) {
 
   // 创建 log4js 实例, 并且挂载到全局对象上
   const Log = log4js.configure(globalData.getConfig('log_static'));
@@ -122,9 +122,9 @@ export function initLog4js(globalData:GlobalData) {
 
   let logger;
 
-  if (globalData.mode === 'production'){
+  if (globalData.mode === 'production') {
     logger = Log.getLogger('production');
-  }else{ // === development
+  } else { // === development
     logger = Log.getLogger('developmentOnlySystem');
   }
 
@@ -138,7 +138,7 @@ export function initLog4js(globalData:GlobalData) {
  * 将超级管理员账户读取到全局变量中保存,为后面鉴权使用
  * @param globalData 全局共用对象
  */
-export async function toSetSuperUserIdOfGlobalData(globalData:GlobalData) {
+export async function toSetSuperUserIdOfGlobalData(globalData: GlobalData) {
 
   const database = globalData.getMongoDatabase();
 
@@ -146,9 +146,9 @@ export async function toSetSuperUserIdOfGlobalData(globalData:GlobalData) {
     level: 0
   });
 
-  if(result){
-    globalData.setSuperUserId(result._id+'');
-    return ;
+  if (result) {
+    globalData.setSuperUserId(result._id + '');
+    return;
   }
 
   throw new Error(`Can't find _id of superUser, please check your static config which named model_users !`);
@@ -159,6 +159,39 @@ export async function toSetSuperUserIdOfGlobalData(globalData:GlobalData) {
  * 初始化全局单例用户帮助类
  * @param globalData 全局共用对象
  */
-export function userModelHelper (globalData:GlobalData) {
+export function userModelHelper(globalData: GlobalData) {
   GetUserI().setCollection(globalData.getMongoDatabase().collection('model_users'));
+}
+
+/**
+ * 给需要建立索引的集合进行索引重建
+ * @param globalData 全局共用对象
+ */
+export async function rebuildIndex(globalData: GlobalData) {
+
+  const
+    database = globalData.getMongoDatabase();
+
+  const collectionNames: Array<string> = (await database.listCollections().toArray()).map(({ name }) => name);
+
+  const
+    classOfSourceEveryYear = collectionNames.filter(name => name.indexOf('source_') !== -1), // 保存各个年份的源数据集合名称
+    haveUserColleciton = (collectionNames.indexOf('model_users') !== -1); // 是否存在用户集合
+
+  // 针对考号建立唯一索引
+  for (const collectionName of classOfSourceEveryYear) {
+
+    await database.collection(collectionName).createIndex('number',{
+      unique:true
+    });
+
+  }
+
+  // 针对用户账户建立唯一索引
+  if(haveUserColleciton){
+    await database.collection('model_users').createIndex('account',{
+      unique:true
+    });
+  }
+
 }

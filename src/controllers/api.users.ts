@@ -5,10 +5,9 @@ import { responseAndTypeAuth, code500, logger500, logger400, code400, code200 } 
 import { JSONParser } from "../middleware/jsonparser";
 import * as apiCheck from "api-check";
 import { SystemErrorCode, responseMessage } from "../code";
-import { globalDataInstance } from "../globalData";
 import * as sha1 from "sha1";
-import { setInfoToSession } from "../helper/session";
-import { GetUserI, setUser } from "../helper/user";
+import { setUser } from "../helper/user";
+import { ObjectID } from "mongodb";
 
 /**
  * 该接口描述了POST请求用户传递内容数据的类型
@@ -51,28 +50,28 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMid
     userLevelCode = LevelCode.managementIndex.toString(),
     verify = verifyMiddleware(userLevelCode);
 
+  const IdToUserid = ({ _id, ...rest }) => ({
+    userid: _id,
+    ...rest
+  });
+
   router.get('/api/users', SessionMiddleware, LogMiddleware, verify, (request: RequestHaveLogger, response) => {
 
-    // 不会显示超级管理员的信息
     collection.find({
       level: {
-        $ne: 0
+        $ne: 0 // 不会显示超级管理员的信息
       }
     }, {
         projection: {
-          password: false,
+          password: false, // 隐藏敏感信息
           lastlogintime: false
         },
       })
       .toArray()
       .then(result => {
 
-        const formated = result.map(({ _id, ...rest})=>{
-          return {
-            userid:_id,
-            ...rest
-          }
-        });
+        // 将 _id 转为 userId
+        const formated = result.map(IdToUserid);
 
         responseAndTypeAuth(response, {
           stateCode: 200,
@@ -150,7 +149,25 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMid
 
 
       setUser(collection, request.body as PostShape)
-        .then(() => code200(response))
+        .then((userInfo) => {
+
+          if(userInfo){ // 修改用户, 增加用户成功
+
+            const transformedUserInfo = IdToUserid(userInfo as any) as any;
+
+            delete transformedUserInfo.lastlogintime; // 移除敏感信息
+            delete transformedUserInfo.password;
+  
+            responseAndTypeAuth(response,{
+              stateCode:200,
+              message:'',
+              data:transformedUserInfo
+            });
+          }else{
+            code500(response,responseMessage['操作失败']);
+          }
+
+        })
         .catch((error) => {
           logger500(request.logger, request.body, undefined, error);
           return code500(response);
@@ -194,7 +211,7 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMid
       const { userid } = request.params;
 
       collection.deleteMany({
-        _id: userid
+        _id: new ObjectID(userid)
       }).then(deleteResult => {
 
         if (deleteResult.deletedCount > 0) {
@@ -202,7 +219,7 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMid
         }
 
         return responseAndTypeAuth(response, {
-          stateCode: 200,
+          stateCode: 500,
           message: responseMessage['错误:暂无数据'],
         });
 
