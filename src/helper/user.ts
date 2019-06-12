@@ -146,7 +146,7 @@ export async function setUser(collection: Collection, data: ParsedSession): Prom
     padding: ParsedSession = {
       controlarea: [],
       level: 63,
-      levelcoderaw: '0111111',
+      levelcoderaw: '1111111',
       lastlogintime: Date.now(),
     },
     { userid: userId, ...rest } = data;
@@ -161,11 +161,11 @@ export async function setUser(collection: Collection, data: ParsedSession): Prom
         $set: {
           ...rest
         }
-      });
+      })
 
     
     if(updateResult.modifiedCount){ // 如果修改了内容返回用户信息
-      return userInfo;
+      return Object.assign(userInfo,rest); // 将新的信息合并到旧的数据上
     }else{
       return false;
     }

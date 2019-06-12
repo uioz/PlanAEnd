@@ -60,6 +60,9 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMid
     collection.find({
       level: {
         $ne: 0 // 不会显示超级管理员的信息
+      },
+      _id:{
+        $ne:new ObjectID(request.session.userid) // 不显示自己的信息
       }
     }, {
         projection: {
@@ -96,7 +99,8 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMid
     userid: apiCheck.string.optional,
     account: apiCheck.string.optional,
     nickname: apiCheck.string.optional,
-    level: apiCheck.range(1, 63).optional,
+    level: apiCheck.range(0, 127).optional,
+    levelcoderaw:apiCheck.string.optional,
     password: apiCheck.string.optional,
     controlarea: apiCheck.arrayOf(apiCheck.string).optional
   }).strict;
@@ -215,7 +219,7 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMid
       }).then(deleteResult => {
 
         if (deleteResult.deletedCount > 0) {
-          next();
+          return next();
         }
 
         return responseAndTypeAuth(response, {

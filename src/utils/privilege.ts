@@ -105,7 +105,7 @@ export class Privilege {
         result.push(+data[keyName])
       }
 
-      return '1'+result.join('');
+      return '1'+result.join(''); // 只有管理员是 0 开头的, 而管理员的权限不需要被修改
 
     }
   }
