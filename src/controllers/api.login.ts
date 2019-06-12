@@ -11,7 +11,7 @@ import * as sha1 from "sha1";
 /**
  * 简介:
  * 该模块用于服务器管理员登陆
- * 顶级URL为/login
+ * 顶级URL为/api/login
  * 本模块导出的是模块化路由
  * 该路由下有多个路径
  */
@@ -50,7 +50,7 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware }, globalD
     Database = globalDataInstance.getMongoDatabase(),
     collection = Database.collection(CollectionName);
 
-  router.post('/login', JSONParser, SessionMiddleware, LogMiddleware,
+  router.post('/api/login', JSONParser, SessionMiddleware, LogMiddleware,
     (request: RequestHaveLogger, response) => {
 
       const

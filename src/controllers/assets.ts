@@ -38,7 +38,7 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMid
     verify = verifyMiddleware(LevelIndexOfPost);
 
   // 获取专业通知模型
-  router.get('/specialties/broadcast', SessionMiddleware, LogMiddleware,verify, (request: RequestHaveLogger, response, next) => {
+  router.get('/api/specialties/broadcast', SessionMiddleware, LogMiddleware,verify, (request: RequestHaveLogger, response, next) => {
 
     autoReadOne(collection, response, request.logger).then(({ speciality }) => {
       responseAndTypeAuth(response, {
@@ -50,8 +50,8 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMid
 
   });
 
-  // 修改通知模型
-  router.post('/specialties/broadcast', SessionMiddleware, LogMiddleware, verify, JSONParser, (request: RequestHaveLogger, response) => {
+  // 修改专业通知模型
+  router.post('/api/specialties/broadcast', SessionMiddleware, LogMiddleware, verify, JSONParser, (request: RequestHaveLogger, response) => {
 
     const
       OriginalNoticeModel = request.body,
@@ -71,60 +71,60 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMid
   });
 
   // 获取其他资源
-  router.get('/assets/:type/:key', LogMiddleware,verify, SessionMiddleware, (request: RequestHaveLogger, response, next) => {
+  // router.get('/assets/:type/:key', LogMiddleware,verify, SessionMiddleware, (request: RequestHaveLogger, response, next) => {
 
-    const { type, key } = request.params;
+  //   const { type, key } = request.params;
 
-    autoReadOne(collection, response, request.logger).then(result => {
+  //   autoReadOne(collection, response, request.logger).then(result => {
 
-      try {
-        responseAndTypeAuth(response, {
-          stateCode: 200,
-          message: result[type][key]
-        });
-      } catch (error) {
-        code500(response);
-        logger500(request.logger, request.params, SystemErrorCode['错误:匹配数据库数据失败'])
-      }
+  //     try {
+  //       responseAndTypeAuth(response, {
+  //         stateCode: 200,
+  //         message: result[type][key]
+  //       });
+  //     } catch (error) {
+  //       code500(response);
+  //       logger500(request.logger, request.params, SystemErrorCode['错误:匹配数据库数据失败'])
+  //     }
 
-    });
+  //   });
 
-  });
+  // });
 
   // 修改其他资源
-  router.post('/assets/:type/:key', SessionMiddleware, LogMiddleware, verify, JSONParser, (request: RequestHaveLogger, response, next) => {
+  // router.post('/assets/:type/:key', SessionMiddleware, LogMiddleware, verify, JSONParser, (request: RequestHaveLogger, response, next) => {
 
-    const
-      { type, key } = request.params,
-      { operation, data } = request.body;
+  //   const
+  //     { type, key } = request.params,
+  //     { operation, data } = request.body;
 
-    autoReadOne(collection, response, request.logger).then(result => {
+  //   autoReadOne(collection, response, request.logger).then(result => {
 
-      try {
+  //     try {
 
-        const UpdateOperation = deepUpdate(operation, result, data, type, key);
-        return collection.updateOne({}, UpdateOperation, {
-          upsert: true
-        });
+  //       const UpdateOperation = deepUpdate(operation, result, data, type, key);
+  //       return collection.updateOne({}, UpdateOperation, {
+  //         upsert: true
+  //       });
 
-      } catch (error) {
-        code500(response);
-        logger500(request.logger, request.params, SystemErrorCode['错误:匹配数据库数据失败']);
-      }
+  //     } catch (error) {
+  //       code500(response);
+  //       logger500(request.logger, request.params, SystemErrorCode['错误:匹配数据库数据失败']);
+  //     }
 
-    }).then((updateResult) => {
+  //   }).then((updateResult) => {
 
-      if (updateResult.result.ok) {
-        code200(response);
-      }
+  //     if (updateResult.result.ok) {
+  //       code200(response);
+  //     }
 
-    })
-      .catch((error) => {
-        code500(response);
-        logger500(request.logger, request.params, SystemErrorCode['错误:数据库写入失败'], error);
-      });
+  //   })
+  //     .catch((error) => {
+  //       code500(response);
+  //       logger500(request.logger, request.params, SystemErrorCode['错误:数据库写入失败'], error);
+  //     });
 
-  });
+  // });
 
   return router;
 }

@@ -18,7 +18,7 @@ import { readUserList } from "../model/collectionRead";
 /**
  * 本模块对应的URL地址
  */
-export const URL = '/model';
+export const URL = '/api/model';
 /**
  * GET 对应的权限下标(不需要权限,但是需要登录)
  */

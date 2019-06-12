@@ -39,7 +39,7 @@ const Multer = multer({
 /**
  * 本模块对应的URL地址
  */
-export const URL = '/source/:year';
+export const URL = '/api/source/:year';
 /**
  * GET下对应的权限下标
  */

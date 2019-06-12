@@ -26,7 +26,7 @@ export const addRoute: AddRoute = ({ LogMiddleware, SessionMiddleware, verifyMid
   const
     router = Router();
 
-  router.get('/logout', SessionMiddleware, verifyMiddleware(LevelIndexOfGet), LogMiddleware, (request: RequestHaveLogger, response, next) => {
+  router.get('/api/logout', SessionMiddleware, verifyMiddleware(LevelIndexOfGet), LogMiddleware, (request: RequestHaveLogger, response, next) => {
 
     request.session.destroy((error) => {
       if (error) {
