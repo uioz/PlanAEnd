@@ -1,7 +1,7 @@
 import { AddRoute, RequestHaveLogger } from "../types";
 import { Router } from "express";
 import * as apiCheck from "api-check";
-import { logger400, code400, logger500, responseAndTypeAuth, code500 } from "./public";
+import { logger400, code400, logger500, responseAndTypeAuth } from "./public";
 import { responseMessage, SystemErrorCode } from "../code";
 import { JSONParser } from "../middleware/jsonparser";
 import { setInfoToSession } from "../helper/session";

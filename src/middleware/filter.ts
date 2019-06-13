@@ -22,14 +22,14 @@ export const verifyMiddleware = (level: string) => (request: RequestHaveSession,
 
     // 当运行模式是开发环境的情况下, 设置为管理员账号
     if (process.env.NODE_ENV === NODE_ENV.dev) {
-        setInfoToSession(request, {
-            userid: globalDataInstance.getSuperUserId(),
-            superUser: true
-        });
+        // setInfoToSession(request, {
+        //     userid: globalDataInstance.getSuperUserId(),
+        //     superUser: true
+        // });
         // setInfoToSession(request, {
         //     userid: "5cf875d53206cb1df4962436",
         // });
-        return next();
+        // return next();
     }
 
     // illegal access

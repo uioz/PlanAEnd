@@ -5,6 +5,7 @@ import { logger400, code400, code200, responseAndTypeAuth, logger500, code500 } 
 import { responseMessage, SystemErrorCode } from "../code";
 import { clientOpenFetchMiddleware, clientAccessControlMiddleware, ReuqestHaveClientAccess } from "../middleware/clientaccess";
 import * as Dotprop from "dot-prop";
+import { JSONParser } from "../middleware/jsonparser";
 
 export const addRoute: AddRoute = ({ LogMiddleware }, globalDataInstance) => {
 
@@ -50,7 +51,7 @@ export const addRoute: AddRoute = ({ LogMiddleware }, globalDataInstance) => {
       /**
        * 表示用户已经选择的专业名称
        */
-      picked: string;
+      picked: Array<string>;
       /**
        * 用户学号
        */
@@ -58,6 +59,14 @@ export const addRoute: AddRoute = ({ LogMiddleware }, globalDataInstance) => {
     }
   }
 
+  /**
+   * 用于判断学生是否存在于数据库中中间件,
+   * 如果学生存在则会将学生信息挂载到 request.studentInfo 上
+   * 如果学生不存在则会响应 500 错误
+   * @param request 
+   * @param response 
+   * @param next 
+   */
   const studentIsExistMiddleware: Middleware = (request: StudentIsExist, response, next) => {
 
     (async function (request, query, studenCollection) {
@@ -72,7 +81,7 @@ export const addRoute: AddRoute = ({ LogMiddleware }, globalDataInstance) => {
 
       const { name, number } = request.query;
 
-      const result = await studenCollection.findOne({name,number}, {
+      const result = await studenCollection.findOne({ name, number }, {
         projection: {
           _id: false
         }
@@ -83,7 +92,7 @@ export const addRoute: AddRoute = ({ LogMiddleware }, globalDataInstance) => {
         return next();
       }
 
-      code200(response, responseMessage['错误:用户不存在']);
+      code500(response, responseMessage['错误:用户不存在']);
 
     })(request, request.query, studentCollection);
 
@@ -105,7 +114,7 @@ export const addRoute: AddRoute = ({ LogMiddleware }, globalDataInstance) => {
         responseAndTypeAuth(response, {
           stateCode: 200,
           message: '',
-          data: Dotprop.get(specialityModel, request.studentInfo.specialityPath.join('.'),specialityModel)
+          data: Dotprop.get(specialityModel, request.studentInfo.specialityPath.join('.'), specialityModel)
         });
 
       })(modelCollection)
@@ -156,15 +165,15 @@ export const addRoute: AddRoute = ({ LogMiddleware }, globalDataInstance) => {
 
     });
 
-  const QueryShapeForPost = apiCheck.shape({
+  const ParamsShapeForPost = apiCheck.shape({
     number: apiCheck.string,
     name: apiCheck.string,
-    picked: apiCheck.string.optional // only work on post
+    picked: apiCheck.arrayOf(apiCheck.string) // only work on post
   });
 
   const postShapeCheckMiddleware: Middleware = (request, response, next) => {
 
-    const checkedResult = QueryShapeForPost(request.query);
+    const checkedResult = ParamsShapeForPost(request.body);
 
     if (checkedResult instanceof Error) {
 
@@ -183,13 +192,13 @@ export const addRoute: AddRoute = ({ LogMiddleware }, globalDataInstance) => {
    */
   router.post('/api/student/result',
     LogMiddleware,
-    postShapeCheckMiddleware,
-    clientOpenFetchMiddleware,
-    clientAccessControlMiddleware,
-    studentIsExistMiddleware,
+    JSONParser,
+    postShapeCheckMiddleware, // 结构验证
+    clientOpenFetchMiddleware, // 开放中间件
+    clientAccessControlMiddleware, // 访问控制中间件
     (request: ReuqestHaveClientAccess & StudentIsExist, response) => {
 
-      const { number, picked } = request.query as QueryShape;
+      const { number, picked } = request.body as QueryShape;
 
       studentCollection.updateOne({
         number
@@ -200,12 +209,15 @@ export const addRoute: AddRoute = ({ LogMiddleware }, globalDataInstance) => {
         })
         .then(updateResult => {
 
-          responseAndTypeAuth(response, {
-            stateCode: 200,
-            message: '',
-            data: updateResult.result.nModified || false // 如果修改数为 0 返回false 反之返回 true
-          });
-
+          if (updateResult.matchedCount > 0) {
+            responseAndTypeAuth(response, {
+              stateCode: 200,
+              message: '',
+              data: updateResult.result.nModified || false // 如果修改数为 0 返回false 反之返回 true
+            });
+          } else {
+            code500(response, responseMessage['错误:用户不存在']);
+          }
         })
         .catch(error => {
           code500(response);

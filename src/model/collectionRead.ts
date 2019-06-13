@@ -7,22 +7,22 @@ import { hidden_id } from "./utils";
  * @param collection 集合对象
  */
 export const collectionReadAll = (collection: Collection): Promise<Array<any>> => new Promise((resolve, reject) => {
-    const
-        cursor = collection.find({}, hidden_id),
-        buffers = [];
+  const
+    cursor = collection.find({}, hidden_id),
+    buffers = [];
 
-    cursor.on('data', (chunk) => buffers.push(chunk));
-    cursor.on('end', () => {
+  cursor.on('data', (chunk) => buffers.push(chunk));
+  cursor.on('end', () => {
 
-        cursor.close().catch((error) => {
-            throw error;
-        });
-        // 震惊,MongoDB流返回的居然不是Buffer而是已经格式化好的数据
-        return resolve(buffers);
-        // resolve(Buffer.concat(buffers));
-
+    cursor.close().catch((error) => {
+      throw error;
     });
-    cursor.on('error', (error) => reject(error));
+    // 震惊,MongoDB流返回的居然不是Buffer而是已经格式化好的数据
+    return resolve(buffers);
+    // resolve(Buffer.concat(buffers));
+
+  });
+  cursor.on('error', (error) => reject(error));
 
 });
 
@@ -35,11 +35,11 @@ export const collectionReadAll = (collection: Collection): Promise<Array<any>> =
  */
 export async function collectionReadAllIfHave(collection: Collection) {
 
-    if (await collection.find().limit(1).hasNext()) {
-        return await collectionReadAll(collection);
-    }
+  if (await collection.find().limit(1).hasNext()) {
+    return await collectionReadAll(collection);
+  }
 
-    return false;
+  return false;
 
 }
 
@@ -62,27 +62,27 @@ export async function collectionReadAllIfHave(collection: Collection) {
  */
 export async function readOfRange(collection: Collection, start: number = 0, end: number = 0, gteNumber?: any, sortKey?: string, ): Promise<Array<any>> {
 
-    if (start === 0 && end === 0) {
-        return await collection.find({}, hidden_id).toArray();
-    }
+  if (start === 0 && end === 0) {
+    return await collection.find({}, hidden_id).toArray();
+  }
 
-    if (end > start) {
+  if (end > start) {
 
-        if (sortKey) {
-            return await collection.find({
-                [sortKey]: {
-                    $gte: gteNumber
-                }
-            }, hidden_id).sort({
-                [sortKey]: 1
-            }).limit(start - end).toArray();
+    if (sortKey) {
+      return await collection.find({
+        [sortKey]: {
+          $gte: gteNumber
         }
-
-        return await collection.find({}, hidden_id).skip(start).limit(start - end).toArray();
-
-    } else {
-        throw new Error("End number must be greater start number!")
+      }, hidden_id).sort({
+        [sortKey]: 1
+      }).limit(start - end).toArray();
     }
+
+    return await collection.find({}, hidden_id).skip(start).limit(start - end).toArray();
+
+  } else {
+    throw new Error("End number must be greater start number!")
+  }
 
 }
 
@@ -96,11 +96,11 @@ export async function readOfRange(collection: Collection, start: number = 0, end
  * @param sortObj 排序对象
  */
 export async function readOfRangeEasy(collection: Collection, start: number, end: number, sortObj: object = {}): Promise<Array<any>> {
-    if (end > start) {
-        return await collection.find({}, { projection: { _id: false } }).sort(sortObj).skip(start).limit(end - start).toArray();
-    } else {
-        throw new Error("End number must be greater start number!");
-    }
+  if (end > start) {
+    return await collection.find({}, { projection: { _id: false } }).sort(sortObj).skip(start).limit(end - start).toArray();
+  } else {
+    throw new Error("End number must be greater start number!");
+  }
 }
 
 /**
@@ -108,11 +108,11 @@ export async function readOfRangeEasy(collection: Collection, start: number, end
  * @param collection 集合对象
  */
 export async function readUserList(collection: Collection) {
-    return await collection.find({
-        level: {
-            $ne: 0
-        }
-    }, hidden_id).toArray();
+  return await collection.find({
+    level: {
+      $ne: 0
+    }
+  }, hidden_id).toArray();
 }
 
 /**
@@ -120,31 +120,31 @@ export async function readUserList(collection: Collection) {
  * @param collection 集合对象
  */
 export async function readOne(collection: Collection, filter: FilterQuery<never> = {}) {
-    return await collection.findOne(filter, hidden_id);
+  return await collection.findOne(filter, hidden_id);
 }
 
 
 interface ApiStateShape {
-    /**
-     * 管理员昵称
-     */
-    nickname: string;
-    /**
-     * 上次登录时间
-     */
-    lastLoginTime: string;
-    /**
-     * 客户端开放时间
-     */
-    startTime: string;
-    /**
-     * 客户端结束时间
-     */
-    endTime: string;
-    /**
-     * 服务器已经运行毫秒数
-     */
-    runingTime: number;
+  /**
+   * 管理员昵称
+   */
+  nickname: string;
+  /**
+   * 上次登录时间
+   */
+  lastLoginTime: string;
+  /**
+   * 客户端开放时间
+   */
+  startTime: string;
+  /**
+   * 客户端结束时间
+   */
+  endTime: string;
+  /**
+   * 服务器已经运行毫秒数
+   */
+  runingTime: number;
 }
 
 /**
@@ -155,61 +155,61 @@ interface ApiStateShape {
  */
 export async function readOfApiState(collectionOfConfig: Collection, CollectionOfUsers: Collection, account: string): Promise<ApiStateShape> {
 
-    const config = await readOne(collectionOfConfig);
-    const user = await CollectionOfUsers.findOne({ account }, hidden_id);
+  const config = await readOne(collectionOfConfig);
+  const user = await CollectionOfUsers.findOne({ account }, hidden_id);
 
-    return {
-        nickname:user['nickname'],
-        lastLoginTime:user['lastlogintime'],
-        startTime:config['client']['openTimeRange']['startTime'],
-        endTime:config['client']['openTimeRange']['endTime'],
-        runingTime:Date.now() - config['server']['lastTime'],
-    }
+  return {
+    nickname: user['nickname'],
+    lastLoginTime: user['lastlogintime'],
+    startTime: config['client']['openTimeRange']['startTime'],
+    endTime: config['client']['openTimeRange']['endTime'],
+    runingTime: Date.now() - config['server']['lastTime'],
+  }
 
 }
 
 
 interface ApiServerBaseShape {
-    /**
-     * 全局通知
-     */
-    notice:string;
-    /**
-     * 服务器静态文件地址
-     */
-    public:string;
-    /**
-     * 应用程序名称
-     */
-    appname:string;
-    /**
-     * 名牌标志
-     */
-    brand:string;
-    /**
-     * logo
-     */
-    logo:string;
-    /**
-     * 背景图片
-     */
-    bg:string;
+  /**
+   * 全局通知
+   */
+  notice: string;
+  /**
+   * 服务器静态文件地址
+   */
+  public: string;
+  /**
+   * 应用程序名称
+   */
+  appname: string;
+  /**
+   * 名牌标志
+   */
+  brand: string;
+  /**
+   * logo
+   */
+  logo: string;
+  /**
+   * 背景图片
+   */
+  bg: string;
 }
 
 /**
  * 用于api/server/base的数据获取
  * @param collection 集合对象
  */
-export async function readOfApiServerBase(collection:Collection):Promise<ApiServerBaseShape> {
-    const assets = await readOne(collection);
-    return {
-        appname: assets['appname']['server'],
-        notice: assets['globalnotcie']['server'],
-        brand:assets['image']['brand'],
-        logo:assets['image']['logo'],
-        bg: assets['image']['clientbackground'],
-        public:assets['publicpath']
-    }
+export async function readOfApiServerBase(collection: Collection): Promise<ApiServerBaseShape> {
+  const assets = await readOne(collection);
+  return {
+    appname: assets['appname']['server'],
+    notice: assets['globalnotcie']['server'],
+    brand: assets['image']['brand'],
+    logo: assets['image']['logo'],
+    bg: assets['image']['clientbackground'],
+    public: assets['publicpath']
+  }
 }
 
 /**
@@ -217,13 +217,25 @@ export async function readOfApiServerBase(collection:Collection):Promise<ApiServ
  * @param collection 集合对象
  */
 export async function readOfApiClientBase(collection: Collection): Promise<ApiServerBaseShape> {
-    const assets = await readOne(collection);
-    return {
-        appname: assets['appname']['client'],
-        notice: assets['globalnotcie']['client'],
-        brand: assets['image']['brand'],
-        logo: assets['image']['logo'],
-        bg: assets['image']['clientbackground'],
-        public:assets['publicpath']
-    }
+  const assets = await readOne(collection);
+  return {
+    appname: assets['appname']['client'],
+    notice: assets['globalnotcie']['client'],
+    brand: assets['image']['brand'],
+    logo: assets['image']['logo'],
+    bg: assets['image']['clientbackground'],
+    public: assets['publicpath']
+  }
 }
+
+/**
+ * 获取配置文件中的第一层键名组成的数组
+ * @param collection 
+ */
+export async function getConfigKeys(collection: Collection):Promise<Array<string>>{
+  return Object.keys(await collection.findOne({}, {
+    projection: {
+      _id: false
+    }
+  }));
+} 

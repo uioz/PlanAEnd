@@ -61,7 +61,8 @@ export const addRoute:AddRoute = ({LogMiddleware,SessionMiddleware,verifyMiddlew
     colletion = globalData.getMongoDatabase().collection(collectionName),
     assetsLevelCode = LevelCode.StaticMessageIndex.toString(),
     verify = verifyMiddleware(assetsLevelCode);
-    
+  
+  // 获取服务器公开信息
   router.get('/api/assets', LogMiddleware, (request: RequestHaveLogger,response)=>{
 
     colletion.findOne({},{

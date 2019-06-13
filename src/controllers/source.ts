@@ -7,7 +7,8 @@ import { read as XlsxRead, utils as XlsxUtils, write as XlsxWrite } from "xlsx";
 import { globalDataInstance } from "../globalData";
 import { code500, logger500, responseAndTypeAuth, code400 } from "./public";
 import { GetUserI } from "../helper/user";
-
+import { getConfigKeys } from "../model/collectionRead";
+import { controlAreaMiddleware } from "../middleware/controlarea";
 
 /**
  * 说明:
@@ -55,56 +56,41 @@ export const LevelIndexOfPost = LevelCode.UploadIndex.toString();
 export const DatabasePrefixName = 'source_';
 
 /**
- * 利用 request.session 中提供的数据获取对应的query对象
- * @param request request
- */
-export const correctQuery = async (request: RequestHaveLogger) => {
-
-  const
-    { userid, superUser } = request.session;
-
-  if (superUser) {
-    return {};
-  }
-
-  const result = await GetUserI().getInfo(userid);
-
-  // 如果管理范围长度为0 表示控制所有区域, 返回空的 query 对象
-  if (result.controlarea.length === 0) {
-    return {};
-  } else {
-    // 反之使用 controlarea 进行过滤
-    return { speciality: { $in: result.controlarea } }
-  }
-
-}
-
-/**
  * GET下的处理中间件
  */
-export const MiddlewaresOfGet: Array<Middleware> = [(request: RequestHaveLogger, response) => {
+export const MiddlewaresOfGet: Array<Middleware> = [controlAreaMiddleware, (request: RequestHaveLogger, response) => {
 
   (async function () {
+
+    // TODO 等待测试
 
     const
       year: string = request.params.year,
       databaseFullName = DatabasePrefixName + year,
       collection = globalDataInstance.getMongoDatabase().collection(databaseFullName),
-      query = await correctQuery(request),
       resultArray = [];
 
+    // 转为 Set 提高查找性能
+    const modelSet = new Set((request as any).controlArea);
 
-    collection.find(query, {
+    debugger;
+
+    collection.find({ speciality: { $in: (request as any).controlArea } }, {
       projection: {
         _id: false,
         specialityPath: false
       }
-    }).forEach(itemObj => resultArray.push(itemObj), () => {
+    }).forEach(item => {
+
+      // 只有符合专业结构且符合本用户控制范围的专业才可以被下载
+      if (modelSet.has(item.speciality)) {
+        resultArray.push(item);
+      }
+
+    }, () => {
       if (resultArray.length) {
 
         try {
-
-          // TODO 不同用户只能获取自身的范围的数据
 
           const workBook = XlsxUtils.book_new();
 
@@ -146,7 +132,7 @@ export const MiddlewaresOfPost: Array<Middleware | ErrorMiddleware> = [Multer.si
   // 将所有的上传失败视为一种错误
   return next(ResponseErrorCode['错误:表单上传错误']);
 
-}, (request: RequestHaveLogger, response) => {
+}, controlAreaMiddleware, (request: RequestHaveLogger, response) => {
 
   (async function () {
 
@@ -160,28 +146,14 @@ export const MiddlewaresOfPost: Array<Middleware | ErrorMiddleware> = [Multer.si
       workBook = XlsxRead(request.file.buffer, Object.assign(ParseOptions, {
         type: 'buffer'
       })),
-      workSheet = getDefaultSheets(workBook),
-      { userid, superUser } = request.session;
+      workSheet = getDefaultSheets(workBook);
 
     if (workSheet && checkSourceData(workSheet)) {
 
       // 数组化工作表
       const arrayizeWorkSheet = transformLevelToArray(XlsxUtils.sheet_to_json(workSheet), getLevelIndexs(workSheet));
 
-      // 获取专业模型结构上的第一层键
-      let modelKeys = Object.keys(await globalDataInstance.getMongoDatabase().collection('model_speciality').findOne({}, {
-          projection: {
-            _id: false
-          }
-        }));
-
-      // 如果是超级用户可以忽略 controlarea
-      // 如何可以是可以管理所有专业的管理员 concat 不会拼接任何内容到数组中去
-      if(!superUser){
-        modelKeys = modelKeys.concat((await GetUserI().getInfo(userid))['controlarea']);
-      }
-
-      let filteredData = correctSpeciality(arrayizeWorkSheet, modelKeys);
+      let filteredData = correctSpeciality(arrayizeWorkSheet, (request as any).controlArea);
 
       const collection = globalDataInstance.getMongoDatabase().collection(DatabasePrefixName + year);
 
@@ -192,7 +164,25 @@ export const MiddlewaresOfPost: Array<Middleware | ErrorMiddleware> = [Multer.si
           unique: true
         });
 
-      await collection.insertMany(filteredData, { ordered: false });
+      try {
+        await collection.insertMany(filteredData, { ordered: false });
+      } catch (error) {
+        if (error.code === 11000) {
+          responseAndTypeAuth(response, {
+            stateCode: 200,
+            data: {
+              total: arrayizeWorkSheet.length,
+              real: error.result.nInserted
+            },
+            message: responseMessage['数据上传成功']
+          });
+          return;
+        } else {
+          code500(response, responseMessage['错误:数据录入失败']);
+          logger500(request.logger, undefined, SystemErrorCode['错误:数据库回调异常'], error);
+          return;
+        }
+      }
 
       responseAndTypeAuth(response, {
         stateCode: 200,

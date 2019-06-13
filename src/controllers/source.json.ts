@@ -1,12 +1,13 @@
 import { LevelCode, SystemErrorCode } from "../code";
 import { Middleware } from "../types";
 import { globalDataInstance } from "../globalData";
-import { checkNumber, DatabasePrefixName, correctQuery } from "./source";
+import { checkNumber, DatabasePrefixName } from "./source";
 import { code400, logger500, code500 } from "./public";
 import * as JSONStream from "JSONStream";
 import * as apiCheck from "api-check";
 import { GetUserI } from "../helper/user";
 import * as JsonStreamHelper from "../helper/jsonstream";
+import { controlAreaMiddleware } from "../middleware/controlarea";
 
 /**
  * 说明:
@@ -17,7 +18,7 @@ import * as JsonStreamHelper from "../helper/jsonstream";
 /**
  * 本文件中的路由地址
  */
-export const URL = '/source/json/:year/:start/to/:end';
+export const URL = '/api/source/json/:year/:start/to/:end';
 
 /**
  * GET下对应的权限下标
@@ -104,37 +105,42 @@ const GetCheckMiddleware: Middleware = (request, response, next) => {
 
 }
 
-export const MiddlewaresOfGet: Array<Middleware> = [GetCheckMiddleware, (request, response) => {
+export const MiddlewaresOfGet: Array<Middleware> = [GetCheckMiddleware, controlAreaMiddleware, (request, response) => {
 
   (async function (params: GetParamsShape, query: GetQueryShape) {
 
     const
       { year, start, end } = params,
-      { speciality } = query;
+      { speciality } = query,
+      controlArea = (request as any).controlArea;
 
-    let filter;
+    // 获取符合自身条件的控制区域
+    let queryForMongo: object = { speciality: { $in: controlArea} };
 
+    // 如果指定了专业
     if (speciality) {
-      filter = { speciality };
-    } else {
-      filter = await correctQuery(request);
+      if (controlArea.indexOf(speciality) === -1) {
+        code400(response);
+        return;
+      }
+      queryForMongo = { speciality };
     }
 
     globalDataInstance
       .getMongoDatabase()
       .collection(DatabasePrefixName + year)
-      .find(filter,{
-        projection:{
-          _id:false
+      .find(queryForMongo, {
+        projection: {
+          _id: false
         }
       })
       .sort({
-        number:1
+        number: 1
       })
       .skip(start)
       .limit(end)
       .stream()
-      .pipe(JSONStream.stringify(JsonStreamHelper.open,JsonStreamHelper.spe,JsonStreamHelper.close))
+      .pipe(JSONStream.stringify(JsonStreamHelper.open, JsonStreamHelper.spe, JsonStreamHelper.close))
       .pipe(response.type('json'));
 
   })(request.params, request.query);
