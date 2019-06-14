@@ -62,8 +62,6 @@ export const MiddlewaresOfGet: Array<Middleware> = [controlAreaMiddleware, (requ
 
   (async function () {
 
-    // TODO 等待测试
-
     const
       year: string = request.params.year,
       databaseFullName = DatabasePrefixName + year,
@@ -72,8 +70,6 @@ export const MiddlewaresOfGet: Array<Middleware> = [controlAreaMiddleware, (requ
 
     // 转为 Set 提高查找性能
     const modelSet = new Set((request as any).controlArea);
-
-    debugger;
 
     collection.find({ speciality: { $in: (request as any).controlArea } }, {
       projection: {
@@ -84,6 +80,9 @@ export const MiddlewaresOfGet: Array<Middleware> = [controlAreaMiddleware, (requ
 
       // 只有符合专业结构且符合本用户控制范围的专业才可以被下载
       if (modelSet.has(item.speciality)) {
+        if(item.picked){
+          item.picked = item.picked.join('-');
+        }
         resultArray.push(item);
       }
 

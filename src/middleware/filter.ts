@@ -1,10 +1,11 @@
 import { Response, NextFunction } from "express";
-import { ResponseErrorCode } from "../code";
+import { ResponseErrorCode, responseMessage } from "../code";
 import { NODE_ENV, RequestHaveSession } from "../types";
 import { globalDataInstance } from "../globalData";
 import { Privilege } from "../utils/privilege";
 import { setInfoToSession } from "../helper/session";
 import { GetUserI } from "../helper/user";
+import { code400 } from "../controllers/public";
 
 
 /**
@@ -22,19 +23,16 @@ export const verifyMiddleware = (level: string) => (request: RequestHaveSession,
 
     // 当运行模式是开发环境的情况下, 设置为管理员账号
     if (process.env.NODE_ENV === NODE_ENV.dev) {
-        // setInfoToSession(request, {
-        //     userid: globalDataInstance.getSuperUserId(),
-        //     superUser: true
-        // });
-        // setInfoToSession(request, {
-        //     userid: "5cf875d53206cb1df4962436",
-        // });
-        // return next();
+        setInfoToSession(request, {
+            userid: globalDataInstance.getSuperUserId(),
+            superUser: true
+        });
+        return next();
     }
 
     // illegal access
     if (!request.session.userid) {
-        return next(ResponseErrorCode['错误:非法请求']);
+        return code400(response,responseMessage['拒绝访问']);
     }
 
     // 在此之前的初始化中已经提供了 collection
@@ -43,7 +41,7 @@ export const verifyMiddleware = (level: string) => (request: RequestHaveSession,
         if (Privilege.auth(level, result.levelcoderaw)) {
             return next();
         } else {
-            return next(ResponseErrorCode['错误:权限不足']);
+            return code400(response,responseMessage['错误:权限不足']);
         }
 
     }).catch(next);

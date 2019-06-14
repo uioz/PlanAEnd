@@ -10,7 +10,7 @@
         "port": 8888,
         "publicFilePath":"./public",
         "lastTime":0
-    },
+    },  
     "client": {
         "open": true,
         "force" :true,

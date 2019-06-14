@@ -7,7 +7,7 @@ import { AddRoute, Middleware, RequestHaveLogger } from "../types";
 import { code200, code400, code500, collectionRead, collectionWrite, logger400, logger500, responseAndTypeAuth } from "./public";
 
 const
-  LevelCodeForUrl = LevelCode.SuperUserIndex.toString(),
+  LevelCodeForUrl = LevelCode.ManagementIndex.toString(),
   CollectionName = 'configuration_static';
 
 const checkParamsMiddleware: Middleware = (request, response, next) => {
